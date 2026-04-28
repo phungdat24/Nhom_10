@@ -1,0 +1,50 @@
+/*bo goc nut bam va to mau*/
+.btn-login {
+    -fx-background-color: #d1d9e6;         /* Màu xanh xám nhạt như mẫu */
+    -fx-text-fill: #1a3a5a;               /* Màu chữ xanh đậm */
+    -fx-font-weight: bold;                /* Chữ đậm */
+    -fx-font-size: 16px;
+
+    /* BO GÓC: Chỉnh con số này bằng một nửa chiều cao nút để có hình viên thuốc */
+    -fx-background-radius: 40;
+    -fx-border-radius: 40;
+
+    -fx-padding: 10 30 10 30;             /* Tạo khoảng cách chữ với viền nút */
+    -fx-cursor: hand;                     /* Hiệu ứng bàn tay */
+}
+
+/* Hiệu ứng khi di chuột qua (Hover) */
+.btn-login:hover {
+    -fx-background-color: #b8c4d4;         /* Đổi màu đậm hơn một chút */
+}
+
+/*bo góc cho ô nhập liệu*/
+.input-field-container {
+    /* 1. Tăng độ đục của nền từ 0.2 lên 0.45 để trắng sáng hơn */
+    -fx-background-color: rgba(255, 255, 255, 0.45);
+
+    /* 2. Sử dụng màu trắng đặc cho viền để tạo sự sắc nét */
+    -fx-background-radius: 25;
+    -fx-border-radius: 25;
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 2.0; /* Tăng độ dày viền */
+
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 15 0 15;
+    -fx-min-height: 50; /* Tăng thêm một chút chiều cao cho thoáng */
+}
+/* Áp dụng cho ImageView bên trong container */
+.input-field-container .image-view {
+    -fx-background-color: transparent;
+    /* Nếu icon vẫn tối, hãy thêm hiệu ứng làm sáng này */
+    -fx-effect: dropshadow(three-pass-box, white, 5, 0, 0, 0);
+}
+/* Áp dụng cho TextField trong HBox */
+.input-field-container .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-text-fill: #FFFFFF; /* Trắng tinh */
+    -fx-prompt-text-fill: #EEEEEE; /* Chữ gợi ý sáng hơn */
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
