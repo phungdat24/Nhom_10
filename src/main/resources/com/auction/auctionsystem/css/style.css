@@ -33,7 +33,6 @@
     -fx-padding: 0 15 0 15;
     -fx-min-height: 50; /* Tăng thêm một chút chiều cao cho thoáng */
 }
-
 /* Áp dụng cho ImageView bên trong container */
 .input-field-container .image-view {
     -fx-background-color: transparent;
