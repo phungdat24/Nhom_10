@@ -48,3 +48,41 @@
     -fx-font-weight: bold;
     -fx-font-size: 16px;
 }
+
+/* 1. Thiết kế khung bao quanh vai trò */
+.role-box {
+    -fx-background-color: rgba(255, 255, 255, 0.15); /* Nền trắng mờ nhẹ */
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1.5;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s; /* Tạo hiệu ứng mượt mà */
+}
+
+/* 2. Hiệu ứng khi di chuột qua (Hover) */
+.role-box:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+    -fx-border-color: white;
+}
+
+/* 3. Tùy chỉnh cái chấm tròn của RadioButton */
+.role-box .radio-button .radio {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-border-color: white;
+    -fx-background-radius: 100; /* Làm tròn tuyệt đối */
+}
+
+/* 4. Khi RadioButton được chọn (Selected) */
+.role-box .radio-button:selected .radio .dot {
+    -fx-background-color: #d1d9e6; /* Màu xanh nhạt giống nút login của bạn */
+    -fx-background-insets: 2;
+}
+
+/* 5. Chỉnh màu chữ vai trò cho sáng lên */
+.role-box .radio-button {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
