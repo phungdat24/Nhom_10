@@ -6,8 +6,8 @@ public abstract class Items {
     private String id; // id của món hàng
     private String title; // Tên sản phẩm
     private String description; // Mô tả sản pham
-    private int startingPrice; // Gía khởi điểm
-    private int currentPrice; // Gía hiện tại
+    private double startingPrice; // Gía khởi điểm
+    private double currentPrice; // Gía hiện tại
     private LocalDateTime endTime;
     private String sellerId; // Id người đăng bán sản phẩm
     public Items(String id, String title, String sellerId  ){
@@ -25,10 +25,10 @@ public abstract class Items {
     public String getDescription() {
         return this.description;
     }
-    public int getStartingPrice() {
+    public double getStartingPrice() {
         return this.startingPrice;
     }
-    public int getCurrentPrice() {
+    public double getCurrentPrice() {
         return this.currentPrice;
     }
     public LocalDateTime getEndTime() {
@@ -47,10 +47,10 @@ public abstract class Items {
     public void setDescription(String description) {
         this.description = description;
     }
-    public void setStartingPrice(int startinngPrice) {
+    public void setStartingPrice(double startinngPrice) {
         this.startingPrice = startinngPrice;
     }
-    public void setCurrentPrice(int currentPrice) {
+    public void setCurrentPrice(double currentPrice) {
         this.currentPrice = currentPrice;
     }
     public void setEndTime(LocalDateTime endTime) {

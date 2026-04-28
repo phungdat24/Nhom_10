@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.auctionsystem.controllers.MainDashBoardController">
+<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
 
    <!-- ===== TOP: Header ===== -->
    <top>
