@@ -1,8 +1,6 @@
-module com.auction.auctionsystem {
+module com.nhomX.example{
     requires javafx.controls;
     requires javafx.fxml;
-
-
-    opens com.auction.auctionsystem to javafx.fxml;
-    exports com.auction.auctionsystem;
+    opens com.nhomX.example to javafx.fxml;
+    exports com.nhomX.example;
 }
