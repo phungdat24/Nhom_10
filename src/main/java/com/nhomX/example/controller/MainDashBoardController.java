@@ -45,7 +45,7 @@ public class MainDashBoardController implements Initializable {
     private void updateHeaderUI() {
         if (SessionManager.getInstance().isLoggedIn()) {
             // ---- Đã đăng nhập ----
-            String name = SessionManager.getInstance().getCurrentUser().getUserName();
+            String name = SessionManager.getInstance().getCurrentUser().getFullName();
             lblUsername.setText("👤  " + name);
 
             // Ẩn nút Đăng nhập
@@ -65,10 +65,6 @@ public class MainDashBoardController implements Initializable {
             userInfoBox.setManaged(false);
         }
     }
-
-    // ============================================================
-    // Header Handlers
-    // ============================================================
 
     @FXML
     void handleLogin(ActionEvent event) {
@@ -94,10 +90,6 @@ public class MainDashBoardController implements Initializable {
         System.out.println("Đã đăng xuất!");
     }
 
-    // ============================================================
-    // Sidebar Handlers
-    // ============================================================
-
     @FXML
     void handleDashboard(ActionEvent event) {
         System.out.println("Dashboard được nhấn");
@@ -122,10 +114,6 @@ public class MainDashBoardController implements Initializable {
     void handleSeller(ActionEvent event) {
         System.out.println("Seller được nhấn");
     }
-
-    // ============================================================
-    // Content Handlers
-    // ============================================================
 
     @FXML
     void handleBid(ActionEvent event) {
