@@ -1,6 +1,7 @@
 package com.nhomX.example.controller;
 
-import com.nhomX.example.repository.UserRepository;
+import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.model.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,16 +16,10 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class LoginController {
-    @FXML
-    private TextField account;
-    @FXML
-    private PasswordField password;
 
-    private UserRepository userRepository;
+    @FXML private TextField     account;
+    @FXML private PasswordField password;
 
-    public LoginController(){
-        // Chờ DB
-    }
     @FXML
     // Method khi bấm nút Login
     void login(ActionEvent event){
@@ -69,7 +64,21 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-    // 5. Hàm hiển thị thông báo (Popup)
+
+    @FXML
+    void handleRegister(ActionEvent event) {
+        try {
+            Parent root = FXMLLoader.load(
+                    getClass().getResource("/com/nhomX/example/fxml/RegisterView.fxml")
+            );
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

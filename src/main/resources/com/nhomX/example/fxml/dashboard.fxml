@@ -26,8 +26,15 @@
          <!-- Spacer -->
          <Region HBox.hgrow="ALWAYS" />
 
-         <!-- Login Button -->
-         <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập" />
+         <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
+         <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
+
+         <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
+         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" visible="false">
+            <Label fx:id="lblUsername" styleClass="username-label" text="👤  Tên người dùng" />
+            <Button fx:id="btnLogout" onAction="#handleLogout" styleClass="btn-logout" text="Đăng xuất" />
+         </HBox>
+
       </HBox>
    </top>
 
