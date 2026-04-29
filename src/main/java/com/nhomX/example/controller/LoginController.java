@@ -27,7 +27,7 @@ public class LoginController {
     }
     @FXML
     // Method khi bấm nút Login
-    void Login(ActionEvent event){
+    void login(ActionEvent event){
         String email = account.getText();
         String pass = password.getText();
         // Kiểm tra xem có trống không
@@ -37,26 +37,37 @@ public class LoginController {
         }
         if(email.equals("admin") && pass.equals("123")){
             System.out.println("Đăng nhập thành công!");
-            // Chuyển sang DashBoard
-            try{
                 goToDashboard(event);
-            }catch (IOException e) {
-                showAlert("Lỗi hệ thống!","404");
-                e.printStackTrace();
-            }
         }else{
             showAlert("Đăng nhập thất bại", "Email hoặc mật khẩu không chính xác.");
         }
     }
-    private void goToDashboard(ActionEvent event) throws IOException{
-        Parent dashboardRoot = FXMLLoader.load(getClass().getResource("/com/nhomX/example/fxml/dashboard.fxml"));
+    @FXML
+    void handleRegister(ActionEvent event){
+        try{
+            Parent registerRoot = FXMLLoader.load(getClass().getResource("/com/nhomX/example/fxml/RegisterView.fxml"));
+            Stage stage= (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(registerRoot));
+            stage.show();
+        }catch (IOException e){
+            showAlert("Lỗi hệ thống", "Không thể chuyển sang màn hình đăng ký!");
+            e.printStackTrace();
+        }
+    }
+    private void goToDashboard(ActionEvent event){
+        try {
+            Parent dashboardRoot = FXMLLoader.load(getClass().getResource("/com/nhomX/example/fxml/dashboard.fxml"));
 
-        // Lấy Stage (cửa sổ) hiện tại từ sự kiện click chuột
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            // Lấy Stage (cửa sổ) hiện tại từ sự kiện click chuột
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-        // Đặt giao diện mới vào cửa sổ và hiển thị
-        stage.setScene(new Scene(dashboardRoot));
-        stage.show();
+            // Đặt giao diện mới vào cửa sổ và hiển thị
+            stage.setScene(new Scene(dashboardRoot));
+            stage.show();
+        } catch (IOException e) {
+            showAlert("Lỗi hệ thống", "Không thể chuyển sang màn hình chính");
+            e.printStackTrace();
+        }
     }
     // 5. Hàm hiển thị thông báo (Popup)
     private void showAlert(String title, String content) {
