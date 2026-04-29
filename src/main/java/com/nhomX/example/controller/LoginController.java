@@ -21,49 +21,48 @@ public class LoginController {
     @FXML private PasswordField password;
 
     @FXML
-    void Login(ActionEvent event) {
-        String email = account.getText().trim();
-        String pass  = password.getText().trim();
-
-        // Kiểm tra trống
-        if (email.isEmpty() || pass.isEmpty()) {
-            showAlert("Lỗi!", "Vui lòng nhập đầy đủ email và mật khẩu!");
+    // Method khi bấm nút Login
+    void login(ActionEvent event){
+        String email = account.getText();
+        String pass = password.getText();
+        // Kiểm tra xem có trống không
+        if(email.isEmpty() || pass.isEmpty()){
+            showAlert("Lỗi!", "Vui lòng nhập đúng email và mật khẩu!");
             return;
         }
-
-        // ---- Tạm thời dùng tài khoản cứng để test ----
-        // (Sau này thay bằng gọi API/Server)
-        if (email.equals("admin") && pass.equals("123")) {
-
-            // 1. Lưu thông tin vào SessionManager
-            // Tạm thời tạo User giả để test — sau này thay bằng User trả về từ Server
-            User fakeUser = new User();
-            fakeUser.setUserName("Admin");
-            fakeUser.setUserId(email);
-            SessionManager.getInstance().login(fakeUser);
-
-            System.out.println("Đăng nhập thành công! Xin chào: Admin");
-
-            // 2. Chuyển về Dashboard
-            try {
+        if(email.equals("admin") && pass.equals("123")){
+            System.out.println("Đăng nhập thành công!");
                 goToDashboard(event);
-            } catch (IOException e) {
-                showAlert("Lỗi hệ thống!", "Không thể mở Dashboard.");
-                e.printStackTrace();
-            }
-
-        } else {
+        }else{
             showAlert("Đăng nhập thất bại", "Email hoặc mật khẩu không chính xác.");
         }
     }
+    @FXML
+    void handleRegister(ActionEvent event){
+        try{
+            Parent registerRoot = FXMLLoader.load(getClass().getResource("/com/nhomX/example/fxml/RegisterView.fxml"));
+            Stage stage= (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(registerRoot));
+            stage.show();
+        }catch (IOException e){
+            showAlert("Lỗi hệ thống", "Không thể chuyển sang màn hình đăng ký!");
+            e.printStackTrace();
+        }
+    }
+    private void goToDashboard(ActionEvent event){
+        try {
+            Parent dashboardRoot = FXMLLoader.load(getClass().getResource("/com/nhomX/example/fxml/dashboard.fxml"));
 
-    private void goToDashboard(ActionEvent event) throws IOException {
-        Parent root = FXMLLoader.load(
-                getClass().getResource("/com/nhomX/example/fxml/dashboard.fxml")
-        );
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.setScene(new Scene(root));
-        stage.show();
+            // Lấy Stage (cửa sổ) hiện tại từ sự kiện click chuột
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            // Đặt giao diện mới vào cửa sổ và hiển thị
+            stage.setScene(new Scene(dashboardRoot));
+            stage.show();
+        } catch (IOException e) {
+            showAlert("Lỗi hệ thống", "Không thể chuyển sang màn hình chính");
+            e.printStackTrace();
+        }
     }
 
     @FXML

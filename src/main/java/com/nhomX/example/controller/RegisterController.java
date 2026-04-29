@@ -14,6 +14,10 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class RegisterController {
+    @FXML
+    void register(ActionEvent event){
+        System.out.println("Vừa bấm nut đăng ký");
+    }
 
     @FXML private TextField     userName;   // Họ tên
     @FXML private TextField     account;    // Email
