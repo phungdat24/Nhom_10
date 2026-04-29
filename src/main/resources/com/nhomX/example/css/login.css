@@ -86,3 +86,22 @@
     -fx-font-weight: bold;
     -fx-font-size: 14px;
 }
+/* ---- Hyperlink Đăng ký / Quay lại đăng nhập ---- */
+.hyperlink-register {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 4 0 4 0;
+}
+
+.hyperlink-register:hover {
+    -fx-text-fill: #90caf9;
+    -fx-underline: true;
+}
+
+/* Giữ màu trắng sau khi click, không đổi sang tím */
+.hyperlink-register:visited {
+    -fx-text-fill: #ffffff;
+}

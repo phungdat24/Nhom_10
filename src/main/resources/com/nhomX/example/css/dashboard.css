@@ -50,6 +50,33 @@
     -fx-effect: dropshadow(gaussian, rgba(25,118,210,0.4), 8, 0, 0, 2);
 }
 
+/* ---- Username Label (hiện tên sau khi đăng nhập) ---- */
+.username-label {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-radius: 6;
+    -fx-padding: 8 14 8 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 4, 0, 0, 1);
+}
+
+/* ---- Logout Button ---- */
+.btn-logout {
+    -fx-background-color: #c62828;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 16 10 16;
+    -fx-cursor: hand;
+}
+
+.btn-logout:hover {
+    -fx-background-color: #b71c1c;
+    -fx-effect: dropshadow(gaussian, rgba(198,40,40,0.5), 8, 0, 0, 2);
+}
+
 /* ---- Sidebar ---- */
 .sidebar {
     -fx-background-color: #2b1f12;
