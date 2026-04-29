@@ -14,19 +14,12 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class RegisterController {
-    @FXML
-    void register(ActionEvent event){
-        System.out.println("Vừa bấm nut đăng ký");
-    }
 
     @FXML private TextField     userName;   // Họ tên
     @FXML private TextField     account;    // Email
     @FXML private PasswordField password;   // Mật khẩu
     @FXML private PasswordField password1;  // Xác nhận mật khẩu
 
-    // ============================================================
-    // Xử lý nút "Đăng ký"
-    // ============================================================
     @FXML
     void signUp(ActionEvent event) {
         String name     = userName.getText().trim();
@@ -36,7 +29,7 @@ public class RegisterController {
 
         // 1. Kiểm tra trống
         if (name.isEmpty() || email.isEmpty() || pass.isEmpty() || passConf.isEmpty()) {
-            showAlert("Lỗi!", "Vui lòng điền đầy đủ tất cả các trường!");
+            showAlert("Lỗi!", "Vui lòng điền đầy đủ thông tin!");
             return;
         }
 

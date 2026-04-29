@@ -50,4 +50,9 @@ public class AuctionServer {
     public void removeClient(ClientHandler client) {
         clients.remove(client);
     }
+    public static void main(String[] args){
+        AuctionServer server = new AuctionServer();
+        System.out.println("Đang khởi động Server...");
+        server.start();
+    }
 }

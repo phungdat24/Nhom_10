@@ -1,4 +1,4 @@
-package com.nhomX.example.repository;
+package com.nhomX.example.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

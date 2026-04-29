@@ -21,31 +21,19 @@ public class SessionManager {
         }
         return instance;
     }
-
-    // ============================================================
     // Đăng nhập — lưu User lấy từ Server vào session
-    // ============================================================
     public void login(User user) {
         this.currentUser = user;
     }
-
-    // ============================================================
     // Đăng xuất — xóa User khỏi session
-    // ============================================================
     public void logout() {
         this.currentUser = null;
     }
-
-    // ============================================================
     // Kiểm tra trạng thái
-    // ============================================================
     public boolean isLoggedIn() {
         return currentUser != null;
     }
-
-    // ============================================================
     // Lấy User hiện tại (trả về null nếu chưa đăng nhập)
-    // ============================================================
     public User getCurrentUser() {
         return currentUser;
     }
