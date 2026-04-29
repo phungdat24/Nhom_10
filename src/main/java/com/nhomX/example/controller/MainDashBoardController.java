@@ -1,6 +1,8 @@
 package com.nhomX.example.controller;
 
 import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.networking.AuctionServer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -31,12 +33,30 @@ public class MainDashBoardController implements Initializable {
     @FXML private Button btnProfile;
     @FXML private Button btnSeller;
 
-    // ============================================================
-    // initialize() — tự động gọi khi màn hình được load
-    // ============================================================
+    private AuctionClient auctionClient;
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         updateHeaderUI();
+        connectToAuctionServer();
+    }
+    public void connectToAuctionServer(){
+        // nếu kết nối roi thì không tạo lại nữa
+        if(auctionClient!= null){
+            return;
+        }
+        String userName="User";
+        if(SessionManager.getInstance().isLoggedIn()){
+            userName = SessionManager.getInstance().getCurrentUser().getUserName();
+        }
+        auctionClient = new AuctionClient(userName);
+        // Khởi tạo Client
+        try {
+            auctionClient.connect("localhost", 8080);
+            System.out.println("Client: [" + userName + "] đã kết nối tới Server đấu giá!");
+        }catch (Exception e){
+            System.err.println("Client: Lỗi kết nối Socket - " + e.getMessage());
+
+        }
     }
 
     // ============================================================
@@ -123,6 +143,16 @@ public class MainDashBoardController implements Initializable {
             return;
         }
         System.out.println("Đấu giá ngay được nhấn");
+        if(auctionClient!= null){
+            String testItemId = "SP_A1";
+            double testAmount = 500000.0;
+
+            // Gọi hàm của Mem 2 để bắn dữ liệu qua mạng
+            auctionClient.placeBid(testItemId, testAmount);
+            System.out.println("Client: Đã bắn dữ liệu (Item: " + testItemId + ", Giá: " + testAmount + ") lên Server.");
+        } else {
+            System.err.println("Client: Socket chưa được khởi tạo!");
+        }
     }
 
     @FXML
