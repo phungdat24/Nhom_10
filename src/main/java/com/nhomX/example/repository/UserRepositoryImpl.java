@@ -5,33 +5,32 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import com.nhomX.example.model.User;
+import com.nhomX.example.utils.DatabaseConnection;
 
 public class UserRepositoryImpl implements UserRepository {
 
-  // Lấy kết nối duy nhất từ DatabaseConnection
   private final Connection conn = DatabaseConnection.getInstance().getConnection();
 
   @Override
-  public boolean register(User user) { // Đã sửa thành boolean theo đúng Interface
+  public boolean register(User user) {
     String sql =
         "INSERT INTO users (id, username, password, fullname, balance) VALUES (?, ?, ?, ?, ?)";
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-      // Đã đổi lại tên hàm cho khớp 100% với file User.java của nhóm bạn
       pstmt.setString(1, user.getUserId());
       pstmt.setString(2, user.getUserName());
-      pstmt.setString(3, user.getPassword());
+      pstmt.setString(3, user.getPassWord());
       pstmt.setString(4, user.getFullName());
       pstmt.setDouble(5, user.getBalance());
 
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected > 0) {
         System.out.println("✅ Đã tạo tài khoản thành công cho: " + user.getUserName());
-        return true; // Trả về true nếu thêm vào DB thành công
+        return true;
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi đăng ký user: " + e.getMessage());
     }
-    return false; // Trả về false nếu có lỗi
+    return false;
   }
 
   @Override
@@ -76,7 +75,6 @@ public class UserRepositoryImpl implements UserRepository {
       pstmt.setDouble(1, newBalance);
       pstmt.setString(2, userId);
       pstmt.executeUpdate();
-      System.out.println("✅ Đã cập nhật số dư thành công!");
     } catch (SQLException e) {
       System.err.println("❌ Lỗi cập nhật số dư: " + e.getMessage());
     }

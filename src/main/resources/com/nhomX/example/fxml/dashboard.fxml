@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
+
+   <!-- ===== TOP: Header ===== -->
+   <top>
+      <HBox fx:id="header" alignment="CENTER_LEFT" spacing="16" styleClass="header">
+         <padding><Insets bottom="12" left="20" right="20" top="12" /></padding>
+
+         <!-- Search Bar -->
+         <TextField fx:id="txtSearch" maxWidth="400" promptText="🔍  Tìm kiếm sản phẩm..." styleClass="search-field" HBox.hgrow="ALWAYS" />
+
+         <!-- Spacer -->
+         <Region HBox.hgrow="ALWAYS" />
+
+         <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
+         <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
+
+         <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
+         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" visible="false">
+            <Label fx:id="lblUsername" styleClass="username-label" text="👤  Tên người dùng" />
+            <Button fx:id="btnLogout" onAction="#handleLogout" styleClass="btn-logout" text="Đăng xuất" />
+         </HBox>
+
+      </HBox>
+   </top>
+
+   <!-- ===== LEFT: Sidebar ===== -->
+   <left>
+      <VBox fx:id="sidebar" spacing="4" styleClass="sidebar">
+         <padding><Insets bottom="20" left="12" right="12" top="20" /></padding>
+
+         <!-- Logo -->
+         <HBox alignment="CENTER" spacing="10" styleClass="logo-box">
+            <padding><Insets bottom="24" /></padding>
+            <Label styleClass="logo-icon" text="🔨" />
+            <Label styleClass="logo-text" text="AUCTION" />
+         </HBox>
+
+         <!-- Navigation Buttons -->
+         <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleDashboard" styleClass="nav-btn, nav-btn-active" text="🏠   Dashboard" />
+
+         <Button fx:id="btnLiveAuction" maxWidth="Infinity" onAction="#handleLiveAuction" styleClass="nav-btn" text="🚩   Live Auction" />
+
+         <Button fx:id="btnMyAuction" maxWidth="Infinity" onAction="#handleMyAuctions" styleClass="nav-btn" text="≡   My Auctions" />
+
+         <Button fx:id="btnProfile" maxWidth="Infinity" onAction="#handleProfile" styleClass="nav-btn" text="👤   Profile" />
+
+         <Button fx:id="btnSeller" maxWidth="Infinity" onAction="#handleSeller" styleClass="nav-btn" text="🏷   Seller" />
+      </VBox>
+   </left>
+
+   <!-- ===== CENTER: Content Area ===== -->
+   <center>
+      <ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" vbarPolicy="AS_NEEDED">
+
+         <FlowPane fx:id="contentArea" hgap="16" styleClass="content-area" vgap="16">
+            <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+
+            <!-- Product Card 1 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/laptop.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 255,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 00:06:31" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 2 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone1.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 255,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 00:06:03" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 3 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone2.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 255,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 01:04:03" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 4 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone3.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 250,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 00:06:07" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 5 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone4.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 250,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 0:26:14" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 6 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone5.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 255,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 0:26:14" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 7 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone6.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 255,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 0:26:14" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+            <!-- Product Card 8 -->
+            <VBox spacing="8" styleClass="product-card">
+               <ImageView fitHeight="140" fitWidth="180" preserveRatio="true" styleClass="product-image">
+                  <image><Image backgroundLoading="true" url="@images/phone7.png" /></image>
+               </ImageView>
+               <Label styleClass="product-name" text="Product Name" />
+               <Label styleClass="bid-price" text="Bid Price: 250,000" />
+               <Label styleClass="time-left" text="⏱  Time Left: 0:26:14" />
+               <HBox spacing="8">
+                  <Button onAction="#handleBid" styleClass="btn-bid" text="Đấu giá ngay" />
+                  <Button onAction="#handleBuy" styleClass="btn-buy" text="Mua ngay" />
+               </HBox>
+            </VBox>
+
+         </FlowPane>
+      </ScrollPane>
+   </center>
+
+</BorderPane>

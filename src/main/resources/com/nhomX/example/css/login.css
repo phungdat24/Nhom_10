@@ -1,0 +1,107 @@
+/*bo goc nut bam va to mau*/
+.btn-login {
+    -fx-background-color: #d1d9e6;         /* Màu xanh xám nhạt như mẫu */
+    -fx-text-fill: #1a3a5a;               /* Màu chữ xanh đậm */
+    -fx-font-weight: bold;                /* Chữ đậm */
+    -fx-font-size: 16px;
+
+    /* BO GÓC: Chỉnh con số này bằng một nửa chiều cao nút để có hình viên thuốc */
+    -fx-background-radius: 40;
+    -fx-border-radius: 40;
+
+    -fx-padding: 10 30 10 30;             /* Tạo khoảng cách chữ với viền nút */
+    -fx-cursor: hand;                     /* Hiệu ứng bàn tay */
+}
+
+/* Hiệu ứng khi di chuột qua (Hover) */
+.btn-login:hover {
+    -fx-background-color: #b8c4d4;         /* Đổi màu đậm hơn một chút */
+}
+
+/*bo góc cho ô nhập liệu*/
+.input-field-container {
+    /* 1. Tăng độ đục của nền từ 0.2 lên 0.45 để trắng sáng hơn */
+    -fx-background-color: rgba(255, 255, 255, 0.45);
+
+    /* 2. Sử dụng màu trắng đặc cho viền để tạo sự sắc nét */
+    -fx-background-radius: 25;
+    -fx-border-radius: 25;
+    -fx-border-color: #FFFFFF;
+    -fx-border-width: 2.0; /* Tăng độ dày viền */
+
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 15 0 15;
+    -fx-min-height: 50; /* Tăng thêm một chút chiều cao cho thoáng */
+}
+/* Áp dụng cho ImageView bên trong container */
+.input-field-container .image-view {
+    -fx-background-color: transparent;
+    /* Nếu icon vẫn tối, hãy thêm hiệu ứng làm sáng này */
+    -fx-effect: dropshadow(three-pass-box, white, 5, 0, 0, 0);
+}
+/* Áp dụng cho TextField trong HBox */
+.input-field-container .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-text-fill: #FFFFFF; /* Trắng tinh */
+    -fx-prompt-text-fill: #EEEEEE; /* Chữ gợi ý sáng hơn */
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+/* 1. Thiết kế khung bao quanh vai trò */
+.role-box {
+    -fx-background-color: rgba(255, 255, 255, 0.15); /* Nền trắng mờ nhẹ */
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-width: 1.5;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s; /* Tạo hiệu ứng mượt mà */
+}
+
+/* 2. Hiệu ứng khi di chuột qua (Hover) */
+.role-box:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.25);
+    -fx-border-color: white;
+}
+
+/* 3. Tùy chỉnh cái chấm tròn của RadioButton */
+.role-box .radio-button .radio {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-border-color: white;
+    -fx-background-radius: 100; /* Làm tròn tuyệt đối */
+}
+
+/* 4. Khi RadioButton được chọn (Selected) */
+.role-box .radio-button:selected .radio .dot {
+    -fx-background-color: #d1d9e6; /* Màu xanh nhạt giống nút login của bạn */
+    -fx-background-insets: 2;
+}
+
+/* 5. Chỉnh màu chữ vai trò cho sáng lên */
+.role-box .radio-button {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+/* ---- Hyperlink Đăng ký / Quay lại đăng nhập ---- */
+.hyperlink-register {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 4 0 4 0;
+}
+
+.hyperlink-register:hover {
+    -fx-text-fill: #90caf9;
+    -fx-underline: true;
+}
+
+/* Giữ màu trắng sau khi click, không đổi sang tím */
+.hyperlink-register:visited {
+    -fx-text-fill: #ffffff;
+}

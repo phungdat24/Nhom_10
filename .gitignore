@@ -38,3 +38,4 @@ build/
 *.iml
 out/
 gen/
+*.db

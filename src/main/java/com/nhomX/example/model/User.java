@@ -6,6 +6,9 @@ public class User {
     private String passWord;
     private String fullName;
     private double balance; // Số dư tk của user
+    public User(){
+
+    }
     public User(String userId, String userName, String passWord, String fullName, double balance){
         this.userId = userId;
         this.userName = userName;
