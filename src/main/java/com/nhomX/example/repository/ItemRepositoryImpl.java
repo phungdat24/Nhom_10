@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.nhomX.example.model.GeneralItem; // Dùng để khởi tạo khi đọc từ DB
 import com.nhomX.example.model.Items; // Sử dụng class Items của bạn
 import com.nhomX.example.utils.DatabaseConnection;

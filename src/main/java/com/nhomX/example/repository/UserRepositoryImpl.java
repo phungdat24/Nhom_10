@@ -1,31 +1,82 @@
 package com.nhomX.example.repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import com.nhomX.example.model.User;
+import com.nhomX.example.utils.DatabaseConnection;
 
-public class UserRepositoryImpl implements UserRepository{
-    @Override
-    // Tạo Database giả
-    public User login(String userName, String passWord) {
-        if("admin".equals(userName) && "123".equals(passWord)){
-            User mockUser = new User();
-            mockUser.setUserName("admin");
-            mockUser.setFullName("Phùng Tiến Đạt"); // Rất quan trọng cho Dashboard
-            mockUser.setBalance(50000000.0);
+public class UserRepositoryImpl implements UserRepository {
 
-            System.out.println("Đã lấy được User từ DB giả!");
-            return mockUser;
-        }
-        return null;
-    }
-    public boolean register(User user){
-       return true;
-    }
-    // Tính năng nạp/rút tiền:
-    public void updateBalance(String userId, double amount){
+  private final Connection conn = DatabaseConnection.getInstance().getConnection();
 
+  @Override
+  public boolean register(User user) {
+    String sql =
+        "INSERT INTO users (id, username, password, fullname, balance) VALUES (?, ?, ?, ?, ?)";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, user.getUserId());
+      pstmt.setString(2, user.getUserName());
+      pstmt.setString(3, user.getPassWord());
+      pstmt.setString(4, user.getFullName());
+      pstmt.setDouble(5, user.getBalance());
+
+      int rowsAffected = pstmt.executeUpdate();
+      if (rowsAffected > 0) {
+        System.out.println("✅ Đã tạo tài khoản thành công cho: " + user.getUserName());
+        return true;
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi đăng ký user: " + e.getMessage());
     }
-    // Lấy thông tin User:
-    public User findById(String userId){
-        return null;
+    return false;
+  }
+
+  @Override
+  public User login(String username, String password) {
+    String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, username);
+      pstmt.setString(2, password);
+      ResultSet rs = pstmt.executeQuery();
+
+      if (rs.next()) {
+        return new User(rs.getString("id"), rs.getString("username"), rs.getString("password"),
+            rs.getString("fullname"), rs.getDouble("balance"));
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi đăng nhập: " + e.getMessage());
     }
+    return null;
+  }
+
+  @Override
+  public User findById(String id) {
+    String sql = "SELECT * FROM users WHERE id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, id);
+      ResultSet rs = pstmt.executeQuery();
+
+      if (rs.next()) {
+        return new User(rs.getString("id"), rs.getString("username"), rs.getString("password"),
+            rs.getString("fullname"), rs.getDouble("balance"));
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi tìm kiếm user: " + e.getMessage());
+    }
+    return null;
+  }
+
+  @Override
+  public void updateBalance(String userId, double newBalance) {
+    String sql = "UPDATE users SET balance = ? WHERE id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setDouble(1, newBalance);
+      pstmt.setString(2, userId);
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi cập nhật số dư: " + e.getMessage());
+    }
+  }
 }
