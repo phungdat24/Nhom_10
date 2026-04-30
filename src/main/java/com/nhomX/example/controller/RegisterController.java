@@ -27,6 +27,7 @@ public class RegisterController {
             AlertUtils.showWarning("Lỗi!", "Vui lòng điền đầy đủ thông tin!");
             return;
         }
+        // Kiểm tra định dạng email
         if (!ValidatorUtils.isValidEmail(email)) {
             AlertUtils.showWarning("Sai định dạng", "Email không hợp lệ (Ví dụ đúng: abc@gmail.com)!");
             return;

@@ -1,16 +1,24 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.repository.ItemRepository;
+import com.nhomX.example.repository.ItemRepositoryImpl;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
+import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class MainDashBoardController implements Initializable {
@@ -26,6 +34,34 @@ public class MainDashBoardController implements Initializable {
     @FXML private Button btnMyAuction;
     @FXML private Button btnProfile;
     @FXML private Button btnSeller;
+    @FXML private FlowPane contentArea;
+    private ItemRepository itemRepository = new ItemRepositoryImpl();
+
+    private void loadProductsFromDatabase() {
+        // 1. Lấy danh sách Item từ Member 4
+        List<Items> items = itemRepository.findAll();
+
+        // Xóa sạch dữ liệu cũ trên màn hình
+        contentArea.getChildren().clear();
+
+        // 2. Lặp qua từng món hàng và in ra màn hình
+        for (Items item : items) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
+                VBox cardItem = loader.load(); // Load giao diện thẻ
+
+                // Lấy controller của thẻ đó để nhồi dữ liệu
+                ItemCardController cardController = loader.getController();
+                cardController.setItemData(item);
+
+                // Gắn thẻ vừa tạo vào màn hình chính
+                contentArea.getChildren().add(cardItem);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     private AuctionClient auctionClient;
     @Override
