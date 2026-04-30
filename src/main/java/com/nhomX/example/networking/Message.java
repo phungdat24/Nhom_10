@@ -18,7 +18,6 @@ public class Message implements Serializable {
         this.username = username;
         this.itemId = itemId;
         this.amount = amount;
-        this.data = data;
     }
     public Message(String type, Object data){
         this.type = type;

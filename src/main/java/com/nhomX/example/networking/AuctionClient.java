@@ -85,4 +85,19 @@ public class AuctionClient {
             e.printStackTrace();
         }
     }
+    // Bổ sung hàm 1: Gọi khi người dùng MỞ giao diện chi tiết món hàng
+    public void watchItem(String itemId) {
+        // Gửi tin nhắn loại "WATCH" lên Server
+        Message watchMsg = new Message("WATCH", username, itemId, 0);
+        sendToServer(watchMsg);
+        System.out.println("CLIENT: Đã đăng ký theo dõi giá món " + itemId);
+    }
+
+    // Bổ sung hàm 2: Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
+    public void unwatchItem(String itemId) {
+        // Gửi tin nhắn loại "UNWATCH" lên Server
+        Message unwatchMsg = new Message("UNWATCH", username, itemId, 0);
+        sendToServer(unwatchMsg);
+        System.out.println("CLIENT: Đã hủy theo dõi giá món " + itemId);
+    }
 }

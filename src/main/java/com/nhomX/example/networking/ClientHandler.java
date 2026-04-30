@@ -32,7 +32,15 @@ public class ClientHandler implements Runnable {
                     // Xử lý logic đặt giá... (nếu thành công thì thông báo cho tất cả)
                     Message update = new Message("UPDATE", msgFromClient.getUsername(),
                             msgFromClient.getItemId(), msgFromClient.getAmount());
-                    server.broadcast(update);
+                    server.broadcastToItem(msgFromClient.getItemId(), update);
+                }
+                // Khi Client click vào xem một sản phẩm
+                else if ("WATCH".equals(msgFromClient.getType())) {
+                    server.watchItem(msgFromClient.getItemId(), this);
+                }
+                // Khi Client quay lại màn hình chính hoặc xem sản phẩm khác
+                else if ("UNWATCH".equals(msgFromClient.getType())) {
+                    server.unwatchItem(msgFromClient.getItemId(), this);
                 }
                 else if ("LOGIN".equals(msgFromClient.getType())) {
                     // 1. Mở gói hàng lấy dữ liệu Client gửi
