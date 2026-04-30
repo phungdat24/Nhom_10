@@ -8,6 +8,8 @@ public class ClientHandler implements Runnable {
     private final AuctionServer server;
     private ObjectOutputStream out;
     private ObjectInputStream in;
+    // Gọi kho chứa dữ liệu ra để sẵn sàng làm việc
+    private com.nhomX.example.repository.UserRepository userRepository = new com.nhomX.example.repository.UserRepositoryImpl();
 
     public ClientHandler(Socket socket, AuctionServer server) {
         this.socket = socket;
@@ -31,6 +33,40 @@ public class ClientHandler implements Runnable {
                     Message update = new Message("UPDATE", msgFromClient.getUsername(),
                             msgFromClient.getItemId(), msgFromClient.getAmount());
                     server.broadcast(update);
+                }
+                else if ("LOGIN".equals(msgFromClient.getType())) {
+                    // 1. Mở gói hàng lấy dữ liệu Client gửi
+                    String[] data = (String[]) msgFromClient.getData();
+                    String email = data[0];
+                    String pass = data[1];
+
+                    // 2. Chọc xuống Database kiểm tra
+                    com.nhomX.example.model.User loggedInUser = userRepository.login(email, pass);
+
+                    // 3. Nói thầm kết quả lại cho ĐÚNG Client này
+                    if (loggedInUser != null) {
+                        this.sendToClient(new Message("LOGIN_SUCCESS", loggedInUser));
+                    } else {
+                        this.sendToClient(new Message("LOGIN_FAIL", null));
+                    }
+                }
+                else if ("REGISTER".equals(msgFromClient.getType())) {
+                    Object[] data = (Object[]) msgFromClient.getData();
+                    String email = (String) data[0];
+                    String pass = (String) data[1];
+                    String name = (String) data[2];
+                    double balance = (Double) data[3];
+
+                    String newId = java.util.UUID.randomUUID().toString();
+                    com.nhomX.example.model.User newUser = new com.nhomX.example.model.User(newId, email, pass, name, balance);
+
+                    boolean isSuccess = userRepository.register(newUser);
+
+                    if (isSuccess) {
+                        this.sendToClient(new Message("REGISTER_SUCCESS", "Tạo tài khoản thành công!"));
+                    } else {
+                        this.sendToClient(new Message("REGISTER_FAIL", "Email đã tồn tại!"));
+                    }
                 }
             }
         } catch (Exception e) {

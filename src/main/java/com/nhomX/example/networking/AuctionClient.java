@@ -42,14 +42,47 @@ public class AuctionClient {
         try {
             Message msgFromServer;
             while ((msgFromServer = (Message) in.readObject()) != null) {
-                if ("UPDATE".equals(msgFromServer.getType())) {
+                String msgType = msgFromServer.getType();
+
+                if ("UPDATE".equals(msgType)) {
+                    // Code cũ giữ nguyên
                     System.out.println("\n[THÔNG BÁO MỚI]: " + msgFromServer.getUsername() +
                             " đã đặt giá $" + msgFromServer.getAmount() +
                             " cho " + msgFromServer.getItemId());
                 }
+                // THÊM MỚI Ở ĐÂY: Xử lý Đăng nhập thành công
+                else if ("LOGIN_SUCCESS".equals(msgType)) {
+                    // Dùng Platform.runLater để giao diện JavaFX không bị sập khi cập nhật từ luồng ngầm
+                    javafx.application.Platform.runLater(() -> {
+                        // TODO: Chuyển sang màn hình Dashboard
+                        System.out.println("Giao diện: Đăng nhập thành công!");
+                    });
+                }
+                // THÊM MỚI: Xử lý Đăng nhập thất bại
+                else if ("LOGIN_FAIL".equals(msgType)) {
+                    javafx.application.Platform.runLater(() -> {
+                        // Giả sử đã có class AlertUtils
+                        // AlertUtils.showError("Lỗi", "Sai thông tin đăng nhập!");
+                        System.out.println("Giao diện: Đăng nhập thất bại!");
+                    });
+                }
+                // Tương tự, em có thể thêm else if ("REGISTER_SUCCESS") vào đây
             }
         } catch (Exception e) {
             System.out.println("CLIENT: Mất kết nối với Server.");
+        }
+    }
+    // Hàm mới: Gửi bất kỳ Message nào lên Server (dùng cho Login, Register...)
+    public void sendToServer(Message msg) {
+        try {
+            if (out != null) {
+                out.writeObject(msg);
+                out.flush();
+            } else {
+                System.err.println("Lỗi: Chưa kết nối tới Server!");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

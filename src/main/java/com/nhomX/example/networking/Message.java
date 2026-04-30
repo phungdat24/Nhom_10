@@ -11,12 +11,18 @@ public class Message implements Serializable {
     private String username;
     private String itemId;
     private double amount;
+    private Object data;
 
     public Message(String type, String username, String itemId, double amount) {
         this.type = type;
         this.username = username;
         this.itemId = itemId;
         this.amount = amount;
+        this.data = data;
+    }
+    public Message(String type, Object data){
+        this.type = type;
+        this.data = data;
     }
 
     // Getter
@@ -28,5 +34,9 @@ public class Message implements Serializable {
     @Override
     public String toString() {
         return String.format("[%s] %s -> %s: $%.2f", type, username, itemId, amount);
+    }
+
+    public Object getData() {
+        return data;
     }
 }
