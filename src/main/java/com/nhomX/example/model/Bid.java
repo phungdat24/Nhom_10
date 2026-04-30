@@ -3,17 +3,22 @@ package com.nhomX.example.model;
 import java.time.LocalDateTime;
 
 public class Bid {
+    public Bid() {
+        // Hàm tạo rỗng để Java cho phép tạo đối tượng Bid trống
+    }
+
     private LocalDateTime bidTime; // thời gian đấu giá
     private String userId; // Người đấu giá
     private String itemId; // id của vật phẩm đặt giá
     private double amount; // Gía đấu
     private String id; // id của lượt trả giá
-    public Bid(LocalDateTime bidTime, String userId, String itemId, double amount, String id){
-        this.amount =amount;
+
+    public Bid(LocalDateTime bidTime, String userId, String itemId, double amount, String id) {
+        this.amount = amount;
         this.bidTime = bidTime;
-        this.userId =userId;
+        this.userId = userId;
         this.itemId = itemId;
-        this.id=id;
+        this.id = id;
     }
 
     public void setBidTime(LocalDateTime bidTime) {
