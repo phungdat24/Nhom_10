@@ -10,7 +10,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class SceneSwitcher {
-    public static void sceneSwitcher(ActionEvent event, String fxmlPath){
+    public static void switchScene(ActionEvent event, String fxmlPath){
         try {
             Parent root = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
 

@@ -1,21 +1,15 @@
 package com.nhomX.example.controller;
 
-import com.nhomX.example.controller.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
-import com.nhomX.example.networking.AuctionServer;
+import com.nhomX.example.utils.AlertUtils;
+import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -89,16 +83,7 @@ public class MainDashBoardController implements Initializable {
     @FXML
     void handleLogin(ActionEvent event) {
         // Chuyển sang màn hình Login
-        try {
-            Parent root = FXMLLoader.load(
-                    getClass().getResource("/com/nhomX/example/fxml/login.fxml")
-            );
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/login.fxml");
     }
 
     @FXML
@@ -139,6 +124,7 @@ public class MainDashBoardController implements Initializable {
     void handleBid(ActionEvent event) {
         if (!SessionManager.getInstance().isLoggedIn()) {
             // Nếu chưa đăng nhập → chuyển sang Login
+            AlertUtils.showWarning("Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để tham gia đấu giá sản phẩm này!");
             handleLogin(event);
             return;
         }
@@ -150,8 +136,10 @@ public class MainDashBoardController implements Initializable {
             // Gọi hàm của Mem 2 để bắn dữ liệu qua mạng
             auctionClient.placeBid(testItemId, testAmount);
             System.out.println("Client: Đã bắn dữ liệu (Item: " + testItemId + ", Giá: " + testAmount + ") lên Server.");
+            AlertUtils.showSuccess("Đặt giá thành công", "Hệ thống đã ghi nhận mức giá của bạn!");
         } else {
             System.err.println("Client: Socket chưa được khởi tạo!");
+            AlertUtils.showError("Lỗi hệ thống", "Mất kết nối tới Server. Vui lòng thử lại sau!");
         }
     }
 
