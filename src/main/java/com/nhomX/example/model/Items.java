@@ -1,8 +1,9 @@
 package com.nhomX.example.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public abstract class Items {
+public abstract class Items implements Serializable {
     private String id; // id của món hàng
     private String title; // Tên sản phẩm
     private String description; // Mô tả sản pham

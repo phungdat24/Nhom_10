@@ -96,7 +96,6 @@ public class AuctionClient {
                     // Ép kiểu lấy danh sách Item ra
                     List<Items> itemList =(List<Items>) msgFromServer.getData();
 
-
                     javafx.application.Platform.runLater(() -> {
                         if(MainDashBoardController.instance != null){
                             MainDashBoardController.instance.updateProductUI(itemList);
