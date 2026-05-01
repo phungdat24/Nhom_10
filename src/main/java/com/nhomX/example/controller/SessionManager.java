@@ -1,6 +1,7 @@
 package com.nhomX.example.controller;
 
 import com.nhomX.example.model.User;
+import com.nhomX.example.networking.AuctionClient;
 
 /**
  * SessionManager — Singleton
@@ -10,6 +11,8 @@ import com.nhomX.example.model.User;
 public class SessionManager {
 
     private static SessionManager instance;
+
+    private AuctionClient auctionClient;
 
     private User currentUser; // null = chưa đăng nhập
 
@@ -36,5 +39,12 @@ public class SessionManager {
     // Lấy User hiện tại (trả về null nếu chưa đăng nhập)
     public User getCurrentUser() {
         return currentUser;
+    }
+    public AuctionClient getAuctionClient(){
+        return auctionClient;
+    }
+
+    public void setAuctionClient(AuctionClient auctionClient) {
+        this.auctionClient = auctionClient;
     }
 }

@@ -1,7 +1,10 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.networking.Message;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
+import com.nhomX.example.utils.SecurityUtils;
 import com.nhomX.example.utils.ValidatorUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -43,14 +46,26 @@ public class RegisterController {
             AlertUtils.showWarning("Mật khẩu yếu", "Mật khẩu phải có ít nhất 6 ký tự!");
             return;
         }
+        // Mã hóa mật khẩu:
+        String securedPass = SecurityUtils.hashPassword(pass);
 
-        // 4. TODO: Gửi thông tin lên Server để lưu vào DB
-        // (Hiện tại chưa có server, tạm thời thông báo thành công)
-        System.out.println("Đăng ký thành công: " + email);
-        AlertUtils.showSuccess("Thành công!", "Tài khoản đã được tạo. Vui lòng đăng nhập!");
+        AuctionClient auctionClient;
+        auctionClient=SessionManager.getInstance().getAuctionClient();
 
-        // 5. Chuyển về màn hình Login
-        SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/login.fxml" );
+        if(auctionClient == null){
+            AlertUtils.showError("Lỗi kết nối!", "Chưa kết nối được với Server!");
+            return;
+        }
+
+        Object[] registerData = {email, securedPass, name, 0.0};
+
+        Message registerMsg = new Message("REGISTER", registerData);
+
+        // 6. Gửi lên Server và để Giao diện ở trạng thái chờ
+        auctionClient.sendToServer(registerMsg);
+
+        System.out.println("Đã gửi yêu cầu đăng ký lên Server...");
+
     }
 
     // Hyperlink "Đã có tài khoản? Đăng nhập ngay" → quay về Login

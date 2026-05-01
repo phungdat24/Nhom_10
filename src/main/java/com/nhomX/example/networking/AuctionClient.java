@@ -1,7 +1,15 @@
 package com.nhomX.example.networking;
 
+import com.nhomX.example.controller.MainDashBoardController;
+import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.model.User;
+import com.nhomX.example.utils.AlertUtils;
+import com.nhomX.example.utils.SceneSwitcher;
+
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
 
 public class AuctionClient {
     private String username;
@@ -52,21 +60,49 @@ public class AuctionClient {
                 }
                 // THÊM MỚI Ở ĐÂY: Xử lý Đăng nhập thành công
                 else if ("LOGIN_SUCCESS".equals(msgType)) {
+
+                    User loggedInUser =(User) msgFromServer.getData();
+
+                    SessionManager.getInstance().login(loggedInUser);
+
                     // Dùng Platform.runLater để giao diện JavaFX không bị sập khi cập nhật từ luồng ngầm
                     javafx.application.Platform.runLater(() -> {
-                        // TODO: Chuyển sang màn hình Dashboard
+                        SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+
                         System.out.println("Giao diện: Đăng nhập thành công!");
                     });
                 }
                 // THÊM MỚI: Xử lý Đăng nhập thất bại
                 else if ("LOGIN_FAIL".equals(msgType)) {
                     javafx.application.Platform.runLater(() -> {
-                        // Giả sử đã có class AlertUtils
-                        // AlertUtils.showError("Lỗi", "Sai thông tin đăng nhập!");
+
+                         AlertUtils.showError("Lỗi", "Sai thông tin đăng nhập!");
                         System.out.println("Giao diện: Đăng nhập thất bại!");
                     });
                 }
-                // Tương tự, em có thể thêm else if ("REGISTER_SUCCESS") vào đây
+                else if ("REGISTER_SUCCESS".equals(msgType)) {
+                    javafx.application.Platform.runLater(() -> {
+                        AlertUtils.showSuccess("Thành công", "Tài khoản đã được tạo. Vui lòng đăng nhập!");
+                        SceneSwitcher.switchScene( "/com/nhomX/example/fxml/login.fxml");
+                    });
+                }
+                else if ("REGISTER_FAIL".equals(msgType)) {
+                    javafx.application.Platform.runLater(() -> {
+                        // Thường là do trùng Email
+                        AlertUtils.showError("Đăng ký thất bại", "Email này đã được sử dụng!");
+                    });
+                }
+                else if ("RETURN_ALL_ITEMS".equals(msgType)) {
+                    // Ép kiểu lấy danh sách Item ra
+                    List<Items> itemList =(List<Items>) msgFromServer.getData();
+
+
+                    javafx.application.Platform.runLater(() -> {
+                        if(MainDashBoardController.instance != null){
+                            MainDashBoardController.instance.updateProductUI(itemList);
+                        }
+                    });
+                }
             }
         } catch (Exception e) {
             System.out.println("CLIENT: Mất kết nối với Server.");

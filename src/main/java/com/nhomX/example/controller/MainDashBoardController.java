@@ -2,8 +2,7 @@ package com.nhomX.example.controller;
 
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
-import com.nhomX.example.repository.ItemRepository;
-import com.nhomX.example.repository.ItemRepositoryImpl;
+import com.nhomX.example.networking.Message;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
@@ -35,11 +34,20 @@ public class MainDashBoardController implements Initializable {
     @FXML private Button btnProfile;
     @FXML private Button btnSeller;
     @FXML private FlowPane contentArea;
-    private ItemRepository itemRepository = new ItemRepositoryImpl();
+
+    public static MainDashBoardController instance;
 
     private void loadProductsFromDatabase() {
-        // 1. Lấy danh sách Item từ Member 4
-        List<Items> items = itemRepository.findAll();
+        // Lấy ống mạng ra
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            // Gửi yêu cầu "Lấy tất cả Item" lên Server
+            Message requestItems = new Message("GET_ALL_ITEMS", null);
+            client.sendToServer(requestItems);
+        }
+    }
+
+    public void updateProductUI(List<Items> items) {
 
         // Xóa sạch dữ liệu cũ trên màn hình
         contentArea.getChildren().clear();
@@ -66,23 +74,35 @@ public class MainDashBoardController implements Initializable {
     private AuctionClient auctionClient;
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        // lưu lại bản thân khi update:
+        instance = this;
+
+        // 3. Xin Server cấp cho danh sách đồ vật (Thay thế cho loadProductsFromDatabase cũ)
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.sendToServer(new Message("GET_ALL_ITEMS", null));
+            System.out.println("DASHBOARD: Đã gửi yêu cầu lấy danh sách Item.");
+        }
         updateHeaderUI();
         connectToAuctionServer();
     }
     public void connectToAuctionServer(){
         // nếu kết nối roi thì không tạo lại nữa
-        if(auctionClient!= null){
+        if(SessionManager.getInstance().getAuctionClient() != null){
+            this.auctionClient = SessionManager.getInstance().getAuctionClient();
             return;
         }
-        String userName="User";
+        String userName="Guest";
         if(SessionManager.getInstance().isLoggedIn()){
             userName = SessionManager.getInstance().getCurrentUser().getUserName();
         }
-        auctionClient = new AuctionClient(userName);
+        this.auctionClient = new AuctionClient(userName);
         // Khởi tạo Client
         try {
             auctionClient.connect("localhost", 8080);
             System.out.println("Client: [" + userName + "] đã kết nối tới Server đấu giá!");
+            // Cất vào kho cho các màn hình khác dùng chung
+            SessionManager.getInstance().setAuctionClient(this.auctionClient);
         }catch (Exception e){
             System.err.println("Client: Lỗi kết nối Socket - " + e.getMessage());
 
