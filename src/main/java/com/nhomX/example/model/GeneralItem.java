@@ -1,10 +1,15 @@
 package com.nhomX.example.model;
 
 public class GeneralItem extends Items {
-    public GeneralItem(String id, String title, String sellerId){
+    public GeneralItem() {
+        // Hàm tạo rỗng để được phép khởi tạo đối tượng trống
+    }
+
+    public GeneralItem(String id, String title, String sellerId) {
         super(id, title, sellerId);
     }
-    public String toString(){
-        return "General Item: "+ getTitle();
+
+    public String toString() {
+        return "General Item: " + getTitle();
     }
 }
