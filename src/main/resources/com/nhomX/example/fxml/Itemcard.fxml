@@ -28,7 +28,7 @@
     </padding>
 
     <!-- ── Ảnh sản phẩm ── -->
-    <ImageView fx:id="imgProduct" fitHeight="140" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
+    <ImageView fx:id="itemImageView" fitHeight="140" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
         <image>
             <Image url="@../images/placeholder.png" />
         </image>
