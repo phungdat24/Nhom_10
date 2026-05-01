@@ -35,7 +35,7 @@ public class ClientHandler implements Runnable {
 
                 if ("BID".equals(msgFromClient.getType())) {
                     // Xử lý logic đặt giá... (nếu thành công thì thông báo cho tất cả)
-                    Message update = new Message("UPDATE", msgFromClient.getUsername(),
+                    Message update = new Message("UPDATE_PRICE", msgFromClient.getUsername(),
                             msgFromClient.getItemId(), msgFromClient.getAmount());
                     server.broadcastToItem(msgFromClient.getItemId(), update);
                 }
@@ -91,6 +91,7 @@ public class ClientHandler implements Runnable {
             }
         } catch (Exception e) {
             System.out.println("SERVER: Client ngắt kết nối.");
+            e.printStackTrace();
         } finally {
             cleanup();
         }

@@ -3,6 +3,7 @@ package com.nhomX.example.controller;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
+import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
@@ -20,7 +21,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class MainDashBoardController implements Initializable {
+public class MainDashBoardController implements Initializable, ServerEventListener {
 
     // ===== Header =====
     @FXML private Button btnLogin;       // Nút "Đăng nhập" (hiện khi chưa login)
@@ -37,31 +38,18 @@ public class MainDashBoardController implements Initializable {
 
     public static MainDashBoardController instance;
 
-    private void loadProductsFromDatabase() {
-        // Lấy ống mạng ra
-        AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        if (client != null) {
-            // Gửi yêu cầu "Lấy tất cả Item" lên Server
-            Message requestItems = new Message("GET_ALL_ITEMS", null);
-            client.sendToServer(requestItems);
-        }
-    }
-
-    public void updateProductUI(List<Items> items) {
-
+    @Override
+    public void onItemsReceived(List<Items> items) {
         // Xóa sạch dữ liệu cũ trên màn hình
         contentArea.getChildren().clear();
-
         // 2. Lặp qua từng món hàng và in ra màn hình
         for (Items item : items) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
                 VBox cardItem = loader.load(); // Load giao diện thẻ
-
                 // Lấy controller của thẻ đó để nhồi dữ liệu
                 ItemCardController cardController = loader.getController();
                 cardController.setItemData(item);
-
                 // Gắn thẻ vừa tạo vào màn hình chính
                 contentArea.getChildren().add(cardItem);
 
@@ -72,19 +60,24 @@ public class MainDashBoardController implements Initializable {
     }
 
     private AuctionClient auctionClient;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // lưu lại bản thân khi update:
         instance = this;
 
-        // 3. Xin Server cấp cho danh sách đồ vật (Thay thế cho loadProductsFromDatabase cũ)
+        connectToAuctionServer();
+        updateHeaderUI();
+
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client != null) {
+            //Dành quyền:
+            client.setServerEventListener(this);
+            // Lấy item từ server
             client.sendToServer(new Message("GET_ALL_ITEMS", null));
             System.out.println("DASHBOARD: Đã gửi yêu cầu lấy danh sách Item.");
         }
-        updateHeaderUI();
-        connectToAuctionServer();
+
     }
     public void connectToAuctionServer(){
         // nếu kết nối roi thì không tạo lại nữa
@@ -108,10 +101,6 @@ public class MainDashBoardController implements Initializable {
 
         }
     }
-
-    // ============================================================
-    // Cập nhật Header dựa trên trạng thái đăng nhập
-    // ============================================================
     private void updateHeaderUI() {
         if (SessionManager.getInstance().isLoggedIn()) {
             // ---- Đã đăng nhập ----
@@ -135,7 +124,6 @@ public class MainDashBoardController implements Initializable {
             userInfoBox.setManaged(false);
         }
     }
-
     @FXML
     void handleLogin(ActionEvent event) {
         // Chuyển sang màn hình Login
@@ -175,36 +163,19 @@ public class MainDashBoardController implements Initializable {
     void handleSeller(ActionEvent event) {
         System.out.println("Seller được nhấn");
     }
+    @Override
+    public void onPriceUpdated(String itemId, double newPrice) {
+        System.out.println("DASHBOARD BẮT SÓNG: Món hàng " + itemId + " vừa nhảy giá lên $" + newPrice);
 
-    @FXML
-    void handleBid(ActionEvent event) {
-        if (!SessionManager.getInstance().isLoggedIn()) {
-            // Nếu chưa đăng nhập → chuyển sang Login
-            AlertUtils.showWarning("Yêu cầu đăng nhập", "Bạn cần đăng nhập tài khoản để tham gia đấu giá sản phẩm này!");
-            handleLogin(event);
-            return;
-        }
-        System.out.println("Đấu giá ngay được nhấn");
-        if(auctionClient!= null){
-            String testItemId = "SP_A1";
-            double testAmount = 500000.0;
-
-            // Gọi hàm của Mem 2 để bắn dữ liệu qua mạng
-            auctionClient.placeBid(testItemId, testAmount);
-            System.out.println("Client: Đã bắn dữ liệu (Item: " + testItemId + ", Giá: " + testAmount + ") lên Server.");
-            AlertUtils.showSuccess("Đặt giá thành công", "Hệ thống đã ghi nhận mức giá của bạn!");
-        } else {
-            System.err.println("Client: Socket chưa được khởi tạo!");
-            AlertUtils.showError("Lỗi hệ thống", "Mất kết nối tới Server. Vui lòng thử lại sau!");
-        }
+        // Sau viết code quét danh sách ItemCard đang hiển thị
+        // để update lại cái Label tiền trên màn hình ở đây
     }
-
     @FXML
-    void handleBuy(ActionEvent event) {
-        if (!SessionManager.getInstance().isLoggedIn()) {
-            handleLogin(event);
-            return;
-        }
-        System.out.println("Mua ngay được nhấn");
+    void handleFeaturedBid(ActionEvent event){
+
+    }
+    @FXML
+    void handleFeaturedDetail(ActionEvent event){
+
     }
 }
