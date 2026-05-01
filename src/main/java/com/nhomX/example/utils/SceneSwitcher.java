@@ -10,6 +10,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class SceneSwitcher {
+
+    public static Stage mainStage;
+
     public static void switchScene(ActionEvent event, String fxmlPath){
         try {
             Parent root = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
@@ -18,6 +21,18 @@ public class SceneSwitcher {
 
             stage.setScene(new Scene(root));
             stage.show();
+        }catch (IOException e){
+            System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
+            e.printStackTrace();
+        }
+    }
+
+    public static void switchScene(String fxmlPath){
+        try {
+            Parent root = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
+
+            mainStage.setScene(new Scene(root));
+            mainStage.show();
         }catch (IOException e){
             System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
             e.printStackTrace();

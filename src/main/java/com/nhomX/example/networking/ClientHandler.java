@@ -1,5 +1,8 @@
 package com.nhomX.example.networking;
 
+import com.nhomX.example.repository.ItemRepository;
+import com.nhomX.example.repository.ItemRepositoryImpl;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -9,6 +12,8 @@ public class ClientHandler implements Runnable {
     private ObjectOutputStream out;
     private ObjectInputStream in;
     // Gọi kho chứa dữ liệu ra để sẵn sàng làm việc
+    private ItemRepository itemRepository = new ItemRepositoryImpl();
+
     private com.nhomX.example.repository.UserRepository userRepository = new com.nhomX.example.repository.UserRepositoryImpl();
 
     public ClientHandler(Socket socket, AuctionServer server) {
@@ -75,6 +80,13 @@ public class ClientHandler implements Runnable {
                     } else {
                         this.sendToClient(new Message("REGISTER_FAIL", "Email đã tồn tại!"));
                     }
+                }else if ("GET_ALL_ITEMS".equals(msgFromClient.getType())) {
+                    // Server chọc vào DB lấy 10 item
+                    java.util.List<com.nhomX.example.model.Items> itemList = itemRepository.findAll();
+
+                    // Đóng gói danh sách gửi trả lại ĐÚNG cái Client vừa xin
+                    Message response = new Message("RETURN_ALL_ITEMS", itemList);
+                    this.sendToClient(response);
                 }
             }
         } catch (Exception e) {
