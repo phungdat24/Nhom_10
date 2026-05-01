@@ -11,6 +11,10 @@ public abstract class Items {
     private LocalDateTime endTime;
     private String sellerId; // Id người đăng bán sản phẩm
 
+    public Items() {
+        // Hàm tạo rỗng của lớp Cha để cho phép lớp Con khởi tạo trống
+    }
+
     public Items(String id, String title, String sellerId) {
         this.id = id;
         this.title = title;
