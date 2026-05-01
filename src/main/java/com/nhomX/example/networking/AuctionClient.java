@@ -16,6 +16,13 @@ public class AuctionClient {
     private ObjectOutputStream out;
     private ObjectInputStream in;
 
+    private ServerEventListener listener;
+
+    // Cung cấp hàm để các Controller sử dụng:
+    public void setServerEventListener(ServerEventListener listener) {
+        this.listener = listener;
+    }
+
     public AuctionClient(String username) {
         this.username = username;
     }
@@ -52,59 +59,77 @@ public class AuctionClient {
             while ((msgFromServer = (Message) in.readObject()) != null) {
                 String msgType = msgFromServer.getType();
 
-                if ("UPDATE".equals(msgType)) {
-                    // Code cũ giữ nguyên
-                    System.out.println("\n[THÔNG BÁO MỚI]: " + msgFromServer.getUsername() +
-                            " đã đặt giá $" + msgFromServer.getAmount() +
-                            " cho " + msgFromServer.getItemId());
+                if ("UPDATE_PRICE".equals(msgType)) {
+                    String itemId = msgFromServer.getItemId();
+                    double newPrice = msgFromServer.getAmount();
+
+                    if(listener != null){
+                        javafx.application.Platform.runLater(() -> {
+                            listener.onPriceUpdated(itemId, newPrice);
+                        });
+                    }
                 }
-                // THÊM MỚI Ở ĐÂY: Xử lý Đăng nhập thành công
+                //Xử lý Đăng nhập thành công:
                 else if ("LOGIN_SUCCESS".equals(msgType)) {
 
                     User loggedInUser =(User) msgFromServer.getData();
 
                     SessionManager.getInstance().login(loggedInUser);
 
-                    // Dùng Platform.runLater để giao diện JavaFX không bị sập khi cập nhật từ luồng ngầm
-                    javafx.application.Platform.runLater(() -> {
-                        SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
-
-                        System.out.println("Giao diện: Đăng nhập thành công!");
-                    });
+                    if(listener != null){
+                        javafx.application.Platform.runLater(() -> {
+                            listener.onLoginResult(true, "ĐĂNG NHẬP THÀNH CÔNG!");
+                        });
+                    }
                 }
-                // THÊM MỚI: Xử lý Đăng nhập thất bại
+                //Xử lý Đăng nhập thất bại
                 else if ("LOGIN_FAIL".equals(msgType)) {
-                    javafx.application.Platform.runLater(() -> {
 
-                         AlertUtils.showError("Lỗi", "Sai thông tin đăng nhập!");
-                        System.out.println("Giao diện: Đăng nhập thất bại!");
-                    });
+                    if (listener != null) {
+                        javafx.application.Platform.runLater(() -> {
+                            listener.onLoginResult(false, "ĐĂNG NHẬP THẤT BẠI!");
+                        });
+                    }
                 }
                 else if ("REGISTER_SUCCESS".equals(msgType)) {
-                    javafx.application.Platform.runLater(() -> {
-                        AlertUtils.showSuccess("Thành công", "Tài khoản đã được tạo. Vui lòng đăng nhập!");
-                        SceneSwitcher.switchScene( "/com/nhomX/example/fxml/login.fxml");
-                    });
+
+                    if (listener != null) {
+                        javafx.application.Platform.runLater(() -> {
+                            listener.onRegisterResult(true, "ĐĂNG KÝ TÀI KHOẢN THÀNH CÔNG! VUI LÒNG ĐĂNG NHÂP!");
+                        });
+                    }
                 }
                 else if ("REGISTER_FAIL".equals(msgType)) {
-                    javafx.application.Platform.runLater(() -> {
-                        // Thường là do trùng Email
-                        AlertUtils.showError("Đăng ký thất bại", "Email này đã được sử dụng!");
-                    });
+                    String errorMsg = msgFromServer.getData() != null ? (String) msgFromServer.getData() : "ĐĂNG KÝ THẤT BẠI DO LỖI HỆ THỐNG!";
+
+                    if (listener != null) {
+                        javafx.application.Platform.runLater(() -> {
+                            listener.onRegisterResult(false, errorMsg);
+                        });
+                    }
                 }
                 else if ("RETURN_ALL_ITEMS".equals(msgType)) {
                     // Ép kiểu lấy danh sách Item ra
                     List<Items> itemList =(List<Items>) msgFromServer.getData();
 
+                    if(listener!=null){
                     javafx.application.Platform.runLater(() -> {
-                        if(MainDashBoardController.instance != null){
-                            MainDashBoardController.instance.updateProductUI(itemList);
-                        }
+                        listener.onItemsReceived(itemList);
                     });
                 }
+                    }
             }
         } catch (Exception e) {
-            System.out.println("CLIENT: Mất kết nối với Server.");
+            // Khi Server sập, đứt mạng, luồng đọc object sẽ văng Exception nhảy vào đây
+            System.err.println("Mất kết nối: " + e.getMessage());
+
+            if (listener != null) {
+                javafx.application.Platform.runLater(() -> {
+                    // Mượn tạm hàm onRegisterResult (hoặc onLoginResult) để báo lỗi bung popup
+                    // Tốt nhất là sau này đẻ thêm hàm: listener.onConnectionError("Mất kết nối Server!");
+                    listener.onRegisterResult(false, "Mất kết nối với Server! Vui lòng thử lại.");
+                });
+            }
         }
     }
     // Hàm mới: Gửi bất kỳ Message nào lên Server (dùng cho Login, Register...)

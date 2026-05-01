@@ -2,6 +2,7 @@ package com.nhomX.example.controller;
 
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
+import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
 import com.nhomX.example.utils.SecurityUtils;
@@ -11,7 +12,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-public class RegisterController {
+public class RegisterController implements ServerEventListener {
 
     @FXML private TextField     userName;   // Họ tên
     @FXML private TextField     account;    // Email
@@ -56,6 +57,8 @@ public class RegisterController {
             AlertUtils.showError("Lỗi kết nối!", "Chưa kết nối được với Server!");
             return;
         }
+        //GIÀNH QUYỀN NGHE SÓNG CHO TRANG ĐĂNG KÝ
+        auctionClient.setServerEventListener(this);
 
         Object[] registerData = {email, securedPass, name, 0.0};
 
@@ -72,5 +75,16 @@ public class RegisterController {
     @FXML
     void handleBackToLogin(ActionEvent event) {
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
+    }
+    @Override
+    public void onRegisterResult(boolean isSuccess, String message) {
+        if (isSuccess) {
+            // Đăng ký thành công: Báo xanh và tự động chuyển về trang Login
+            AlertUtils.showSuccess("Đăng ký thành công", message);
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+        } else {
+            // Đăng ký thất bại (ví dụ: trùng Email): Báo đỏ và đứng yên tại chỗ
+            AlertUtils.showError("Đăng ký thất bại", message);
+        }
     }
 }
