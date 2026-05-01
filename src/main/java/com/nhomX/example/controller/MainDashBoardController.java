@@ -72,19 +72,23 @@ public class MainDashBoardController implements Initializable {
     }
 
     private AuctionClient auctionClient;
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // lưu lại bản thân khi update:
         instance = this;
 
+        updateHeaderUI();
+
+        connectToAuctionServer();
         // 3. Xin Server cấp cho danh sách đồ vật (Thay thế cho loadProductsFromDatabase cũ)
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client != null) {
             client.sendToServer(new Message("GET_ALL_ITEMS", null));
             System.out.println("DASHBOARD: Đã gửi yêu cầu lấy danh sách Item.");
         }
-        updateHeaderUI();
-        connectToAuctionServer();
+
+
     }
     public void connectToAuctionServer(){
         // nếu kết nối roi thì không tạo lại nữa
@@ -108,10 +112,6 @@ public class MainDashBoardController implements Initializable {
 
         }
     }
-
-    // ============================================================
-    // Cập nhật Header dựa trên trạng thái đăng nhập
-    // ============================================================
     private void updateHeaderUI() {
         if (SessionManager.getInstance().isLoggedIn()) {
             // ---- Đã đăng nhập ----
@@ -206,5 +206,13 @@ public class MainDashBoardController implements Initializable {
             return;
         }
         System.out.println("Mua ngay được nhấn");
+    }
+    @FXML
+    void handleFeaturedBid(ActionEvent event){
+
+    }
+    @FXML
+    void handleFeaturedDetail(ActionEvent event){
+
     }
 }
