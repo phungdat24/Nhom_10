@@ -66,24 +66,37 @@
         <ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
             <VBox alignment="CENTER">
                 <children>
-               <HBox spacing="20.0" styleClass="filter-bar">
-                  <children>
-                     <Button fx:id="buttonCategory" mnemonicParsing="false" onAction="#handleCategory" prefHeight="40.0" styleClass="filter-button" text="🛒 Danh mục" />
-                     <TextField fx:id="txtSearch" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="40.0" prefWidth="500.0" promptText="🔍  Tìm kiếm sản phẩm..." styleClass="search-field" />
-                     <Button fx:id="btnFillter" mnemonicParsing="false" onAction="#handleFillter" prefHeight="40.0" styleClass="filter-button" text="⏳Bộ lọc" />
-                  </children>
-                  <VBox.margin>
-                     <Insets left="50.0" top="20.0" />
-                  </VBox.margin>
-               </HBox>
-               <VBox>
-                  <VBox.margin>
-                     <Insets left="100.0" top="20.0" />
-                  </VBox.margin>
-                  <children>
-                     <Label fx:id="lblItem" text="All item(0)" />
-                  </children>
-               </VBox>
+                    <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="live-filter-bar">
+                        <!-- Đổi Margin thành Padding để dải màu nền tràn đủ chiều ngang, tạo sự thống nhất -->
+                        <padding>
+                            <Insets bottom="15.0" left="30.0" right="30.0" top="15.0" />
+                        </padding>
+                        <children>
+                            <!-- Nút Danh mục -->
+                            <Button fx:id="buttonCategory" mnemonicParsing="false" onAction="#handleCategory" prefHeight="40.0" styleClass="live-filter-btn" text="🛒 Danh mục" />
+
+                            <!-- BỌC TEXTFIELD VÀO TRONG MỘT HBOX .live-search-box -->
+                            <HBox alignment="CENTER_LEFT" maxWidth="600.0" styleClass="live-search-box" HBox.hgrow="ALWAYS">
+                                <children>
+                                    <TextField fx:id="txtSearch" prefHeight="40.0" promptText="🔍  Tìm kiếm sản phẩm..." styleClass="live-search-field" HBox.hgrow="ALWAYS" />
+                                </children>
+                                <padding>
+                                    <Insets left="15.0" right="15.0" />
+                                </padding>
+                            </HBox>
+
+                            <!-- Nút Bộ lọc -->
+                            <Button fx:id="btnFillter" mnemonicParsing="false" onAction="#handleFillter" prefHeight="40.0" styleClass="live-filter-btn" text="⏳ Bộ lọc" />
+                        </children>
+                    </HBox>
+                    <VBox>
+                        <VBox.margin>
+                            <Insets left="30.0" top="15.0" />
+                        </VBox.margin>
+                        <children>
+                            <Label fx:id="lblItem" text="All item(0)" />
+                        </children>
+                    </VBox>
 
                     <!-- ── 4. GRID ITEMCARD ── -->
                     <FlowPane fx:id="contentArea" hgap="16" prefHeight="51.0" prefWidth="804.0" styleClass="content-area" vgap="16">

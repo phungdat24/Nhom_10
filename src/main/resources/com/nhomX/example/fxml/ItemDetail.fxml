@@ -77,10 +77,10 @@
                 <Button fx:id="btnBack" onAction="#handleBackAction" styleClass="btn-detail" text="⬅ Quay lại" />
 
                 <!-- HBox Tổng chứa 2 cột -->
-                <HBox alignment="TOP_CENTER" spacing="30">
+                <HBox alignment="TOP_CENTER" spacing="30.0" VBox.vgrow="ALWAYS">
 
                     <!-- CỘT 1: THÔNG TIN SẢN PHẨM & ĐẶT GIÁ (VBox bên trái) -->
-                    <VBox prefWidth="500.0" spacing="20">
+                    <VBox spacing="20">
                         <VBox alignment="CENTER" styleClass="product-card">
                             <ImageView fx:id="imgItem" fitHeight="300" fitWidth="200.0" preserveRatio="true" />
                      <padding>

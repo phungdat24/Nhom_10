@@ -286,41 +286,55 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0, 0, 1);
 }
 
-/* Container bao quanh cả 3 phần: Danh mục, Search, Bộ lọc */
-.filter-bar {
-    -fx-background-color: white;
-    -fx-background-radius: 15;
-    -fx-padding: 10 20 10 20;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+/* ---- Live Filter Bar ---- */
+.live-filter-bar {
+    -fx-background-color: rgba(20, 12, 4, 0.70);
+    -fx-border-color: rgba(201, 162, 39, 0.30);
+    -fx-border-width: 0 0 1 0;
 }
 
-/* Style chung cho nút Danh mục và Bộ lọc */
-.filter-button {
-    -fx-background-color: #f4f4f4;
-    -fx-background-radius: 20;
-    -fx-cursor: hand;
-    -fx-transition: 0.3s;
-    -fx-font-size:15px
-
-}
-
-.filter-button:hover {
-    -fx-background-color: #e0e0e0;
-}
-
-.filter-button .label {
-    -fx-text-fill: #333333;
+/* Nút Danh mục & Bộ lọc */
+.live-filter-btn {
+    -fx-background-color: rgba(201, 162, 39, 0.15);
+    -fx-text-fill: #e8c96a;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(201, 162, 39, 0.35);
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 8 18 8 18;
+    -fx-cursor: hand;
 }
 
-/* Làm nổi bật ô Search */
-.search-field {
-    -fx-background-radius: 20;
-    -fx-border-color: #ddd;
-    -fx-border-radius: 20;
-    -fx-background-color: #ffffff;
+.live-filter-btn:hover {
+    -fx-background-color: rgba(201, 162, 39, 0.28);
+    -fx-border-color: rgba(201, 162, 39, 0.65);
+    -fx-text-fill: #f5d98a;
 }
 
-.search-field:focused {
-    -fx-border-color: #d35400; /* Màu cam giống logo Auction của bạn */
+/* Hộp tìm kiếm tối */
+.live-search-box {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(201, 162, 39, 0.35);
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-min-height: 40;
 }
+
+.live-search-box:focused-within {
+    -fx-border-color: rgba(201, 162, 39, 0.70);
+}
+
+/* TextField bên trong hộp tìm kiếm */
+.live-search-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.40);
+    -fx-font-size: 13px;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
