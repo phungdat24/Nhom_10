@@ -69,11 +69,9 @@ public class ItemRepositoryImpl implements ItemRepository {
     item.setTitle(rs.getString("title"));
     item.setDescription(rs.getString("description"));
     item.setImagePath(rs.getString("image_path"));
-
-    // Nếu Items có các hàm này thì mở comment ra dùng:
-    // item.setId(rs.getString("id"));
-    // item.setStartingPrice(rs.getDouble("starting_price"));
-    // item.setCurrentPrice(rs.getDouble("current_price"));
+    item.setId(rs.getString("id"));
+    item.setStartingPrice(rs.getDouble("starting_price"));
+    item.setCurrentPrice(rs.getDouble("current_price"));
 
     return item;
   }

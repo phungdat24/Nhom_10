@@ -1,13 +1,14 @@
 package com.nhomX.example.networking;
 
+import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.model.User;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
-import com.nhomX.example.controller.SessionManager;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.model.User;
 
 public class AuctionClient {
     private String username;
@@ -78,7 +79,7 @@ public class AuctionClient {
 
                     if (listener != null) {
                         javafx.application.Platform.runLater(() -> {
-                            listener.onLoginResult(true, "ĐĂNG NHẬP THÀNH CÔNG!");
+                            listener.onLoginResult(true, "ĐĂNG NHẬP THÀNH CÔNG!", loggedInUser);
                         });
                     }
                 }
@@ -87,7 +88,7 @@ public class AuctionClient {
 
                     if (listener != null) {
                         javafx.application.Platform.runLater(() -> {
-                            listener.onLoginResult(false, "ĐĂNG NHẬP THẤT BẠI!");
+                            listener.onLoginResult(false, "ĐĂNG NHẬP THẤT BẠI!", null);
                         });
                     }
                 } else if ("REGISTER_SUCCESS".equals(msgType)) {
@@ -148,20 +149,23 @@ public class AuctionClient {
         }
     }
 
-    // Bổ sung hàm 1: Gọi khi người dùng MỞ giao diện chi tiết món hàng
+    //Gọi khi người dùng MỞ giao diện chi tiết món hàng
     public void watchItem(String itemId) {
         // Gửi tin nhắn loại "WATCH" lên Server
-        Message watchMsg = new Message("WATCH", username, itemId, 0);
+        Message watchMsg = new Message("WATCH_ITEM", username, itemId, 0);
         sendToServer(watchMsg);
         System.out.println("CLIENT: Đã đăng ký theo dõi giá món " + itemId);
     }
 
-    // Bổ sung hàm 2: Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
+    //Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
     public void unwatchItem(String itemId) {
         // Gửi tin nhắn loại "UNWATCH" lên Server
-        Message unwatchMsg = new Message("UNWATCH", username, itemId, 0);
+        Message unwatchMsg = new Message("UNWATCH_ITEM", username, itemId, 0);
         sendToServer(unwatchMsg);
         System.out.println("CLIENT: Đã hủy theo dõi giá món " + itemId);
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }

@@ -3,9 +3,16 @@ package com.nhomX.example.controller;
 import com.nhomX.example.model.Items;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class ItemCardController {
     @FXML
@@ -52,6 +59,22 @@ public class ItemCardController {
 
     @FXML
     void handleDetailAction(ActionEvent event) {
+        try{
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemDetail.fxml"));
+            Parent root = loader.load();
+
+            ItemDetailController detailController = loader.getController();
+            detailController.setItemData(this.currentItem);
+
+            // 3. Chuyển Scene
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.show();
+
+        }catch (IOException e){
+            e.printStackTrace();
+            System.out.println("KHÔNG THỂ MỞ TRANG CHI TIẾT SẢN PHẨM!" + e.getMessage());
+        }
         System.out.println("Information: " + currentItem.getDescription());
     }
 }
