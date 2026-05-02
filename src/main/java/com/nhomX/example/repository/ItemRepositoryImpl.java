@@ -1,15 +1,14 @@
 package com.nhomX.example.repository;
 
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.utils.DatabaseConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.nhomX.example.model.GeneralItem;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.utils.DatabaseConnection;
 
 public class ItemRepositoryImpl implements ItemRepository {
 
@@ -65,6 +64,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     // Bạn hãy kiểm tra lại tên cột trong DB và tên hàm set để chỉnh lại cho khớp 100% nhé
     item.setTitle(rs.getString("title"));
     item.setDescription(rs.getString("description"));
+    item.setImagePath(rs.getString("image_path"));
 
     // Nếu Items có các hàm này thì mở comment ra dùng:
     // item.setId(rs.getString("id"));
@@ -73,19 +73,19 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     return item;
   }
- 
-   @Override
-    public Items findById(String id) {
-        return null; // Task này chưa yêu cầu code nên để tạm return null
-    }
 
-    @Override
-    public void update(Items item) {
-        // Tạm thời để trống
-    }
+  @Override
+  public Items findById(String id) {
+    return null; // Task này chưa yêu cầu code nên để tạm return null
+  }
 
-    @Override
-    public void save(Items item) {
-        // Tạm thời để trống
-    }
+  @Override
+  public void update(Items item) {
+    // Tạm thời để trống
+  }
+
+  @Override
+  public void save(Items item) {
+    // Tạm thời để trống
+  }
 }
