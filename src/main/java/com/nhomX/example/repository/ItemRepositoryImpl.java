@@ -6,6 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.nhomX.example.model.GeneralItem;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.utils.DatabaseConnection;
 
 import com.nhomX.example.model.GeneralItem;
 import com.nhomX.example.model.Items;
