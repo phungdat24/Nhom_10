@@ -39,6 +39,11 @@ public class AuctionServer {
 
     // THÊM MỚI: Client gọi hàm này khi bấm vào xem chi tiết một món hàng
     public void watchItem(String itemId, ClientHandler client) {
+        // NẾU ITEM ID BỊ NULL, BỎ QUA LUÔN, KHÔNG ĐƯA VÀO HASHMAP
+        if (itemId == null || itemId.isEmpty()) {
+            System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
+            return;
+        }
         // Nếu itemId chưa ai xem thì tạo danh sách mới, sau đó thêm client vào
         itemViewers.computeIfAbsent(itemId, k -> ConcurrentHashMap.newKeySet()).add(client);
         System.out.println("SERVER: Một client vừa tham gia xem món " + itemId);

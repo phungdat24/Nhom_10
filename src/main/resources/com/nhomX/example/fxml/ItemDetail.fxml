@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.LiveAuctionController">
+<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ItemDetailController">
 
     <!-- ===== TOP: Header ===== -->
     <top>

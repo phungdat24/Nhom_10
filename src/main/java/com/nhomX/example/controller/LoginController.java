@@ -1,5 +1,6 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
@@ -48,11 +49,19 @@ public class LoginController implements ServerEventListener {
     }
 
     @Override
-    public void onLoginResult(boolean isSuccess, String message) {
-        if(isSuccess){
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
-        }else{
-            AlertUtils.showError( "Đăng nhập thất bại",  message);
-        }
+    public void onLoginResult(boolean isSuccess, String message, User userData) {
+        javafx.application.Platform.runLater(() ->{
+            if(isSuccess && userData != null){
+                SessionManager.getInstance().login(userData);
+                // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
+                AuctionClient client = SessionManager.getInstance().getAuctionClient();
+                if (client != null) {
+                    client.setUsername(userData.getUserName());
+                }
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+            }else {
+                AlertUtils.showError("Đăng nhập thất bại", message);
+            }
+        });
     }
 }
