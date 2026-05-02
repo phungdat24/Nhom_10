@@ -6,9 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.utils.DatabaseConnection;
 
 import com.nhomX.example.model.GeneralItem;
 import com.nhomX.example.model.Items;
@@ -78,7 +75,28 @@ public class ItemRepositoryImpl implements ItemRepository {
 
   @Override
   public Items findById(String id) {
-    return null; // Task này chưa yêu cầu code nên để tạm return null
+    // 1. Triển khai logic truy vấn: Câu lệnh SQL tìm 1 bản ghi theo ID
+    String sql = "SELECT * FROM items WHERE id = ?";
+
+    // 2 & 3. Xử lý đóng tài nguyên bằng try-with-resources cho PreparedStatement
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      // Truyền ID người dùng muốn tìm vào dấu ?
+      pstmt.setString(1, id);
+
+      // Dùng thêm try-with-resources cho ResultSet để tự động đóng sau khi đọc xong
+      try (ResultSet rs = pstmt.executeQuery()) {
+        // Nếu rs.next() là true nghĩa là tìm thấy dữ liệu trong Database
+        if (rs.next()) {
+          // 4. Tái sử dụng code: Dùng hàm mapRowToItem có sẵn để convert dữ liệu
+          return mapRowToItem(rs);
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi tìm sản phẩm theo ID: " + e.getMessage());
+    }
+
+    // 5. Giá trị trả về: Trả về null nếu không tìm thấy ID hoặc xảy ra lỗi
+    return null;
   }
 
   @Override

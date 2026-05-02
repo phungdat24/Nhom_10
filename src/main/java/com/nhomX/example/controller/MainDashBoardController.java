@@ -1,10 +1,16 @@
 package com.nhomX.example.controller;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,11 +20,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.ResourceBundle;
 
 public class MainDashBoardController implements Initializable, ServerEventListener {
 
@@ -53,7 +54,8 @@ public class MainDashBoardController implements Initializable, ServerEventListen
         // 2. Lặp qua từng món hàng và in ra màn hình
         for (Items item : items) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
+                FXMLLoader loader = new FXMLLoader(
+                        getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
                 VBox cardItem = loader.load(); // Load giao diện thẻ
                 // Lấy controller của thẻ đó để nhồi dữ liệu
                 ItemCardController cardController = loader.getController();
@@ -90,12 +92,12 @@ public class MainDashBoardController implements Initializable, ServerEventListen
 
     public void connectToAuctionServer() {
         // nếu kết nối roi thì không tạo lại nữa
-        if(SessionManager.getInstance().getAuctionClient() != null){
+        if (SessionManager.getInstance().getAuctionClient() != null) {
             this.auctionClient = SessionManager.getInstance().getAuctionClient();
             return;
         }
-        String userName="Guest";
-        if(SessionManager.getInstance().isLoggedIn()){
+        String userName = "Guest";
+        if (SessionManager.getInstance().isLoggedIn()) {
             userName = SessionManager.getInstance().getCurrentUser().getUserName();
         }
         this.auctionClient = new AuctionClient(userName);
@@ -105,7 +107,7 @@ public class MainDashBoardController implements Initializable, ServerEventListen
             System.out.println("Client: [" + userName + "] đã kết nối tới Server đấu giá!");
             // Cất vào kho cho các màn hình khác dùng chung
             SessionManager.getInstance().setAuctionClient(this.auctionClient);
-        }catch (Exception e){
+        } catch (Exception e) {
             System.err.println("Client: Lỗi kết nối Socket - " + e.getMessage());
 
         }
@@ -138,7 +140,7 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     @FXML
     void handleLogin(ActionEvent event) {
         // Chuyển sang màn hình Login
-        SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
     }
 
     @FXML
@@ -177,20 +179,22 @@ public class MainDashBoardController implements Initializable, ServerEventListen
 
     @Override
     public void onPriceUpdated(String itemId, double newPrice) {
-        System.out.println("DASHBOARD BẮT SÓNG: Món hàng " + itemId + " vừa nhảy giá lên $" + newPrice);
+        System.out.println(
+                "DASHBOARD BẮT SÓNG: Món hàng " + itemId + " vừa nhảy giá lên $" + newPrice);
 
         // Sau viết code quét danh sách ItemCard đang hiển thị
         // để update lại cái Label tiền trên màn hình ở đây
     }
+
     @FXML
     void handleFeaturedBid(ActionEvent event) {
 
     }
+
     @FXML
-    void handleFeaturedDetail(ActionEvent event){
+    void handleFeaturedDetail(ActionEvent event) {
 
     }
-    @FXML
-    void handleFeaturedBid(ActionEvent event){
+
 
 }
