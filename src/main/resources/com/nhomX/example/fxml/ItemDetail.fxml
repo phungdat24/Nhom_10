@@ -91,7 +91,7 @@
                         <VBox spacing="10">
                             <Label fx:id="lblItemName" styleClass="section-title" text="Tên sản phẩm" />
                             <Label fx:id="lblLeader" style="-fx-text-fill: #d35400; -fx-font-weight: bold;" styleClass="stat-label" text="🏆 Người dẫn đầu: Chưa có" />
-                            <Label fx:id="lblDescription" styleClass="stat-label" text="Mô tả chi tiết..." wrapText="true" />
+                            <Label fx:id="lblDescription" style="-fx-text-fill: #ffff1e" styleClass="stat-label" text="Mô tả chi tiết..." wrapText="true" />
 
                             <Separator />
 

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+
+<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.SellerItemCardController">
+
+    <padding>
+        <Insets bottom="12" left="12" right="12" top="12" />
+    </padding>
+
+    <HBox alignment="CENTER_LEFT">
+        <Label fx:id="lblStatus" styleClass="status-badge" style="-fx-background-color: #1976d2;" text="ĐANG ĐẤU GIÁ" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Label fx:id="lblBidCount" text="🔥 15 Bids" style="-fx-text-fill: #FF4500; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+    </HBox>
+
+    <ImageView fx:id="itemImageView" fitHeight="120" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
+        <image>
+            <Image url="@../images/placeholder.png" />
+        </image>
+    </ImageView>
+
+    <Label fx:id="lblItemName" maxWidth="190" styleClass="product-name" text="Tên sản phẩm..." wrapText="true" />
+
+    <Separator opacity="0.3" />
+
+    <VBox spacing="4">
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Label styleClass="label-caption" text="Giá khởi điểm:" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblStartingPrice" text="1.000.000 đ" style="-fx-text-fill: #666666; -fx-font-size: 12px;"/>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Label styleClass="label-caption" text="Giá hiện tại:" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblCurrentPrice" styleClass="bid-price" text="2.500.000 đ" />
+        </HBox>
+    </VBox>
+
+    <Separator opacity="0.3" />
+
+    <!-- ── 4. Thời gian thông minh (Controller sẽ đổi text tùy trạng thái) ── -->
+    <HBox alignment="CENTER_LEFT" spacing="6">
+        <Label fx:id="lblTimeCaption" styleClass="label-caption" text="Kết thúc:" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Label fx:id="lblTimeValue" text="23/05/2026 23:59" style="-fx-font-weight: bold; -fx-text-fill: #cc0000; -fx-font-size: 12px;" />
+    </HBox>
+
+    <!-- ── 5. Nút hành động ── -->
+
+    <HBox spacing="8" fx:id="actionBox">
+        <Button fx:id="btnEdit" maxWidth="Infinity" text="Sửa" style="-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDelete" maxWidth="Infinity" text="Xóa" style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" HBox.hgrow="ALWAYS" />
+    </HBox>
+
+</VBox>
