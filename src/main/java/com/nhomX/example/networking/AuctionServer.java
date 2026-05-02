@@ -19,7 +19,8 @@ public class AuctionServer {
 
     // THÊM MỚI: Map quản lý người xem theo từng itemId
     // Key: itemId, Value: Tập hợp (Set) các ClientHandler đang xem món đó
-    private final ConcurrentHashMap<String, Set<ClientHandler>> itemViewers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Set<ClientHandler>> itemViewers =
+            new ConcurrentHashMap<>();
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
@@ -73,7 +74,7 @@ public class AuctionServer {
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         AuctionServer server = new AuctionServer();
         System.out.println("Đang khởi động Server...");
         server.start();

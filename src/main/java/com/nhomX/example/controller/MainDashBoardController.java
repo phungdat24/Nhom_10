@@ -178,6 +178,12 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     void handleFeaturedDetail(ActionEvent event){
 
     }
+    @FXML
+    void handleFeaturedBid(ActionEvent event){
 
+    }
+    @FXML
+    void handleFeaturedDetail(ActionEvent event){
 
+    }
 }

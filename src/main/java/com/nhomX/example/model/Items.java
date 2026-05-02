@@ -11,6 +11,7 @@ public abstract class Items implements Serializable {
     private double currentPrice; // Gía hiện tại
     private LocalDateTime endTime;
     private String sellerId; // Id người đăng bán sản phẩm
+    private String imagePath;
 
     public Items() {
         // Hàm tạo rỗng của lớp Cha để cho phép lớp Con khởi tạo trống
@@ -20,6 +21,7 @@ public abstract class Items implements Serializable {
         this.id = id;
         this.title = title;
         this.sellerId = sellerId;
+        this.imagePath = imagePath;
     }
 
     // getter cho các thuộc tính
@@ -78,6 +80,14 @@ public abstract class Items implements Serializable {
 
     public void setSellerId(String sellerId) {
         this.sellerId = sellerId;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
 }
