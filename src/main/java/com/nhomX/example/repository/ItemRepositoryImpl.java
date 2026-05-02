@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import com.nhomX.example.model.GeneralItem;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.utils.DatabaseConnection;
@@ -81,11 +82,59 @@ public class ItemRepositoryImpl implements ItemRepository {
 
   @Override
   public void update(Items item) {
-    // Tạm thời để trống
+    // Câu lệnh SQL cập nhật dữ liệu, bao gồm cả cột image_path
+    String sql =
+        "UPDATE items SET title = ?, description = ?, starting_price = ?, current_price = ?, end_time = ?, seller_id = ?, image_path = ? WHERE id = ?";
+
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, item.getTitle());
+      pstmt.setString(2, item.getDescription());
+      pstmt.setDouble(3, item.getStartingPrice());
+      pstmt.setDouble(4, item.getCurrentPrice());
+      pstmt.setString(5, item.getEndTime() != null ? item.getEndTime().toString() : null);
+      pstmt.setString(6, item.getSellerId());
+
+      // Cập nhật đường dẫn ảnh mới (hỗ trợ cả NULL và chuỗi nhiều ảnh)
+      pstmt.setString(7, item.getImagePath());
+
+      // Điều kiện WHERE id = ? nằm ở vị trí thứ 8
+      pstmt.setString(8, item.getId());
+
+      pstmt.executeUpdate(); // Thực thi lệnh cập nhật
+      System.out.println("Đã cập nhật thành công sản phẩm: " + item.getTitle());
+
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi cập nhật sản phẩm: " + e.getMessage());
+    }
   }
 
   @Override
   public void save(Items item) {
-    // Tạm thời để trống
+    // Câu lệnh SQL chèn đủ 8 cột (bao gồm cả image_path ở cuối cùng)
+    String sql =
+        "INSERT INTO items (id, title, description, starting_price, current_price, end_time, seller_id, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+    // try-with-resources giúp tự động đóng kết nối sau khi chạy xong
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, item.getId());
+      pstmt.setString(2, item.getTitle());
+      pstmt.setString(3, item.getDescription());
+      pstmt.setDouble(4, item.getStartingPrice());
+      pstmt.setDouble(5, item.getCurrentPrice());
+      // Tùy theo kiểu dữ liệu của end_time trong model mà bạn dùng setString hoặc setDate nhé
+      pstmt.setString(6, item.getEndTime() != null ? item.getEndTime().toString() : null);
+      pstmt.setString(7, item.getSellerId());
+
+      // ĐÂY LÀ ĐIỂM CHỐT HẠ CỦA TASK NÀY:
+      // Truyền image_path vào vị trí dấu ? thứ 8.
+      // Nếu item.getImagePath() là null, JDBC sẽ tự động chèn chữ NULL chuẩn của SQL vào DB.
+      pstmt.setString(8, item.getImagePath());
+
+      pstmt.executeUpdate(); // Thực thi lệnh chèn
+      System.out.println("Đã lưu thành công sản phẩm: " + item.getTitle());
+
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi lưu sản phẩm: " + e.getMessage());
+    }
   }
 }
