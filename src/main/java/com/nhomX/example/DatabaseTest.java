@@ -2,6 +2,7 @@ package com.nhomX.example;
 
 import java.sql.Connection;
 import java.sql.Statement;
+
 import com.nhomX.example.utils.DatabaseConnection;
 
 public class DatabaseTest {
@@ -18,13 +19,33 @@ public class DatabaseTest {
             + "('ITM007', 'Tai nghe Sony', 'Chống ồn đỉnh cao', 300.0, 300.0, '/com/nhomX/example/images/item7.png'), "
             + "('ITM008', 'Nhẫn kim cương', 'Giấy kiểm định GIA', 4200.0, 4200.0, '/com/nhomX/example/images/item8.png'), "
             + "('ITM009', 'MacBook Pro M3', 'Dành cho Creator', 3200.0, 3200.0, '/com/nhomX/example/images/item9.png'), "
-            + "('ITM010', 'Bình sứ Minh Long', 'Bản giới hạn', 150.0, 150.0, '/com/nhomX/example/images/item10.png');";
+            + "('ITM010', 'Bình sứ Minh Long', 'Bản giới hạn', 150.0, 150.0, '/com/nhomX/example/images/item10.png'), "
+            + "('ITM998', 'Sản phẩm ảnh trống', 'Test tính năng NULL', 100.0, 100.0, NULL), "
+            + "('ITM999', 'Sản phẩm Slideshow', 'Test nhiều ảnh', 200.0, 200.0, '/images/anh1.png,/images/anh2.png,/images/anh3.png');";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
         Statement stmt = conn.createStatement()) {
 
       stmt.executeUpdate(sql);
       System.out.println("✅ THÀNH CÔNG: Đã nhét 10 sản phẩm vào Database!");
+      // --- TEST ĐIỀU KIỆN 2 ---
+      System.out.println("----------------------------------------");
+      System.out.println("BẮT ĐẦU KIỂM TRA ĐIỀU KIỆN 2 (SLIDESHOW):");
+      String testSql = "SELECT image_path FROM items WHERE id = 'ITM999'";
+
+      // Đã đổi stmt thành testStmt ở 2 dòng dưới đây để không bị trùng tên
+      try (java.sql.Statement testStmt = conn.createStatement();
+          java.sql.ResultSet rs = testStmt.executeQuery(testSql)) {
+
+        if (rs.next()) {
+          String chuoiAnh = rs.getString("image_path");
+          System.out.println("✅ Chuỗi ảnh lấy lên từ Database: " + chuoiAnh);
+          if (chuoiAnh != null && chuoiAnh.contains(",")) {
+            System.out.println(
+                "👉 KẾT LUẬN: Test Pass! Dữ liệu phân tách bằng dấu phẩy được giữ nguyên vẹn.");
+          }
+        }
+      }
 
     } catch (Exception e) {
       System.err.println("❌ Lỗi rồi: " + e.getMessage());
