@@ -97,7 +97,7 @@
 
 .logo-text {
     -fx-text-fill: white;
-    -fx-font-size: 22px;
+    -fx-font-size: 30px;
     -fx-font-weight: bold;
     -fx-font-family: "Segoe UI", "Arial", sans-serif;
     -fx-letter-spacing: 2;
@@ -108,7 +108,7 @@
     -fx-background-color: transparent;
     -fx-text-fill: rgba(255, 255, 255, 0.75);
     -fx-alignment: CENTER_LEFT;
-    -fx-font-size: 13px;
+    -fx-font-size: 20px;
     -fx-padding: 12 16 12 16;
     -fx-background-radius: 8;
     -fx-cursor: hand;
@@ -244,7 +244,7 @@
 
 .stat-label {
     -fx-text-fill: rgba(255,255,255,0.70);
-    -fx-font-size: 11px;
+    -fx-font-size: 14px;
 }
 
 /* ---- Featured Card ---- */
@@ -280,8 +280,47 @@
 
 /* ---- Section Title ---- */
 .section-title {
-    -fx-text-fill: white;
-    -fx-font-size: 16px;
+    -fx-text-fill: #FF4500;
+    -fx-font-size: 20px;
     -fx-font-weight: bold;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 4, 0, 0, 1);
+}
+
+/* Container bao quanh cả 3 phần: Danh mục, Search, Bộ lọc */
+.filter-bar {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-padding: 10 20 10 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+}
+
+/* Style chung cho nút Danh mục và Bộ lọc */
+.filter-button {
+    -fx-background-color: #f4f4f4;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s;
+    -fx-font-size:15px
+
+}
+
+.filter-button:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+.filter-button .label {
+    -fx-text-fill: #333333;
+    -fx-font-weight: bold;
+}
+
+/* Làm nổi bật ô Search */
+.search-field {
+    -fx-background-radius: 20;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 20;
+    -fx-background-color: #ffffff;
+}
+
+.search-field:focused {
+    -fx-border-color: #d35400; /* Màu cam giống logo Auction của bạn */
 }
