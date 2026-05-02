@@ -1,6 +1,9 @@
 package com.nhomX.example.controller;
 
+import java.io.IOException;
+
 import com.nhomX.example.model.Items;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,8 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
-
-import java.io.IOException;
 
 public class ItemCardController {
     @FXML
@@ -35,14 +36,29 @@ public class ItemCardController {
 
         lblItemName.setText(item.getTitle());
         lblCurrentPrice.setText("Giá: " + item.getCurrentPrice() + " VNĐ");
-        // Giả sử thẻ ImageView trên giao diện của bạn tên là itemImageView
-        if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
+        // Xử lý hình ảnh (Hỗ trợ ảnh trống và nhiều ảnh Slideshow)
+        String dbImagePath = item.getImagePath();
+
+        // 1. Nếu ảnh rỗng -> Hiện No Image
+        if (dbImagePath == null || dbImagePath.trim().isEmpty()) {
             try {
-                Image img = new Image(getClass().getResourceAsStream(item.getImagePath()));
-                itemImageView.setImage(img); // Đưa ảnh lên giao diện
+                itemImageView.setImage(new Image(
+                        getClass().getResourceAsStream("/com/nhomX/example/images/no_image.png")));
             } catch (Exception e) {
-                System.out.println("❌ Lỗi load ảnh cho: " + item.getTitle() + ". Đường dẫn: "
-                        + item.getImagePath());
+                System.err.println("❌ Không tìm thấy file no_image.png trong thư mục!");
+            }
+        }
+        // 2. Nếu có dữ liệu ảnh -> Cắt chuỗi lấy ảnh đầu tiên
+        else {
+            try {
+                String firstImage = dbImagePath.split(",")[0].trim();
+                itemImageView.setImage(new Image(getClass().getResourceAsStream(firstImage)));
+            } catch (Exception e) {
+                // Nếu file ảnh bị sai đường dẫn, fallback về No Image cho an toàn
+                System.err.println(
+                        "❌ Lỗi load ảnh cho: " + item.getTitle() + ". Đường dẫn: " + dbImagePath);
+                itemImageView.setImage(new Image(
+                        getClass().getResourceAsStream("/com/nhomX/example/images/no_image.png")));
             }
         }
 
@@ -59,8 +75,9 @@ public class ItemCardController {
 
     @FXML
     void handleDetailAction(ActionEvent event) {
-        try{
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemDetail.fxml"));
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/nhomX/example/fxml/ItemDetail.fxml"));
             Parent root = loader.load();
 
             ItemDetailController detailController = loader.getController();
@@ -71,7 +88,7 @@ public class ItemCardController {
             stage.setScene(new Scene(root));
             stage.show();
 
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             System.out.println("KHÔNG THỂ MỞ TRANG CHI TIẾT SẢN PHẨM!" + e.getMessage());
         }
