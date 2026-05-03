@@ -6,7 +6,7 @@ public class ValidatorUtils {
             return false;
         }
         try {
-            double price = Double.parseDouble(priceStr);
+            long price = Long.parseLong(priceStr);
             return price >0;
         }catch (NumberFormatException e){
             // Nhập chữ sẽ lỗi

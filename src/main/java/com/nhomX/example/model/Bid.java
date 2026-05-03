@@ -10,10 +10,10 @@ public class Bid {
     private LocalDateTime bidTime; // thời gian đấu giá
     private String userId; // Người đấu giá
     private String itemId; // id của vật phẩm đặt giá
-    private double amount; // Gía đấu
+    private long amount; // Gía đấu
     private String id; // id của lượt trả giá
 
-    public Bid(LocalDateTime bidTime, String userId, String itemId, double amount, String id) {
+    public Bid(LocalDateTime bidTime, String userId, String itemId, long amount, String id) {
         this.amount = amount;
         this.bidTime = bidTime;
         this.userId = userId;
@@ -33,7 +33,7 @@ public class Bid {
         this.itemId = itemId;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(long amount) {
         this.amount = amount;
     }
 
@@ -53,7 +53,7 @@ public class Bid {
         return this.itemId;
     }
 
-    public double getAmount() {
+    public long getAmount() {
         return this.amount;
     }
 

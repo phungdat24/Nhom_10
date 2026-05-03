@@ -22,7 +22,7 @@ public class BidRepositoryImpl implements BidRepository {
       pstmt.setString(2, bid.getBidTime() != null ? bid.getBidTime().toString() : null);
       pstmt.setString(3, bid.getUserId());
       pstmt.setString(4, bid.getItemId());
-      pstmt.setDouble(5, bid.getAmount());
+      pstmt.setLong(5, bid.getAmount());
 
       pstmt.executeUpdate();
       System.out.println("✅ Đã ghi nhận lượt đấu giá thành công!");
@@ -45,7 +45,7 @@ public class BidRepositoryImpl implements BidRepository {
         bid.setId(rs.getString("id"));
         bid.setUserId(rs.getString("user_id"));
         bid.setItemId(rs.getString("item_id"));
-        bid.setAmount(rs.getDouble("amount"));
+        bid.setAmount(rs.getLong("amount"));
         listBids.add(bid);
       }
     } catch (SQLException e) {
@@ -66,7 +66,7 @@ public class BidRepositoryImpl implements BidRepository {
         bid.setId(rs.getString("id"));
         bid.setUserId(rs.getString("user_id"));
         bid.setItemId(rs.getString("item_id"));
-        bid.setAmount(rs.getDouble("amount"));
+        bid.setAmount(rs.getLong("amount"));
         return bid;
       }
     } catch (SQLException e) {

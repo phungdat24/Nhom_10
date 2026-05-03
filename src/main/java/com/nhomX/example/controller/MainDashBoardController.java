@@ -176,7 +176,7 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     }
 
     @Override
-    public void onPriceUpdated(String itemId, double newPrice) {
+    public void onPriceUpdated(String itemId, long newPrice) {
         System.out.println("DASHBOARD BẮT SÓNG: Món hàng " + itemId + " vừa nhảy giá lên $" + newPrice);
 
         // Sau viết code quét danh sách ItemCard đang hiển thị

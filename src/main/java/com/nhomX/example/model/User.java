@@ -7,11 +7,11 @@ public class User implements Serializable {
     private String userName;
     private String passWord;
     private String fullName;
-    private double balance; // Số dư tk của user
+    private long balance; // Số dư tk của user
     public User(){
 
     }
-    public User(String userId, String userName, String passWord, String fullName, double balance){
+    public User(String userId, String userName, String passWord, String fullName, long balance){
         this.userId = userId;
         this.userName = userName;
         this.passWord = passWord;
@@ -35,7 +35,7 @@ public class User implements Serializable {
         return this.fullName;
     }
 
-    public double getBalance() {
+    public long getBalance() {
         return this.balance;
     }
 
@@ -55,7 +55,7 @@ public class User implements Serializable {
         this.fullName = fullName;
     }
 
-    public void setBalance(double balance) {
+    public void setBalance(long balance) {
         if (balance > 0.0) {
             this.balance = balance;
         }

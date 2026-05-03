@@ -10,10 +10,10 @@ public class Message implements Serializable {
     private String type;
     private String username;
     private String itemId;
-    private double amount;
+    private long amount;
     private Object data;
 
-    public Message(String type, String username, String itemId, double amount) {
+    public Message(String type, String username, String itemId, long amount) {
         this.type = type;
         this.username = username;
         this.itemId = itemId;
@@ -28,7 +28,7 @@ public class Message implements Serializable {
     public String getType() { return type; }
     public String getUsername() { return username; }
     public String getItemId() { return itemId; }
-    public double getAmount() { return amount; }
+    public long getAmount() { return amount; }
 
     @Override
     public String toString() {

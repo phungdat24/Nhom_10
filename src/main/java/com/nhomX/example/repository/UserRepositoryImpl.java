@@ -20,7 +20,7 @@ public class UserRepositoryImpl implements UserRepository {
       pstmt.setString(2, user.getUserName());
       pstmt.setString(3, user.getPassWord());
       pstmt.setString(4, user.getFullName());
-      pstmt.setDouble(5, user.getBalance());
+      pstmt.setLong(5, user.getBalance());
 
       int rowsAffected = pstmt.executeUpdate();
       if (rowsAffected > 0) {
@@ -43,7 +43,7 @@ public class UserRepositoryImpl implements UserRepository {
 
       if (rs.next()) {
         return new User(rs.getString("id"), rs.getString("username"), rs.getString("password"),
-            rs.getString("fullname"), rs.getDouble("balance"));
+            rs.getString("fullname"), rs.getLong("balance"));
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi đăng nhập: " + e.getMessage());
@@ -60,7 +60,7 @@ public class UserRepositoryImpl implements UserRepository {
 
       if (rs.next()) {
         return new User(rs.getString("id"), rs.getString("username"), rs.getString("password"),
-            rs.getString("fullname"), rs.getDouble("balance"));
+            rs.getString("fullname"), rs.getLong("balance"));
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi tìm kiếm user: " + e.getMessage());
@@ -69,10 +69,10 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public void updateBalance(String userId, double newBalance) {
+  public void updateBalance(String userId, long newBalance) {
     String sql = "UPDATE users SET balance = ? WHERE id = ?";
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-      pstmt.setDouble(1, newBalance);
+      pstmt.setLong(1, newBalance);
       pstmt.setString(2, userId);
       pstmt.executeUpdate();
     } catch (SQLException e) {

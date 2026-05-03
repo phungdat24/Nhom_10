@@ -43,7 +43,7 @@ public class AuctionClient {
     }
 
     // Gửi yêu cầu đặt giá lên Server
-    public void placeBid(String itemId, double price) {
+    public void placeBid(String itemId, long price) {
         try {
             Message bid = new Message("BID", username, itemId, price);
             out.writeObject(bid);
@@ -62,7 +62,7 @@ public class AuctionClient {
 
                 if ("UPDATE_PRICE".equals(msgType)) {
                     String itemId = msgFromServer.getItemId();
-                    double newPrice = msgFromServer.getAmount();
+                    long newPrice = msgFromServer.getAmount();
 
                     if (listener != null) {
                         javafx.application.Platform.runLater(() -> {

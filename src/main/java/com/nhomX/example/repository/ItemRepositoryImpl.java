@@ -70,8 +70,8 @@ public class ItemRepositoryImpl implements ItemRepository {
     item.setDescription(rs.getString("description"));
     item.setImagePath(rs.getString("image_path"));
     item.setId(rs.getString("id"));
-    item.setStartingPrice(rs.getDouble("starting_price"));
-    item.setCurrentPrice(rs.getDouble("current_price"));
+    item.setStartingPrice(rs.getLong("starting_price"));
+    item.setCurrentPrice(rs.getLong("current_price"));
 
     return item;
   }
@@ -90,8 +90,8 @@ public class ItemRepositoryImpl implements ItemRepository {
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, item.getTitle());
       pstmt.setString(2, item.getDescription());
-      pstmt.setDouble(3, item.getStartingPrice());
-      pstmt.setDouble(4, item.getCurrentPrice());
+      pstmt.setLong(3, item.getStartingPrice());
+      pstmt.setLong(4, item.getCurrentPrice());
       pstmt.setString(5, item.getEndTime() != null ? item.getEndTime().toString() : null);
       pstmt.setString(6, item.getSellerId());
 
@@ -120,8 +120,8 @@ public class ItemRepositoryImpl implements ItemRepository {
       pstmt.setString(1, item.getId());
       pstmt.setString(2, item.getTitle());
       pstmt.setString(3, item.getDescription());
-      pstmt.setDouble(4, item.getStartingPrice());
-      pstmt.setDouble(5, item.getCurrentPrice());
+      pstmt.setLong(4, item.getStartingPrice());
+      pstmt.setLong(5, item.getCurrentPrice());
       // Tùy theo kiểu dữ liệu của end_time trong model mà bạn dùng setString hoặc setDate nhé
       pstmt.setString(6, item.getEndTime() != null ? item.getEndTime().toString() : null);
       pstmt.setString(7, item.getSellerId());

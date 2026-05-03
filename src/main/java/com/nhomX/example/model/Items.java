@@ -7,8 +7,8 @@ public abstract class Items implements Serializable {
     private String id; // id của món hàng
     private String title; // Tên sản phẩm
     private String description; // Mô tả sản pham
-    private double startingPrice; // Gía khởi điểm
-    private double currentPrice; // Gía hiện tại
+    private long startingPrice; // Giá khởi tạo
+    private long currentPrice; // Gía hiện tại
     private LocalDateTime endTime;
     private String sellerId; // Id người đăng bán sản phẩm
     private String imagePath;
@@ -37,11 +37,11 @@ public abstract class Items implements Serializable {
         return this.description;
     }
 
-    public double getStartingPrice() {
+    public long getStartingPrice() {
         return this.startingPrice;
     }
 
-    public double getCurrentPrice() {
+    public long getCurrentPrice() {
         return this.currentPrice;
     }
 
@@ -66,11 +66,11 @@ public abstract class Items implements Serializable {
         this.description = description;
     }
 
-    public void setStartingPrice(double startinngPrice) {
+    public void setStartingPrice(long startinngPrice) {
         this.startingPrice = startinngPrice;
     }
 
-    public void setCurrentPrice(double currentPrice) {
+    public void setCurrentPrice(long currentPrice) {
         this.currentPrice = currentPrice;
     }
 

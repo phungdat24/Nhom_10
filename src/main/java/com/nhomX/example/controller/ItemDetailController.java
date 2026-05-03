@@ -48,7 +48,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
                     return;
                 }
                 try {
-                    double amount = Double.parseDouble(plainText);
+                    long amount = Long.parseLong(plainText);
                     // Dùng class CurrencyFormatter:
                     String formattedText = CurrencyFormatter.formatNumber(amount);
 
@@ -109,7 +109,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
     }
 
     @Override
-    public void onPriceUpdated(String updatedItemId, double newPrice) {
+    public void onPriceUpdated(String updatedItemId, long newPrice) {
         // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem không?
         if (currentItem != null && currentItem.getId().equals(updatedItemId)) {
 
@@ -168,7 +168,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         }
 
         try {
-            double bidAmount = Double.parseDouble(rawValue);
+            long bidAmount = Long.parseLong(rawValue);
 
             // 3. Kiểm tra xem giá đặt có lớn hơn giá hiện tại không
             if (bidAmount <= currentItem.getCurrentPrice()) {
