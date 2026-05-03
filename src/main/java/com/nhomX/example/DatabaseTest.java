@@ -10,18 +10,17 @@ public class DatabaseTest {
     // Đã xóa bỏ cột category và dữ liệu tương ứng để khớp với DB của bạn
     String sql =
         "INSERT INTO items (id, title, description, starting_price, current_price, image_path) VALUES "
-            + "('ITM001', 'Laptop Dell XPS 15', 'Laptop mỏng nhẹ', 1500.0, 1500.0, '/com/nhomX/example/images/item1.png'), "
-            + "('ITM002', 'Đồng hồ Rolex', 'Tình trạng 99%', 8500.0, 8500.0, '/com/nhomX/example/images/item2.png'), "
+            + "('ITM001', 'Laptop Dell XPS 15', 'Laptop mỏng nhẹ', 1500.0, 1500.0, '/com/nhomX/example/images/item1.png,/com/nhomX/example/images/laptop2.png,/com/nhomX/example/images/laptop3.png,/com/nhomX/example/images/laptop4.png,/com/nhomX/example/images/laptop5.png,/com/nhomX/example/images/laptop6.png,/com/nhomX/example/images/laptop7.png'), "
+            + "('ITM002', 'Đồng hồ Rolex', 'Tình trạng 99%', 8500.0, 8500.0, '/com/nhomX/example/images/item2.png,/com/nhomX/example/images/rolex2.png,/com/nhomX/example/images/rolex3.png,/com/nhomX/example/images/rolex4.png,/com/nhomX/example/images/rolex5.png,/com/nhomX/example/images/rolex6.png,/com/nhomX/example/images/rolex7.png,/com/nhomX/example/images/rolex8.png,/com/nhomX/example/images/rolex9.png'), "
             + "('ITM003', 'Tranh Đêm Đầy Sao', 'Bản sao sơn dầu', 200.0, 200.0, '/com/nhomX/example/images/item3.png'), "
-            + "('ITM004', 'iPhone 15 Pro Max', 'Màu Titan tự nhiên', 1100.0, 1100.0, '/com/nhomX/example/images/item4.png'), "
-            + "('ITM005', 'Dây chuyền vàng', 'Đính đá Sapphire', 450.0, 450.0, '/com/nhomX/example/images/item5.png'), "
+            + "('ITM004', 'iPhone 15 Pro Max', 'Màu Titan tự nhiên', 1100.0, 1100.0, '/com/nhomX/example/images/item4.png,/com/nhomX/example/images/iphone2.png,/com/nhomX/example/images/iphone3.png,/com/nhomX/example/images/iphone4.png,/com/nhomX/example/images/iphone5.png,/com/nhomX/example/images/iphone6.png'), "
+            + "('ITM005', 'Dây chuyền vàng', 'Đính đá Sapphire', 450.0, 450.0, '/com/nhomX/example/images/item5.png,/com/nhomX/example/images/vàng2.png,/com/nhomX/example/images/vàng3.png,/com/nhomX/example/images/vàng4.png,/com/nhomX/example/images/vàng5.png,/com/nhomX/example/images/vàng6.png'), "
             + "('ITM006', 'Tượng Quan Âm', 'Chạm khắc thủ công', 350.0, 350.0, '/com/nhomX/example/images/item6.png'), "
-            + "('ITM007', 'Tai nghe Sony', 'Chống ồn đỉnh cao', 300.0, 300.0, '/com/nhomX/example/images/item7.png'), "
-            + "('ITM008', 'Nhẫn kim cương', 'Giấy kiểm định GIA', 4200.0, 4200.0, '/com/nhomX/example/images/item8.png'), "
-            + "('ITM009', 'MacBook Pro M3', 'Dành cho Creator', 3200.0, 3200.0, '/com/nhomX/example/images/item9.png'), "
+            + "('ITM007', 'Tai nghe Sony', 'Chống ồn đỉnh cao', 300.0, 300.0, '/com/nhomX/example/images/item7.png,/com/nhomX/example/images/tainghe2.png,/com/nhomX/example/images/tainghe3.png,/com/nhomX/example/images/tainghe4.png,/com/nhomX/example/images/tainghe5.png'), "
+            + "('ITM008', 'Nhẫn kim cương', 'Giấy kiểm định GIA', 4200.0, 4200.0, '/com/nhomX/example/images/item8.png,/com/nhomX/example/images/kc2.png,/com/nhomX/example/images/kc3.png,/com/nhomX/example/images/kc4.png,/com/nhomX/example/images/kc5.png,/com/nhomX/example/images/kc6.png,/com/nhomX/example/images/kc7.png,/com/nhomX/example/images/kc8.png'), "
+            + "('ITM009', 'MacBook Pro M3', 'Dành cho Creator', 3200.0, 3200.0, '/com/nhomX/example/images/item9.png,/com/nhomX/example/images/mac2.png,/com/nhomX/example/images/mac3.png,/com/nhomX/example/images/mac4.png,/com/nhomX/example/images/mac5.png,/com/nhomX/example/images/mac6.png,/com/nhomX/example/images/mac7.png,/com/nhomX/example/images/mac8.png'), "
             + "('ITM010', 'Bình sứ Minh Long', 'Bản giới hạn', 150.0, 150.0, '/com/nhomX/example/images/item10.png'), "
-            + "('ITM998', 'Sản phẩm ảnh trống', 'Test tính năng NULL', 100.0, 100.0, NULL), "
-            + "('ITM999', 'Sản phẩm Slideshow', 'Test nhiều ảnh', 200.0, 200.0, '/images/anh1.png,/images/anh2.png,/images/anh3.png');";
+            + "('ITM998', 'Sản phẩm bị rỗng', 'Sản phẩm này sẽ hiện no_image', 100.0, 100.0, NULL);";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
         Statement stmt = conn.createStatement()) {
