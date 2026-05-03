@@ -1,18 +1,20 @@
 package com.nhomX.example.controller;
 
 import com.nhomX.example.model.User;
-import com.nhomX.example.repository.UserRepository;
-import com.nhomX.example.repository.UserRepositoryImpl;
+import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.networking.Message;
+import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
+import com.nhomX.example.utils.SecurityUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-public class LoginController {
+public class LoginController implements ServerEventListener {
 
-    private UserRepository userRepository = new UserRepositoryImpl();
+    private AuctionClient auctionClient;
 
     @FXML private TextField     account;
     @FXML private PasswordField password;
@@ -29,21 +31,37 @@ public class LoginController {
             AlertUtils.showWarning("Lỗi!", "Vui lòng nhập đầy đủ email và mật khẩu!");
             return;
         }
-        // Gio mới gọi database
-        User loggedInUser = userRepository.login(email, pass);
+        String securedPass = SecurityUtils.hashPassword(pass);
+        String[] loginData = {email, securedPass};
+        Message loginMsg= new Message("LOGIN", loginData);
 
-        if(loggedInUser != null){
-            System.out.println("Đăng nhập thành công!");
+        auctionClient=SessionManager.getInstance().getAuctionClient();
+        //Dành quyền kết nối
+        auctionClient.setServerEventListener(this);
 
-            SessionManager.getInstance().login(loggedInUser);
+        auctionClient.sendToServer(loginMsg);
+        auctionClient.sendToServer(loginMsg);
 
-            SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/dashboard.fxml");
-        }else{
-            AlertUtils.showError("Đăng nhập thất bại", "Email hoặc mật khẩu không chính xác.");
-        }
     }
     @FXML
     void handleRegister(ActionEvent event){
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/RegisterView.fxml");
+    }
+
+    @Override
+    public void onLoginResult(boolean isSuccess, String message, User userData) {
+        javafx.application.Platform.runLater(() ->{
+            if(isSuccess && userData != null){
+                SessionManager.getInstance().login(userData);
+                // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
+                AuctionClient client = SessionManager.getInstance().getAuctionClient();
+                if (client != null) {
+                    client.setUsername(userData.getUserName());
+                }
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+            }else {
+                AlertUtils.showError("Đăng nhập thất bại", message);
+            }
+        });
     }
 }

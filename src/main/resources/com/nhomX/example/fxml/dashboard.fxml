@@ -4,87 +4,144 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<StackPane prefHeight="700.0" prefWidth="1024.0" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
+<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
 
-   <!-- ===== HÌNH NỀN ===== -->
-   <ImageView fitHeight="700" fitWidth="1024" pickOnBounds="true" preserveRatio="false">
-      <image>
-         <Image url="@../images/anh_nen_main.png" />
-      </image>
-   </ImageView>
-
-   <!-- ===== NỘI DUNG CHÍNH ===== -->
-   <BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane">
-
-      <!-- ===== TOP: Header ===== -->
-      <top>
-         <HBox fx:id="header" alignment="CENTER_LEFT" spacing="16" styleClass="header">
-            <padding><Insets bottom="12" left="20" right="20" top="12" /></padding>
-
-            <!-- Search Bar -->
-            <TextField fx:id="txtSearch" maxWidth="400" promptText="🔍  Tìm kiếm sản phẩm..." styleClass="search-field" HBox.hgrow="ALWAYS" />
-
-            <!-- Spacer -->
-            <Region HBox.hgrow="ALWAYS" />
-
-            <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
-            <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
-
-            <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
-            <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" visible="false">
-               <Label fx:id="lblUsername" styleClass="username-label" text="👤  Tên người dùng" />
-               <Button fx:id="btnLogout" onAction="#handleLogout" styleClass="btn-logout" text="Đăng xuất" />
-            </HBox>
-
-         </HBox>
-      </top>
-
-      <!-- ===== LEFT: Sidebar ===== -->
-      <left>
-         <VBox fx:id="sidebar" spacing="4" styleClass="sidebar">
-            <padding><Insets bottom="20" left="12" right="12" top="20" /></padding>
-
-            <!-- Logo -->
-            <HBox alignment="CENTER" spacing="10" styleClass="logo-box">
-               <padding><Insets bottom="24" /></padding>
-               <Label styleClass="logo-icon" text="🔨" />
+   <!-- ===== TOP: Header ===== -->
+   <top>
+      <HBox fx:id="header" alignment="CENTER_LEFT" spacing="16.0" styleClass="header">
+         <padding><Insets bottom="12" left="20" right="20" top="12" /></padding>
+         <HBox alignment="CENTER" spacing="10" styleClass="logo-box">
+            <padding>
+               <Insets bottom="24" />
+            </padding>
+            <children>
+               <Label styleClass="logo-icon" text="🔨" textFill="RED" />
                <Label styleClass="logo-text" text="AUCTION" />
-            </HBox>
+            </children>
+         </HBox>
+         <Region prefHeight="40.0" prefWidth="100.0" />
 
-            <!-- Navigation Buttons -->
-            <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleDashboard" styleClass="nav-btn, nav-btn-active" text="🏠   Dashboard" />
+         <!-- Spacer -->
+         <Region prefHeight="40.0" prefWidth="60.0" HBox.hgrow="ALWAYS" />
 
-            <Button fx:id="btnLiveAuction" maxWidth="Infinity" onAction="#handleLiveAuction" styleClass="nav-btn" text="🚩   Live Auction" />
+         <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
+         <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
 
-            <Button fx:id="btnMyAuction" maxWidth="Infinity" onAction="#handleMyAuctions" styleClass="nav-btn" text="≡   My Auctions" />
+         <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
+         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" visible="false">
+            <Label fx:id="lblUsername" styleClass="username-label" text="👤  Tên người dùng" />
+            <Button fx:id="btnLogout" onAction="#handleLogout" styleClass="btn-logout" text="Đăng xuất" />
+         </HBox>
 
-            <Button fx:id="btnProfile" maxWidth="Infinity" onAction="#handleProfile" styleClass="nav-btn" text="👤   Profile" />
+      </HBox>
+   </top>
 
-            <Button fx:id="btnSeller" maxWidth="Infinity" onAction="#handleSeller" styleClass="nav-btn" text="🏷   Seller" />
+   <!-- ===== LEFT: Sidebar ===== -->
+   <left>
+      <VBox fx:id="sidebar" spacing="4" styleClass="sidebar">
+         <padding><Insets bottom="20" left="12" right="12" top="20" /></padding>
+
+         <!-- Navigation Buttons -->
+         <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleDashboard" styleClass="nav-btn, nav-btn-active" text="🏠   Dashboard" />
+
+         <Button fx:id="btnLiveAuction" maxWidth="Infinity" onAction="#handleLiveAuction" styleClass="nav-btn" text="🚩   Live Auction" />
+
+         <Button fx:id="btnMyAuction" maxWidth="Infinity" onAction="#handleMyAuctions" styleClass="nav-btn" text="≡   My Auctions" />
+
+         <Button fx:id="btnProfile" maxWidth="Infinity" onAction="#handleProfile" styleClass="nav-btn" text="👤   Profile" />
+
+         <Button fx:id="btnSeller" maxWidth="Infinity" onAction="#handleSeller" styleClass="nav-btn" text="🏷   Seller" />
+      </VBox>
+   </left>
+
+   <!-- ===== CENTER: Content Area ===== -->
+   <center>
+      <ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" vbarPolicy="AS_NEEDED">
+         <VBox alignment="CENTER">
+            <children>
+               <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="50.0">
+                  <children>
+                     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="150.0">
+                        <padding>
+                           <Insets bottom="10.0" left="30.0" right="30.0" top="10.0" />
+                        </padding>
+                        <children>
+                           <Label styleClass="stat-icon" text="🔨" />
+                           <Label fx:id="lblActiveAuctions" styleClass="stat-number" text="0" />
+                           <Label prefHeight="16.0" prefWidth="80.0" styleClass="stat-label" text="Đang diễn ra">
+                              <font>
+                                 <Font name="System Bold" size="12.0" />
+                              </font></Label>
+                        </children>
+                     </VBox>
+                     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="150.0">
+                        <padding>
+                           <Insets bottom="10.0" left="30.0" right="30.0" top="10.0" />
+                        </padding>
+                        <children>
+                           <Label styleClass="stat-icon" text="⏳" />
+                           <Label fx:id="lblEndingSoon" styleClass="stat-number" text="0" />
+                           <Label styleClass="stat-label" text="Sắp kết thúc" />
+                        </children>
+                     </VBox>
+                     <VBox alignment="CENTER" prefHeight="200.0" prefWidth="150.0">
+                        <padding>
+                           <Insets bottom="10.0" left="30.0" right="30.0" top="10.0" />
+                        </padding>
+                        <children>
+                           <Label styleClass="stat-icon" text="👥" />
+                           <Label fx:id="lblTotalUsers" styleClass="stat-number" text="0" />
+                           <Label minWidth="-Infinity" prefHeight="18.0" prefWidth="107.0" styleClass="stat-label" text="Người tham gia" />
+                        </children>
+                     </VBox>
+                  </children>
+               </HBox>
+
+               <!-- ── 2. FEATURED CARD ── -->
+               <HBox alignment="CENTER_LEFT" spacing="20" styleClass="featured-card">
+                  <padding><Insets bottom="16" left="20" right="20" top="16" /></padding>
+
+                  <ImageView fx:id="imgFeatured" fitHeight="130" fitWidth="180" preserveRatio="true" />
+
+                  <VBox spacing="8" HBox.hgrow="ALWAYS">
+                     <Label styleClass="featured-tag" text="🏆  SẢN PHẨM NỔI BẬT" />
+                     <Label fx:id="lblFeaturedName" styleClass="featured-name" text="Tên sản phẩm..." />
+                     <Label fx:id="lblFeaturedPrice" styleClass="featured-price" text="Giá hiện tại: 0 VNĐ" />
+                     <Label fx:id="lblFeaturedTime" styleClass="featured-time" text="⏱  Còn lại: 00:00:00" />
+                  </VBox>
+
+                  <VBox alignment="CENTER" spacing="8">
+                     <Button fx:id="btnFeaturedBid" onAction="#handleFeaturedBid" prefWidth="130" styleClass="btn-bid" text="Đấu giá ngay" />
+                     <Button fx:id="btnFeaturedDetail" onAction="#handleFeaturedDetail" prefWidth="130" styleClass="btn-detail" text="Xem chi tiết" />
+                  </VBox>
+               </HBox>
+
+               <!-- ── 3. TIÊU ĐỀ SECTION ── -->
+               <Label alignment="CENTER" prefHeight="70.0" prefWidth="200.0" styleClass="section-title" text="🔥  Đang diễn ra" textAlignment="CENTER" textFill="#b82121">
+                  <padding><Insets bottom="16.0" left="20.0" right="20.0" top="16.0" /></padding>
+                  <font>
+                     <Font size="15.0" />
+                  </font>
+               </Label>
+
+               <!-- ── 4. GRID ITEMCARD ── -->
+               <FlowPane fx:id="contentArea" hgap="16" styleClass="content-area" vgap="16">
+                  <padding><Insets bottom="20" left="20" right="20" /></padding>
+               </FlowPane>
+
+
+
+            </children>
          </VBox>
-      </left>
+      </ScrollPane>
+   </center>
 
-      <!-- ===== CENTER: Content Area ===== -->
-      <center>
-         <ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" vbarPolicy="AS_NEEDED">
-
-            <FlowPane fx:id="contentArea" hgap="16" styleClass="content-area" vgap="16">
-               <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
-
-            </FlowPane>
-         </ScrollPane>
-      </center>
-
-   </BorderPane>
-
-</StackPane>
+</BorderPane>

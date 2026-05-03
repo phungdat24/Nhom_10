@@ -19,7 +19,8 @@ public class AuctionServer {
 
     // THÊM MỚI: Map quản lý người xem theo từng itemId
     // Key: itemId, Value: Tập hợp (Set) các ClientHandler đang xem món đó
-    private final ConcurrentHashMap<String, Set<ClientHandler>> itemViewers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Set<ClientHandler>> itemViewers =
+            new ConcurrentHashMap<>();
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
@@ -38,6 +39,11 @@ public class AuctionServer {
 
     // THÊM MỚI: Client gọi hàm này khi bấm vào xem chi tiết một món hàng
     public void watchItem(String itemId, ClientHandler client) {
+        // NẾU ITEM ID BỊ NULL, BỎ QUA LUÔN, KHÔNG ĐƯA VÀO HASHMAP
+        if (itemId == null || itemId.isEmpty()) {
+            System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
+            return;
+        }
         // Nếu itemId chưa ai xem thì tạo danh sách mới, sau đó thêm client vào
         itemViewers.computeIfAbsent(itemId, k -> ConcurrentHashMap.newKeySet()).add(client);
         System.out.println("SERVER: Một client vừa tham gia xem món " + itemId);
@@ -73,7 +79,7 @@ public class AuctionServer {
         }
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         AuctionServer server = new AuctionServer();
         System.out.println("Đang khởi động Server...");
         server.start();

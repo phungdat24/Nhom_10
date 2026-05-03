@@ -20,98 +20,58 @@
       - Thời gian còn lại (đếm ngược)
       - Nút Đấu giá / Mua ngay
 -->
-<VBox spacing="6"
-      styleClass="product-card"
-      stylesheets="@../css/dashboard.css"
-      xmlns="http://javafx.com/javafx/25"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.nhomX.example.controller.ItemCardController">
+
+<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ItemCardController">
 
     <padding>
         <Insets bottom="12" left="12" right="12" top="12" />
     </padding>
 
     <!-- ── Ảnh sản phẩm ── -->
-    <ImageView fx:id="imgProduct"
-               fitHeight="140" fitWidth="190"
-               preserveRatio="true"
-               pickOnBounds="true"
-               styleClass="product-image">
+    <ImageView fx:id="itemImageView" fitHeight="140" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
         <image>
             <Image url="@../images/placeholder.png" />
         </image>
     </ImageView>
 
     <!-- ── Tên sản phẩm ── -->
-    <Label fx:id="lblItemName"
-           styleClass="product-name"
-           text="Tên sản phẩm..."
-           wrapText="true"
-           maxWidth="190" />
-
-    <!-- ── Mô tả ngắn ── -->
-    <Label fx:id="lblDescription"
-           styleClass="product-description"
-           text="Mô tả sản phẩm..."
-           wrapText="true"
-           maxWidth="190"
-           maxHeight="36" />
+    <Label fx:id="lblItemName" maxWidth="190" styleClass="product-name" text="Tên sản phẩm..." wrapText="true" />
 
     <Separator opacity="0.3" />
 
     <!-- ── Giá khởi điểm ── -->
-    <HBox spacing="6" alignment="CENTER_LEFT">
+    <HBox alignment="CENTER_LEFT" spacing="6">
         <Label styleClass="label-caption" text="Khởi điểm:" />
-        <Label fx:id="lblStartingPrice"
-               styleClass="starting-price"
-               text="0 VNĐ" />
+        <Label fx:id="lblStartingPrice" styleClass="starting-price" text="0 VNĐ" />
     </HBox>
 
     <!-- ── Giá hiện tại cao nhất ── -->
-    <HBox spacing="6" alignment="CENTER_LEFT">
+    <HBox alignment="CENTER_LEFT" spacing="6">
         <Label styleClass="label-caption" text="Giá cao nhất:" />
-        <Label fx:id="lblCurrentPrice"
-               styleClass="bid-price"
-               text="0 VNĐ" />
+        <Label fx:id="lblCurrentPrice" styleClass="bid-price" text="0 VNĐ" />
     </HBox>
 
     <Separator opacity="0.3" />
 
     <!-- ── Thời gian bắt đầu ── -->
-    <HBox spacing="6" alignment="CENTER_LEFT">
+    <HBox alignment="CENTER_LEFT" spacing="6">
         <Label styleClass="label-caption" text="Bắt đầu:" />
-        <Label fx:id="lblStartTime"
-               styleClass="time-info"
-               text="--/--/---- --:--" />
+        <Label fx:id="lblStartTime" styleClass="time-info" text="--/--/---- --:--" />
     </HBox>
 
     <!-- ── Thời gian kết thúc ── -->
-    <HBox spacing="6" alignment="CENTER_LEFT">
+    <HBox alignment="CENTER_LEFT" spacing="6">
         <Label styleClass="label-caption" text="Kết thúc:" />
-        <Label fx:id="lblEndTime"
-               styleClass="time-info"
-               text="--/--/---- --:--" />
+        <Label fx:id="lblEndTime" styleClass="time-info" text="--/--/---- --:--" />
     </HBox>
 
     <!-- ── Thời gian còn lại (đếm ngược) ── -->
-    <Label fx:id="lblTimeLeft"
-           styleClass="time-left"
-           text="⏱  00:00:00" />
+    <Label fx:id="lblTimeLeft" styleClass="time-left" text="⏱  00:00:00" />
 
     <!-- ── Nút hành động ── -->
     <HBox spacing="8">
-        <Button fx:id="btnBid"
-                onAction="#handleBidAction"
-                styleClass="btn-bid"
-                text="Đấu giá ngay"
-                HBox.hgrow="ALWAYS"
-                maxWidth="Infinity" />
-        <Button fx:id="btnDetail"
-                onAction="#handleDetailAction"
-                styleClass="btn-detail"
-                text="Xem chi tiết"
-                HBox.hgrow="ALWAYS"
-                maxWidth="Infinity" />
+        <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" styleClass="btn-bid" text="Đấu giá" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDetail" maxWidth="Infinity" onAction="#handleDetailAction" prefHeight="26.0" prefWidth="82.0" styleClass="btn-detail" text="Xem chi tiết" HBox.hgrow="ALWAYS" />
     </HBox>
 
 </VBox>

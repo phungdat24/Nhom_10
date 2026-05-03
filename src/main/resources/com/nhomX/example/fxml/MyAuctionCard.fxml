@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MyAuctionCardController">
+
+    <padding>
+        <Insets bottom="12" left="12" right="12" top="12" />
+    </padding>
+
+    <!-- ── 1. Nhãn Trạng Thái (Status Badge) ── -->
+    <HBox alignment="CENTER_LEFT">
+        <!-- Chữ text ở đây chỉ là mẫu, Controller sẽ đổi thành "ĐANG DẪN ĐẦU" hoặc "BỊ VƯỢT GIÁ" -->
+        <Label fx:id="lblStatusBadge" styleClass="status-badge, badge-outbid" text="‼ BỊ VƯỢT GIÁ ‼" />
+        <Region HBox.hgrow="ALWAYS" />
+    </HBox>
+
+    <!-- ── 2. Ảnh sản phẩm ── -->
+    <ImageView fx:id="itemImageView" fitHeight="120" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
+        <image>
+            <Image url="@../images/placeholder.png" />
+        </image>
+    </ImageView>
+
+    <!-- ── 3. Tên sản phẩm ── -->
+    <Label fx:id="lblItemName" maxWidth="190" styleClass="product-name" text="Tên sản phẩm..." wrapText="true" />
+
+    <Separator opacity="0.3" />
+
+    <!-- ── 4. SO SÁNH GIÁ (Quan trọng nhất ở màn hình này) ── -->
+    <VBox spacing="4">
+        <!-- Giá của mình -->
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Label styleClass="label-caption" text="Giá bạn đặt:" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblMyBid" styleClass="my-bid-price" text="1.500.000 đ" />
+        </HBox>
+
+        <!-- Giá cao nhất hiện tại (Của người khác) -->
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Label styleClass="label-caption" text="Giá hiện hành:" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblCurrentPrice" styleClass="bid-price" text="2.000.000 đ" />
+        </HBox>
+    </VBox>
+
+    <Separator opacity="0.3" />
+
+    <!-- ── 5. Thời gian còn lại & Kết thúc ── -->
+    <HBox alignment="CENTER_LEFT" spacing="6">
+        <Label styleClass="label-caption" text="Kết thúc:" />
+        <Label fx:id="lblEndTime" styleClass="time-info" text="23/05/2026 23:59" />
+    </HBox>
+
+    <Label fx:id="lblTimeLeft" styleClass="time-left" text="⏱  02:15:30" />
+
+    <!-- ── 6. Nút hành động ── -->
+    <!-- Nút này sẽ đổi màu/chữ tùy trạng thái. Nếu bị vượt giá -> Đổi thành "Bid thêm" -->
+    <HBox spacing="8">
+        <Button fx:id="btnAction" maxWidth="Infinity" onAction="#handleAction" prefHeight="32.0" prefWidth="122.0" styleClass="btn-bid, btn-action-outbid" text="Bid thêm ngay" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDetail" maxWidth="Infinity" onAction="#handleDetailAction" prefHeight="26.0" prefWidth="82.0" styleClass="btn-detail" text="Chi tiết" HBox.hgrow="ALWAYS" />
+    </HBox>
+
+</VBox>

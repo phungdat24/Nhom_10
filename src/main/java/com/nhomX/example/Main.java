@@ -1,6 +1,10 @@
 package com.nhomX.example;
 
 import java.io.IOException;
+
+import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.utils.SceneSwitcher;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -8,13 +12,18 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage primaryStage) throws IOException {
+        AuctionClient client = new AuctionClient("Guest");
+        client.connect("localhost", 8080);
+        // Lưu vào SessionManager để dùng xuyên suốt app
+        SessionManager.getInstance().setAuctionClient(client);
+        SceneSwitcher.mainStage = primaryStage;
         FXMLLoader fxmlLoader =
                 new FXMLLoader(Main.class.getResource("/com/nhomX/example/fxml/dashboard.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1024, 700);
-        stage.setTitle("Auction Project");
-        stage.setScene(scene);
-        stage.show();
+        primaryStage.setTitle("Auction Project");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
