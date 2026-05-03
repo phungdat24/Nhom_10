@@ -48,6 +48,7 @@ public class DatabaseConnection {
     String createItemsTable = "CREATE TABLE IF NOT EXISTS items (" + "id TEXT PRIMARY KEY, "
         + "title TEXT NOT NULL, " + "description TEXT, " + "starting_price REAL, "
         + "current_price REAL, " + "end_time TEXT, " + "seller_id TEXT, " + "image_path TEXT, "
+        + "status TEXT DEFAULT 'OPEN', " + "winner_id TEXT, "
         + "FOREIGN KEY(seller_id) REFERENCES users(id)" + ");";
 
     String createBidsTable = "CREATE TABLE IF NOT EXISTS bids (" + "id TEXT PRIMARY KEY, "

@@ -156,4 +156,39 @@ public class ItemRepositoryImpl implements ItemRepository {
       System.err.println("❌ Lỗi khi lưu sản phẩm: " + e.getMessage());
     }
   }
+
+  @Override
+  public List<Items> findExpiredOpenItems() {
+    List<Items> expiredItems = new ArrayList<>();
+    String sql =
+        "SELECT * FROM items WHERE status = 'OPEN' AND end_time <= datetime('now', 'localtime')";
+
+    try (PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery()) {
+
+      while (rs.next()) {
+        expiredItems.add(mapRowToItem(rs)); // Tái sử dụng hàm nặn dữ liệu
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi quét các phiên đấu giá hết hạn: " + e.getMessage());
+    }
+    return expiredItems;
+  }
+
+  @Override
+  public boolean updateStatusAndWinner(String itemId, String status, String winnerId) {
+    String sql = "UPDATE items SET status = ?, winner_id = ? WHERE id = ?";
+
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, status);
+      pstmt.setString(2, winnerId);
+      pstmt.setString(3, itemId);
+
+      int rowsAffected = pstmt.executeUpdate();
+      return rowsAffected > 0; // Trả về true nếu cập nhật thành công ít nhất 1 dòng
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi chốt phiên đấu giá: " + e.getMessage());
+      return false;
+    }
+  }
 }
