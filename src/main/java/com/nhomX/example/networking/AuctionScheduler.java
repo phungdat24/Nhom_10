@@ -4,10 +4,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+
 public class AuctionScheduler {
     
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    
     private final AuctionServer server;
 
     public AuctionScheduler(AuctionServer server) {
@@ -25,5 +25,6 @@ public class AuctionScheduler {
             }
         }, 0, 5, TimeUnit.SECONDS); 
     }
-
+     private void checkAndCloseAuctions() {
+     }
 }
