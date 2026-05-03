@@ -91,4 +91,76 @@ public class BidRepositoryImpl implements BidRepository {
     }
     return null;
   }
+
+  @Override
+  public boolean placeBidTransaction(String userId, String itemId, double bidAmount, String bidId) {
+    Connection conn = null;
+
+    try {
+      // BƯỚC 1: Mở một kết nối Database duy nhất
+      conn = DatabaseConnection.getInstance().getConnection();
+
+      // BƯỚC 2: Tắt chế độ tự động lưu (Bắt đầu gom các lệnh vào 1 Giao dịch)
+      conn.setAutoCommit(false);
+
+
+      // BƯỚC 3: Mở khối try để thực hiện chuỗi Giao dịch (3 lệnh)
+      // Lệnh 1: Trừ tiền (Cập nhật balance)
+      String sqlUser = "UPDATE users SET balance = balance - ? WHERE id = ?";
+      try (PreparedStatement pstmt1 = conn.prepareStatement(sqlUser)) {
+        pstmt1.setDouble(1, bidAmount);
+        pstmt1.setString(2, userId);
+        pstmt1.executeUpdate();
+      }
+
+      // Lệnh 2: Thêm lịch sử đấu giá
+      String sqlBid = "INSERT INTO bids (id, user_id, item_id, amount) VALUES (?, ?, ?, ?)";
+      try (PreparedStatement pstmt2 = conn.prepareStatement(sqlBid)) {
+        pstmt2.setString(1, bidId);
+        pstmt2.setString(2, userId);
+        pstmt2.setString(3, itemId);
+        pstmt2.setDouble(4, bidAmount);
+        pstmt2.executeUpdate();
+      }
+
+      // Lệnh 3: Cập nhật giá hiện tại của sản phẩm
+      String sqlItem = "UPDATE items SET current_price = ? WHERE id = ?";
+      try (PreparedStatement pstmt3 = conn.prepareStatement(sqlItem)) {
+        pstmt3.setDouble(1, bidAmount);
+        pstmt3.setString(2, itemId);
+        pstmt3.executeUpdate();
+      }
+
+      // BƯỚC 4: Nếu cả 3 lệnh trên chạy trót lọt, gọi chốt sổ!
+      conn.commit();
+      System.out.println("✅ Giao dịch thành công! Đã chốt sổ dữ liệu.");
+      return true;
+
+    } catch (SQLException e) {
+      // BƯỚC 5: Mở khối catch - Có lỗi xảy ra, tiến hành quay xe (Rollback)
+      System.err.println("❌ Lỗi Giao dịch! Đang hoàn tác (Rollback)... Lý do: " + e.getMessage());
+      if (conn != null) {
+        try {
+          conn.rollback();
+          System.out.println("🔄 Đã hoàn tác an toàn. Không ai bị mất tiền oan.");
+        } catch (SQLException ex) {
+          System.err.println("❌ Lỗi nghiêm trọng khi Rollback: " + ex.getMessage());
+        }
+      }
+      return false;
+
+    } finally {
+      // BƯỚC 6: Mở khối finally để dọn dẹp chiến trường
+      if (conn != null) {
+        try {
+          // BƯỚC 7: Trả lại trạng thái mặc định cho Connection
+          conn.setAutoCommit(true);
+          // BƯỚC 8: Đóng kết nối
+          conn.close();
+        } catch (SQLException ex) {
+          System.err.println("❌ Lỗi khi dọn dẹp kết nối: " + ex.getMessage());
+        }
+      }
+    }
+  }
 }
