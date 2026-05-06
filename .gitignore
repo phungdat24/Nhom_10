@@ -39,3 +39,4 @@ build/
 out/
 gen/
 *.db
+auction.db
