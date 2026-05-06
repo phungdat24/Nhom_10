@@ -5,6 +5,7 @@ import java.util.ResourceBundle;
 
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
@@ -44,6 +45,13 @@ public class ItemDetailController implements ServerEventListener, Initializable 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        // 1. LẤY AUCTION CLIENT TỪ KHO CHUNG RA DÙNG LUÔN
+        this.auctionClient = SessionManager.getInstance().getAuctionClient();
+
+        // 2. Bắt sóng sự kiện (để cập nhật giá realtime)
+        if (this.auctionClient != null) {
+            this.auctionClient.setServerEventListener(this);
+        }
         if (txtBidAmount != null) {
             txtBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue == null || newValue.isEmpty())
@@ -106,6 +114,10 @@ public class ItemDetailController implements ServerEventListener, Initializable 
                 hboxImageControls.setVisible(hasMultiple);
                 hboxImageControls.setManaged(hasMultiple);
             }
+        }
+        if (this.auctionClient != null) {
+            // Gửi lệnh báo cho Server biết tôi đang xem phòng đấu giá này
+            this.auctionClient.watchItem(currentItem.getId());
         }
     }
 
@@ -199,6 +211,10 @@ public class ItemDetailController implements ServerEventListener, Initializable 
 
                 // Xóa trắng ô nhập để chuẩn bị cho lần gõ tiếp theo
                 txtBidAmount.clear();
+            }else {
+                // Thêm log và cảnh báo để dễ phát hiện lỗi
+                AlertUtils.showError("Lỗi kết nối", "Hệ thống chưa kết nối được tới Server (Client null)!");
+                System.err.println("❌ Lỗi: auctionClient chưa được truyền vào Controller này!");
             }
         } catch (NumberFormatException e) {
             AlertUtils.showError("Lỗi hệ thống", "Dữ liệu nhập không hợp lệ.");
