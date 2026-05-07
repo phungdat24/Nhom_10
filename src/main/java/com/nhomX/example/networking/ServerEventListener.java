@@ -9,7 +9,7 @@ public interface ServerEventListener {
     // Sự kiện đăng nhập
     default void onLoginResult (boolean isSuccess, String message, User userData) {};
     // Sự kiện cập nhật Realtime
-    default void onPriceUpdated(String itemId, double newPrice) {};
+    default void onPriceUpdated(String itemId, long newPrice) {};
     // Sự kiên nhận danh sách Items:
     default void onItemsReceived(List<Items> items) {};
     // Thêm sự kiện phản hồi Đăng ký

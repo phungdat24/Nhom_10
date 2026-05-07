@@ -1,9 +1,6 @@
 package com.nhomX.example.controller;
 
-import java.io.IOException;
-
 import com.nhomX.example.model.Items;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,6 +11,8 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+
+import java.io.IOException;
 
 public class ItemCardController {
     @FXML
@@ -36,7 +35,7 @@ public class ItemCardController {
 
         lblItemName.setText(item.getTitle());
         lblCurrentPrice.setText("Giá: " + item.getCurrentPrice() + " VNĐ");
-        // Xử lý hình ảnh (Hỗ trợ ảnh trống và nhiều ảnh Slideshow)
+         // Xử lý hình ảnh (Hỗ trợ ảnh trống và nhiều ảnh Slideshow)
         String dbImagePath = item.getImagePath();
 
         // 1. Nếu ảnh rỗng -> Hiện No Image
@@ -51,7 +50,7 @@ public class ItemCardController {
         // 2. Nếu có dữ liệu ảnh -> Cắt chuỗi lấy ảnh đầu tiên
         else {
             try {
-                String firstImage = dbImagePath.split(",")[0].trim();
+                 String firstImage = dbImagePath.split(",")[0].trim();
                 itemImageView.setImage(new Image(getClass().getResourceAsStream(firstImage)));
             } catch (Exception e) {
                 // Nếu file ảnh bị sai đường dẫn, fallback về No Image cho an toàn
@@ -79,7 +78,7 @@ public class ItemCardController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/nhomX/example/fxml/ItemDetail.fxml"));
             Parent root = loader.load();
-
+            
             ItemDetailController detailController = loader.getController();
             detailController.setItemData(this.currentItem);
 
@@ -88,7 +87,7 @@ public class ItemCardController {
             stage.setScene(new Scene(root));
             stage.show();
 
-        } catch (IOException e) {
+        }catch (IOException e){
             e.printStackTrace();
             System.out.println("KHÔNG THỂ MỞ TRANG CHI TIẾT SẢN PHẨM!" + e.getMessage());
         }

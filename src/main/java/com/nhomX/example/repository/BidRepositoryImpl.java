@@ -35,7 +35,7 @@ public class BidRepositoryImpl implements BidRepository {
         pstmt.setString(2, bid.getBidTime() != null ? bid.getBidTime().toString() : null);
         pstmt.setString(3, bid.getUserId());
         pstmt.setString(4, bid.getItemId());
-        pstmt.setDouble(5, bid.getAmount());
+        pstmt.setLong(5, bid.getAmount());
 
         pstmt.executeUpdate();
         System.out.println("✅ Đã ghi nhận lượt đấu giá thành công!");
@@ -62,7 +62,7 @@ public class BidRepositoryImpl implements BidRepository {
         bid.setId(rs.getString("id"));
         bid.setUserId(rs.getString("user_id"));
         bid.setItemId(rs.getString("item_id"));
-        bid.setAmount(rs.getDouble("amount"));
+        bid.setAmount(rs.getLong("amount"));
         listBids.add(bid);
       }
     } catch (SQLException e) {
@@ -83,7 +83,7 @@ public class BidRepositoryImpl implements BidRepository {
         bid.setId(rs.getString("id"));
         bid.setUserId(rs.getString("user_id"));
         bid.setItemId(rs.getString("item_id"));
-        bid.setAmount(rs.getDouble("amount"));
+        bid.setAmount(rs.getLong("amount"));
         return bid;
       }
     } catch (SQLException e) {
@@ -93,7 +93,7 @@ public class BidRepositoryImpl implements BidRepository {
   }
 
   @Override
-  public boolean placeBidTransaction(String userId, String itemId, double bidAmount, String bidId) {
+  public boolean placeBidTransaction(String userId, String itemId, long bidAmount, String bidId) {
     Connection conn = null;
 
     try {
@@ -108,7 +108,7 @@ public class BidRepositoryImpl implements BidRepository {
       // Lệnh 1: Trừ tiền (Cập nhật balance)
       String sqlUser = "UPDATE users SET balance = balance - ? WHERE id = ?";
       try (PreparedStatement pstmt1 = conn.prepareStatement(sqlUser)) {
-        pstmt1.setDouble(1, bidAmount);
+        pstmt1.setLong(1, bidAmount);
         pstmt1.setString(2, userId);
         pstmt1.executeUpdate();
       }
@@ -119,14 +119,14 @@ public class BidRepositoryImpl implements BidRepository {
         pstmt2.setString(1, bidId);
         pstmt2.setString(2, userId);
         pstmt2.setString(3, itemId);
-        pstmt2.setDouble(4, bidAmount);
+        pstmt2.setLong(4, bidAmount);
         pstmt2.executeUpdate();
       }
 
       // Lệnh 3: Cập nhật giá hiện tại của sản phẩm
       String sqlItem = "UPDATE items SET current_price = ? WHERE id = ?";
       try (PreparedStatement pstmt3 = conn.prepareStatement(sqlItem)) {
-        pstmt3.setDouble(1, bidAmount);
+        pstmt3.setLong(1, bidAmount);
         pstmt3.setString(2, itemId);
         pstmt3.executeUpdate();
       }

@@ -12,5 +12,5 @@ public interface BidRepository {
 
     Bid getHighestBid(String itemId); // Tìm lượt trả giá cao nhất hiện tại
 
-    boolean placeBidTransaction(String userId, String itemId, double bidAmount, String bidId);
+    boolean placeBidTransaction(String userId, String itemId, long bidAmount, String bidId);
 }

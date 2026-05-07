@@ -68,7 +68,7 @@ public class ClientHandler implements Runnable {
                     String email = (String) data[0];
                     String pass = (String) data[1];
                     String name = (String) data[2];
-                    double balance = (Double) data[3];
+                    long balance = (Long) data[3];
 
                     String newId = java.util.UUID.randomUUID().toString();
                     com.nhomX.example.model.User newUser = new com.nhomX.example.model.User(newId, email, pass, name, balance);

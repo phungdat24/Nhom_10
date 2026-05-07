@@ -1,8 +1,5 @@
 package com.nhomX.example.controller;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -10,7 +7,6 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.SceneSwitcher;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -18,6 +14,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+
+import java.net.URL;
+import java.util.ResourceBundle;
 
 public class ItemDetailController implements ServerEventListener, Initializable {
     @FXML
@@ -31,12 +30,6 @@ public class ItemDetailController implements ServerEventListener, Initializable 
     private ImageView imgItem;
     @FXML
     private TextField txtBidAmount;
-    @FXML
-    private javafx.scene.layout.HBox hboxImageControls;
-
-    // Biến lưu trữ danh sách ảnh và vị trí ảnh đang xem
-    private String[] imageList;
-    private int currentImageIndex = 0;
 
 
     private Items currentItem;
@@ -54,8 +47,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         }
         if (txtBidAmount != null) {
             txtBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue == null || newValue.isEmpty())
-                    return;
+                if (newValue == null || newValue.isEmpty()) return;
 
                 // Lọc bỏ ký tự không phải số
                 String plainText = newValue.replaceAll("[^\\d]", "");
@@ -64,7 +56,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
                     return;
                 }
                 try {
-                    double amount = Double.parseDouble(plainText);
+                    long amount = Long.parseLong(plainText);
                     // Dùng class CurrencyFormatter:
                     String formattedText = CurrencyFormatter.formatNumber(amount);
 
@@ -90,50 +82,47 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         } else {
             lblDescription.setText("Sản phẩm này chưa có mô tả chi tiết.");
         }
-        // --- XỬ LÝ ẢNH SLIDESHOW ---
+        // Anh sản phẩm
         String imagePath = item.getImagePath();
 
-        if (imagePath == null || imagePath.trim().isEmpty()) {
-            // Trường hợp 1: Không có ảnh -> Hiện No Image và Ẩn luôn 2 nút bấm
-            imgItem.setImage(new Image(
-                    getClass().getResourceAsStream("/com/nhomX/example/images/no_image.png")));
-            if (hboxImageControls != null) {
-                hboxImageControls.setVisible(false);
-                hboxImageControls.setManaged(false);
+        if (imagePath != null && !imagePath.trim().isEmpty()) {
+            try {
+                // Lấy ảnh từ thư mục resources
+                Image img = new Image(getClass().getResourceAsStream(imagePath));
+                imgItem.setImage(img);
+            } catch (Exception e) {
+                System.err.println("Không tìm thấy ảnh tại đường dẫn: " + imagePath);
+                // (Tùy chọn) Có thể set một ảnh mặc định (Placeholder) nếu lỗi
+                // imgItem.setImage(new Image(getClass().getResourceAsStream("/com/nhomX/example/images/default.png")));
             }
         } else {
-            // Trường hợp 2: Có ảnh -> Cắt chuỗi thành mảng
-            imageList = imagePath.split(",");
-            currentImageIndex = 0; // Luôn hiển thị ảnh đầu tiên khi mới bấm vào
-
-            updateImageView(); // Gọi hàm phụ trợ để hiển thị ảnh
-
-            // Nếu sản phẩm có nhiều hơn 1 ảnh thì mới hiện 2 nút Next/Prev
-            if (hboxImageControls != null) {
-                boolean hasMultiple = imageList.length > 1;
-                hboxImageControls.setVisible(hasMultiple);
-                hboxImageControls.setManaged(hasMultiple);
-            }
+            System.out.println("Món hàng này chưa có đường dẫn ảnh trong Database.");
+        }
+        // Gianh quyền sau vì nếu giành trước sẽ truyền các giá trị null gây sập server
+        // Giành quyền
+        auctionClient = SessionManager.getInstance().getAuctionClient();
+        if (auctionClient != null) {
+            auctionClient.setServerEventListener(this);
+            // Báo cho Server bắt đầu zem:
+            auctionClient.watchItem(item.getId());
         }
         if (this.auctionClient != null) {
             // Gửi lệnh báo cho Server biết tôi đang xem phòng đấu giá này
             this.auctionClient.watchItem(currentItem.getId());
         }
     }
-
-    @FXML
-    void handleBackAction(ActionEvent event) {
-        if (auctionClient != null && currentItem != null) {
-            // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
-            auctionClient.unwatchItem(currentItem.getId());
-        }
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/dashboard.fxml");
+        @FXML
+        void handleBackAction (ActionEvent event) {
+            if (auctionClient != null && currentItem != null) {
+                // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
+                auctionClient.unwatchItem(currentItem.getId());
+            }
+            SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/dashboard.fxml");
     }
 
     @Override
-    public void onPriceUpdated(String updatedItemId, double newPrice) {
-        // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem
-        // không?
+    public void onPriceUpdated(String updatedItemId, long newPrice) {
+        // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem không?
         if (currentItem != null && currentItem.getId().equals(updatedItemId)) {
 
             // Cập nhật giá trên Model
@@ -147,12 +136,10 @@ public class ItemDetailController implements ServerEventListener, Initializable 
             });
         }
     }
-
     @FXML
-    void handleDashboard(ActionEvent event) {
+    void handleDashboard(ActionEvent event){
 
     }
-
     @FXML
     void handleLiveAuction(ActionEvent event) {
         System.out.println("Live Auction được nhấn");
@@ -172,18 +159,16 @@ public class ItemDetailController implements ServerEventListener, Initializable 
     void handleSeller(ActionEvent event) {
         System.out.println("Seller được nhấn");
     }
-
     @FXML
-    void handleLogin(ActionEvent event) {}
-
+    void handleLogin(ActionEvent event){
+    }
     @FXML
-    void handleLogout(ActionEvent event) {
+    void handleLogout(ActionEvent event){
 
     }
-
     @FXML
-    void handleBidAction(ActionEvent event) {
-        if (!SessionManager.getInstance().isLoggedIn()) {
+    void handleBidAction(ActionEvent event){
+        if(!SessionManager.getInstance().isLoggedIn()){
             AlertUtils.showWarning("Yêu cầu đăng nhập", "Bạn cần đăng nhập để tham gia đấu giá!");
             return;
         }
@@ -195,7 +180,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         }
 
         try {
-            double bidAmount = Double.parseDouble(rawValue);
+            long bidAmount = Long.parseLong(rawValue);
 
             // 3. Kiểm tra xem giá đặt có lớn hơn giá hiện tại không
             if (bidAmount <= currentItem.getCurrentPrice()) {
@@ -206,8 +191,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
             // 4. Bắn lệnh lên Server
             if (auctionClient != null) {
                 auctionClient.placeBid(currentItem.getId(), bidAmount);
-                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món "
-                        + currentItem.getId());
+                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món " + currentItem.getId());
 
                 // Xóa trắng ô nhập để chuẩn bị cho lần gõ tiếp theo
                 txtBidAmount.clear();
@@ -218,45 +202,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
             }
         } catch (NumberFormatException e) {
             AlertUtils.showError("Lỗi hệ thống", "Dữ liệu nhập không hợp lệ.");
-            System.out.println("Lỗi đặt giá" + e.getMessage());
-        }
-    }
-    // --- CÁC HÀM XỬ LÝ SLIDESHOW ẢNH ---
-
-    private void updateImageView() {
-        if (imageList != null && imageList.length > 0) {
-            try {
-                String currentImagePath = imageList[currentImageIndex].trim();
-                imgItem.setImage(new Image(getClass().getResourceAsStream(currentImagePath)));
-            } catch (Exception e) {
-                System.err.println("❌ Lỗi load ảnh chi tiết: " + imageList[currentImageIndex]);
-                imgItem.setImage(new Image(
-                        getClass().getResourceAsStream("/com/nhomX/example/images/no_image.png")));
-            }
-        }
-    }
-
-    @FXML
-    void handlePrevImage(javafx.event.ActionEvent event) {
-        if (imageList != null && imageList.length > 1) {
-            currentImageIndex--; // Lùi 1 bước
-            // Nếu lùi quá đà qua số 0 thì vòng lại bức ảnh cuối cùng
-            if (currentImageIndex < 0) {
-                currentImageIndex = imageList.length - 1;
-            }
-            updateImageView();
-        }
-    }
-
-    @FXML
-    void handleNextImage(javafx.event.ActionEvent event) {
-        if (imageList != null && imageList.length > 1) {
-            currentImageIndex++; // Tiến 1 bước
-            // Nếu tiến quá đà vượt qua số lượng ảnh thì vòng lại bức ảnh đầu tiên
-            if (currentImageIndex >= imageList.length) {
-                currentImageIndex = 0;
-            }
-            updateImageView();
+            System.out.println("Lỗi đặt giá"+e.getMessage());
         }
     }
 }
