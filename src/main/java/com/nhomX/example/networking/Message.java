@@ -32,7 +32,7 @@ public class Message implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("[%s] %s -> %s: $%.2f", type, username, itemId, amount);
+        return String.format("[%s] %s -> %s: $%d", type, username, itemId, amount);
     }
 
     public Object getData() {
