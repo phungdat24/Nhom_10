@@ -119,7 +119,7 @@
                   </VBox>
 
                   <VBox alignment="CENTER" spacing="8">
-                     <Button fx:id="btnFeaturedBid" onAction="#handleFeaturedBid" prefWidth="130" styleClass="btn-bid" text="Đấu giá ngay" />
+                     <Button fx:id="btnFeaturedBid" onAction="#handleFeaturedBid" prefWidth="130" styleClass="btn-bidTransaction" text="Đấu giá ngay" />
                      <Button fx:id="btnFeaturedDetail" onAction="#handleFeaturedDetail" prefWidth="130" styleClass="btn-detail" text="Xem chi tiết" />
                   </VBox>
                </HBox>

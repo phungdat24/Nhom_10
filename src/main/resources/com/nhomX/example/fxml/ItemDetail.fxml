@@ -96,7 +96,7 @@
                             <Separator />
 
                             <Label styleClass="label-caption" text="Giá hiện tại:" />
-                            <Label fx:id="lblCurrentPrice" styleClass="bid-price" text="0 VNĐ">
+                            <Label fx:id="lblCurrentPrice" styleClass="bidTransaction-price" text="0 VNĐ">
                                 <font><Font size="22.0" /></font>
                             </Label>
 
@@ -104,7 +104,7 @@
                             <VBox spacing="10" style="-fx-background-color: rgba(255,255,255,0.1); -fx-padding: 15; -fx-background-radius: 10;">
                                 <Label styleClass="label-caption" text="Nhập số tiền bạn muốn đấu giá:" />
                                 <TextField fx:id="txtBidAmount" prefHeight="40" promptText="Ví dụ: 500000" styleClass="search-field" />
-                                <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" prefHeight="50" styleClass="btn-bid" text="ĐẶT GIÁ NGAY" />
+                                <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" prefHeight="50" styleClass="btn-bidTransaction" text="ĐẶT GIÁ NGAY" />
                             </VBox>
                         </VBox>
                     </VBox>

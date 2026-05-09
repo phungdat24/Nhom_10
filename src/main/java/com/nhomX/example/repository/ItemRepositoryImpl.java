@@ -1,37 +1,32 @@
 package com.nhomX.example.repository;
 
+import com.nhomX.example.model.*;
+import com.nhomX.example.utils.DatabaseConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.utils.DatabaseConnection;
-
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.utils.DatabaseConnection;
 
 public class ItemRepositoryImpl implements ItemRepository {
 
-  // Lấy kết nối Database
-  private final Connection conn = DatabaseConnection.getInstance().getConnection();
 
-  // ✅ Nhiệm vụ 1: Lấy toàn bộ danh sách sản phẩm (SELECT *)
+  //Lấy toàn bộ danh sách sản phẩm (SELECT *)
   @Override
   public List<Items> findAll() {
     List<Items> itemsList = new ArrayList<>();
     String sql = "SELECT * FROM items";
 
-    // ✅ Nhiệm vụ 4: Xử lý đóng kết nối an toàn (try-with-resources)
-    try (PreparedStatement pstmt = conn.prepareStatement(sql);
+    //Xử lý đóng kết nối an toàn (try-with-resources)
+    try (Connection conn =DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
 
       while (rs.next()) {
         // Đẩy dữ liệu vào danh sách
-        itemsList.add(mapRowToItem(rs));
+        itemsList.add(mapRowToItem(rs, conn));
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi khi lấy danh sách sản phẩm: " + e.getMessage());
@@ -39,20 +34,22 @@ public class ItemRepositoryImpl implements ItemRepository {
     return itemsList;
   }
 
-  // ✅ Nhiệm vụ 2: Lọc sản phẩm theo danh mục (WHERE category = ?)
+  //Lọc sản phẩm theo danh mục (WHERE category = ?)
   @Override
   public List<Items> findByCategory(String category) {
     List<Items> itemsList = new ArrayList<>();
     String sql = "SELECT * FROM items WHERE category = ?";
 
     // ✅ Nhiệm vụ 4: try-with-resources
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-      pstmt.setString(1, category); // Truyền tham số category vào dấu ?
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      // Truyền tham số category vào dấu ?
+      pstmt.setString(1, category);
 
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
           // Đẩy dữ liệu vào danh sách
-          itemsList.add(mapRowToItem(rs));
+          itemsList.add(mapRowToItem(rs, conn));
         }
       }
     } catch (SQLException e) {
@@ -61,81 +58,200 @@ public class ItemRepositoryImpl implements ItemRepository {
     return itemsList;
   }
 
-  // ✅ Nhiệm vụ 3: Hàm phụ dùng để ánh xạ (map) dữ liệu từ ResultSet vào đối tượng Items
-  private Items mapRowToItem(ResultSet rs) throws SQLException {
-    GeneralItem item = new GeneralItem(); // Dùng class con để khởi tạo
+  // Hàm phụ: Lấy danh sách ảnh của 1 Item cụ thể
+  private List<ItemImage> getImagesByItemId(String itemId, Connection conn) throws SQLException {
+    List<ItemImage> imageList = new ArrayList<>();
+    String sql = "SELECT * FROM item_images WHERE item_id = ?";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, itemId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          imageList.add(new ItemImage(
+                  rs.getString("id"),
+                  rs.getString("image_path")
+          ));
+        }
+      }
+    }
+    return imageList;
+  }
 
-    // Bạn hãy kiểm tra lại tên cột trong DB và tên hàm set để chỉnh lại cho khớp 100% nhé
+  // ✅ Nhiệm vụ 3: Hàm phụ dùng để ánh xạ (map) dữ liệu từ ResultSet vào đối tượng Items
+  private Items mapRowToItem(ResultSet rs, Connection conn) throws SQLException {
+    Items item;
+    String category = rs.getString("category");
+    // Khởi tạo đúng lớp con dựa trên cột category
+    if (category != null) {
+      switch (category.toUpperCase()) {
+        case "ELECTRONICS":
+          item = new Electronics();
+          break;
+        case "JEWELRY":
+          item = new Jewelry();
+          break;
+        case "ART":
+          item = new Art();
+          break;
+        default:
+          item = new GeneralItem();
+          break;
+      }
+    } else {
+      item = new GeneralItem();
+    }
+
+    // Ánh xạ các thuộc tính:
+    item.setId(rs.getString("id"));
     item.setTitle(rs.getString("title"));
     item.setDescription(rs.getString("description"));
-    item.setImagePath(rs.getString("image_path"));
-    item.setId(rs.getString("id"));
+    //Quét DB lấy danh sách ảnh nhét vào Object
+    item.setImages(getImagesByItemId(item.getId(), conn));
+    // Object cho seller
+    RegularUser seller = new RegularUser();
+    seller.setId(rs.getString("seller_id"));
     item.setStartingPrice(rs.getLong("starting_price"));
-    item.setCurrentPrice(rs.getLong("current_price"));
+    item.setSeller(seller);
 
     return item;
   }
 
   @Override
   public Items findById(String id) {
-    return null; // Task này chưa yêu cầu code nên để tạm return null
+    // 1. Triển khai logic truy vấn: Câu lệnh SQL tìm 1 bản ghi theo ID
+    String sql = "SELECT * FROM items WHERE id = ?";
+
+    // 2 & 3. Xử lý đóng tài nguyên bằng try-with-resources cho PreparedStatement
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      // Truyền ID người dùng muốn tìm vào dấu ?
+      pstmt.setString(1, id);
+
+      // Dùng thêm try-with-resources cho ResultSet để tự động đóng sau khi đọc xong
+      try (ResultSet rs = pstmt.executeQuery()) {
+        // Nếu rs.next() là true nghĩa là tìm thấy dữ liệu trong Database
+        if (rs.next()) {
+          // 4. Tái sử dụng code: Dùng hàm mapRowToItem có sẵn để convert dữ liệu
+          return mapRowToItem(rs, conn);
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi tìm sản phẩm theo ID: " + e.getMessage());
+    }
+
+    // 5. Giá trị trả về: Trả về null nếu không tìm thấy ID hoặc xảy ra lỗi
+    return null;
   }
 
   @Override
   public void update(Items item) {
     // Câu lệnh SQL cập nhật dữ liệu, bao gồm cả cột image_path
-    String sql =
-        "UPDATE items SET title = ?, description = ?, starting_price = ?, current_price = ?, end_time = ?, seller_id = ?, image_path = ? WHERE id = ?";
+    String sqlItem =
+        "UPDATE items SET title = ?, description = ?, category = ?, seller_id = ? WHERE id = ?";
+    String sqlDeleteImages = "DELETE FROM item_images WHERE item_id = ?";
+    String sqlInsertImages = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
 
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-      pstmt.setString(1, item.getTitle());
-      pstmt.setString(2, item.getDescription());
-      pstmt.setLong(3, item.getStartingPrice());
-      pstmt.setLong(4, item.getCurrentPrice());
-      pstmt.setString(5, item.getEndTime() != null ? item.getEndTime().toString() : null);
-      pstmt.setString(6, item.getSellerId());
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+      // ✅ FIX BUG 2: Bật Giao dịch
+      conn.setAutoCommit(false);
 
-      // Cập nhật đường dẫn ảnh mới (hỗ trợ cả NULL và chuỗi nhiều ảnh)
-      pstmt.setString(7, item.getImagePath());
+      try {
+        // 1. Cập nhật thông tin bảng items
+        try (PreparedStatement pstmtItem = conn.prepareStatement(sqlItem)) {
+          pstmtItem.setString(1, item.getTitle());
+          pstmtItem.setString(2, item.getDescription());
+          pstmtItem.setString(3, item.getCategory());
+          pstmtItem.setString(4, item.getSeller().getId());
+          pstmtItem.setString(5, item.getId());
+          pstmtItem.executeUpdate();
+        }
 
-      // Điều kiện WHERE id = ? nằm ở vị trí thứ 8
-      pstmt.setString(8, item.getId());
+        // 2. Xóa sạch ảnh cũ của sản phẩm này
+        try (PreparedStatement pstmtDel = conn.prepareStatement(sqlDeleteImages)) {
+          pstmtDel.setString(1, item.getId());
+          pstmtDel.executeUpdate();
+        }
 
-      pstmt.executeUpdate(); // Thực thi lệnh cập nhật
-      System.out.println("Đã cập nhật thành công sản phẩm: " + item.getTitle());
+        // 3. Chèn lại danh sách ảnh mới (nếu có)
+        List<ItemImage> images = item.getImages();
+        if (images != null && !images.isEmpty()) {
+          try (PreparedStatement pstmtImg = conn.prepareStatement(sqlInsertImages)) {
+            for (ItemImage img : images) {
+              pstmtImg.setString(1, img.getId());
+              pstmtImg.setString(2, img.getImagePath());
+              pstmtImg.setString(3, item.getId());
+              pstmtImg.addBatch();
+            }
+            pstmtImg.executeBatch();
+          }
+        }
+
+        // 4. Chốt giao dịch
+        conn.commit();
+        System.out.println("✅ Đã cập nhật thành công sản phẩm: " + item.getTitle());
+
+      } catch (SQLException e) {
+        System.err.println("❌ Lỗi Giao dịch Cập Nhật Sản Phẩm! Đang Rollback... " + e.getMessage());
+        conn.rollback();
+      } finally {
+        conn.setAutoCommit(true);
+      }
 
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi cập nhật sản phẩm: " + e.getMessage());
+      System.err.println("❌ Lỗi kết nối DB: " + e.getMessage());
     }
   }
 
   @Override
   public void save(Items item) {
-    // Câu lệnh SQL chèn đủ 8 cột (bao gồm cả image_path ở cuối cùng)
-    String sql =
-        "INSERT INTO items (id, title, description, starting_price, current_price, end_time, seller_id, image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    String sqlItem = "INSERT INTO items (id, title, description, category, seller_id) VALUES (?, ?, ?, ?, ?)";
+    String sqlImage = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
 
-    // try-with-resources giúp tự động đóng kết nối sau khi chạy xong
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-      pstmt.setString(1, item.getId());
-      pstmt.setString(2, item.getTitle());
-      pstmt.setString(3, item.getDescription());
-      pstmt.setLong(4, item.getStartingPrice());
-      pstmt.setLong(5, item.getCurrentPrice());
-      // Tùy theo kiểu dữ liệu của end_time trong model mà bạn dùng setString hoặc setDate nhé
-      pstmt.setString(6, item.getEndTime() != null ? item.getEndTime().toString() : null);
-      pstmt.setString(7, item.getSellerId());
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+      // ✅ FIX BUG 2: Bật chế độ Giao dịch
+      conn.setAutoCommit(false);
 
-      // ĐÂY LÀ ĐIỂM CHỐT HẠ CỦA TASK NÀY:
-      // Truyền image_path vào vị trí dấu ? thứ 8.
-      // Nếu item.getImagePath() là null, JDBC sẽ tự động chèn chữ NULL chuẩn của SQL vào DB.
-      pstmt.setString(8, item.getImagePath());
+      try {
+        // 1. Lưu Sản phẩm vào bảng items
+        try (PreparedStatement pstmtItem = conn.prepareStatement(sqlItem)) {
+          pstmtItem.setString(1, item.getId());
+          pstmtItem.setString(2, item.getTitle());
+          pstmtItem.setString(3, item.getDescription());
+          pstmtItem.setString(4, item.getCategory());
+          pstmtItem.setString(5, item.getSeller().getId());
+          pstmtItem.executeUpdate();
+        }
 
-      pstmt.executeUpdate(); // Thực thi lệnh chèn
-      System.out.println("Đã lưu thành công sản phẩm: " + item.getTitle());
+        // Lưu Danh sách ảnh vào bảng item_images (Dùng Batch)
+        List<ItemImage> images = item.getImages();
+        if (images != null && !images.isEmpty()) {
+          try (PreparedStatement pstmtImage = conn.prepareStatement(sqlImage)) {
+            for (ItemImage img : images) {
+              pstmtImage.setString(1, img.getId());
+              pstmtImage.setString(2, img.getImagePath());
+              pstmtImage.setString(3, item.getId());
+              // Gom lệnh
+              pstmtImage.addBatch();
+            }
+            // Đẩy 1 lần xuống DB
+            pstmtImage.executeBatch();
+          }
+        }
+
+        // Chốt giao dịch
+        conn.commit();
+        System.out.println("✅ Đã lưu thành công sản phẩm: " + item.getTitle());
+
+      } catch (SQLException e) {
+        System.err.println("❌ Lỗi Giao dịch Lưu Sản Phẩm! Đang Rollback... " + e.getMessage());
+        // Có biến thì quay xe
+        conn.rollback();
+      } finally {
+        // Khôi phục trạng thái
+        conn.setAutoCommit(true);
+      }
 
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lưu sản phẩm: " + e.getMessage());
+      System.err.println("❌ Lỗi kết nối DB: " + e.getMessage());
     }
   }
 }

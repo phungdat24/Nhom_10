@@ -27,7 +27,7 @@ public class LoginController implements ServerEventListener {
         String pass = password.getText();
 
         // Kiểm tra xem có trống không
-        if(email.isEmpty() || email.isEmpty()){
+        if(email.isEmpty() || pass.isEmpty()){
             AlertUtils.showWarning("Lỗi!", "Vui lòng nhập đầy đủ email và mật khẩu!");
             return;
         }
@@ -39,7 +39,6 @@ public class LoginController implements ServerEventListener {
         //Dành quyền kết nối
         auctionClient.setServerEventListener(this);
 
-        auctionClient.sendToServer(loginMsg);
         auctionClient.sendToServer(loginMsg);
 
     }
