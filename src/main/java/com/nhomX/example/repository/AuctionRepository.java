@@ -1,8 +1,8 @@
 package com.nhomX.example.repository;
 
-import com.nhomX.example.model.Auction;
-
 import java.util.List;
+
+import com.nhomX.example.model.Auction;
 
 public interface AuctionRepository {
     // Lưu phiên đấu giá mới vào DB
@@ -13,6 +13,10 @@ public interface AuctionRepository {
 
     // Lấy danh sách các phiên đang mở (OPEN / RUNNING) để hiển thị lên Dashboard
     List<Auction> findAllActiveAuctions();
+
+    // [THÊM MỚI] Dành riêng cho AuctionScheduler (Ông bảo vệ chạy ngầm)
+    // Nhiệm vụ: Tìm các phiên đã vượt quá thời gian end_time nhưng chưa đóng
+    List<Auction> findExpiredOpenAuctions();
 
     // Cập nhật Trạng thái phiên (Ví dụ: Từ OPEN sang FINISHED)
     void updateStatus(String auctionId, String status);
