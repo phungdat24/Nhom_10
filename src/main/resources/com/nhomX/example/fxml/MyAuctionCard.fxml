@@ -41,14 +41,14 @@
         <HBox alignment="CENTER_LEFT" spacing="6">
             <Label styleClass="label-caption" text="Giá bạn đặt:" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblMyBid" styleClass="my-bid-price" text="1.500.000 đ" />
+            <Label fx:id="lblMyBid" styleClass="my-bidTransaction-price" text="1.500.000 đ" />
         </HBox>
 
         <!-- Giá cao nhất hiện tại (Của người khác) -->
         <HBox alignment="CENTER_LEFT" spacing="6">
             <Label styleClass="label-caption" text="Giá hiện hành:" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblCurrentPrice" styleClass="bid-price" text="2.000.000 đ" />
+            <Label fx:id="lblCurrentPrice" styleClass="bidTransaction-price" text="2.000.000 đ" />
         </HBox>
     </VBox>
 
@@ -65,7 +65,7 @@
     <!-- ── 6. Nút hành động ── -->
     <!-- Nút này sẽ đổi màu/chữ tùy trạng thái. Nếu bị vượt giá -> Đổi thành "Bid thêm" -->
     <HBox spacing="8">
-        <Button fx:id="btnAction" maxWidth="Infinity" onAction="#handleAction" prefHeight="32.0" prefWidth="122.0" styleClass="btn-bid, btn-action-outbid" text="Bid thêm ngay" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnAction" maxWidth="Infinity" onAction="#handleAction" prefHeight="32.0" prefWidth="122.0" styleClass="btn-bidTransaction, btn-action-outbid" text="Bid thêm ngay" HBox.hgrow="ALWAYS" />
         <Button fx:id="btnDetail" maxWidth="Infinity" onAction="#handleDetailAction" prefHeight="26.0" prefWidth="82.0" styleClass="btn-detail" text="Chi tiết" HBox.hgrow="ALWAYS" />
     </HBox>
 

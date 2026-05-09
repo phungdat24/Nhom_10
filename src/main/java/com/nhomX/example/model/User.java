@@ -1,34 +1,52 @@
 package com.nhomX.example.model;
 
-import java.io.Serializable;
-
-public class User implements Serializable {
-    private String userId;
-    private String userName;
-    private String passWord;
-    private String fullName;
-    private long balance; // Số dư tk của user
+public abstract class User extends Entity{
+    // Email:
+    protected String userName;
+    // Mật khẩu:
+    protected String passwordHash;
+    //Họ và tên:
+    protected String fullName;
+    // Số dư tài khoản:
+    protected long balance;
+    // Hàm khởi tạo rỗng:
     public User(){
-
     }
-    public User(String userId, String userName, String passWord, String fullName, long balance){
-        this.userId = userId;
+    public User(String id, String userName, String passwordHash, String fullName, long balance){
+        super(id);
         this.userName = userName;
-        this.passWord = passWord;
+        this.passwordHash = passwordHash;
         this.fullName = fullName;
-        this.balance = balance;
+        this.setBalance(balance);
+    }
+    // CÁC HÀM NGHIỆP VỤ (BUSINESS LOGIC)
+    // ==========================================
+
+    /**
+     * Cập nhật số dư dựa trên biến động (Nạp tiền hoặc Trừ tiền).
+     * @param amount Số tiền biến động (Dương để nạp, Âm để trừ).
+     * @throws IllegalArgumentException Nếu số dư không đủ để thực hiện giao dịch trừ tiền.
+     */
+    public void updateBalance(long amount) {
+        if (amount < 0 && Math.abs(amount) > this.balance) {
+            throw new IllegalArgumentException("Số dư không đủ để thực hiện giao dịch!");
+        }
+        this.balance += amount;
     }
 
-    public String getUserId() {
-        return this.userId;
-    }
+    /**
+     * Phương thức trừu tượng để lấy tên vai trò.
+     * Mỗi lớp con (RegularUser, Admin) sẽ phải tự định nghĩa hàm này.
+     */
+    public abstract String getRoleName();
+
 
     public String getUserName() {
         return this.userName;
     }
 
-    public String getPassWord() {
-        return this.passWord;
+    public String getPasswordHash() {
+        return this.passwordHash;
     }
 
     public String getFullName() {
@@ -39,16 +57,12 @@ public class User implements Serializable {
         return this.balance;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public void setUserName(String userName) {
         this.userName = userName;
     }
 
-    public void setPassWord(String passWord) {
-        this.passWord = passWord;
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public void setFullName(String fullName) {
@@ -56,8 +70,10 @@ public class User implements Serializable {
     }
 
     public void setBalance(long balance) {
-        if (balance > 0.0) {
+        if (balance >= 0) {
             this.balance = balance;
+        }else{
+            throw new IllegalArgumentException("Lỗi nghiêm trọng: Không thể thiết lập số dư âm!");
         }
     }
 }

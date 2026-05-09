@@ -14,11 +14,15 @@ import javafx.scene.control.TextField;
 
 public class RegisterController implements ServerEventListener {
 
-    @FXML private TextField     userName;   // Họ tên
-    @FXML private TextField     account;    // Email
-    @FXML private PasswordField password;   // Mật khẩu
-    @FXML private PasswordField password1;  // Xác nhận mật khẩu
-
+    @FXML
+    private TextField     userName;   // Họ tên
+    @FXML
+    private TextField     account;    // Email
+    @FXML
+    private PasswordField password;   // Mật khẩu
+    @FXML
+    private PasswordField password1;  // Xác nhận mật khẩu
+    //   Khi bấm nút đăng nhập:
     @FXML
     void signUp(ActionEvent event) {
         String name     = userName.getText().trim();
@@ -60,7 +64,7 @@ public class RegisterController implements ServerEventListener {
         //GIÀNH QUYỀN NGHE SÓNG CHO TRANG ĐĂNG KÝ
         auctionClient.setServerEventListener(this);
 
-        Object[] registerData = {email, securedPass, name, 0.0};
+        Object[] registerData = {email, securedPass, name, 0L};
 
         Message registerMsg = new Message("REGISTER", registerData);
 

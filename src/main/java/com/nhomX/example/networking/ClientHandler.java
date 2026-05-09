@@ -1,10 +1,12 @@
 package com.nhomX.example.networking;
 
-import com.nhomX.example.repository.ItemRepository;
-import com.nhomX.example.repository.ItemRepositoryImpl;
+import com.nhomX.example.model.*;
+import com.nhomX.example.repository.*;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
+import java.util.UUID;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
@@ -12,13 +14,18 @@ public class ClientHandler implements Runnable {
     private ObjectOutputStream out;
     private ObjectInputStream in;
     // Gọi kho chứa dữ liệu ra để sẵn sàng làm việc
-    private ItemRepository itemRepository = new ItemRepositoryImpl();
+    private final ItemRepository itemRepository ;
+    private final UserRepository userRepository ;
+    private final BidRepository bidRepository;
+    private final AuctionRepository auctionRepository;
 
-    private com.nhomX.example.repository.UserRepository userRepository = new com.nhomX.example.repository.UserRepositoryImpl();
-
-    public ClientHandler(Socket socket, AuctionServer server) {
+    public ClientHandler(Socket socket, AuctionServer server, ItemRepository itemRepo, UserRepository userRepo, BidRepository bidRepo, AuctionRepository auctionRepo) {
         this.socket = socket;
         this.server = server;
+        this.itemRepository = itemRepo;
+        this.userRepository = userRepo;
+        this.bidRepository = bidRepo;
+        this.auctionRepository = auctionRepo;
     }
 
     @Override
@@ -34,18 +41,35 @@ public class ClientHandler implements Runnable {
                 System.out.println("SERVER NHẬN: " + msgFromClient);
 
                 if ("BID".equals(msgFromClient.getType())) {
-                    // Xử lý logic đặt giá... (nếu thành công thì thông báo cho tất cả)
-                    Message update = new Message("UPDATE_PRICE", msgFromClient.getUsername(),
-                            msgFromClient.getItemId(), msgFromClient.getAmount());
-                    server.broadcastToItem(msgFromClient.getItemId(), update);
+                    Object[] bidData = (Object[]) msgFromClient.getData();
+                    // Đọc dữ liệu do Client gửi:
+                    String userId = (String) bidData[0];
+                    String auctionId = (String) bidData[1];
+                    long bidAmount = msgFromClient.getAmount();
+                    String newBidId = UUID.randomUUID().toString();
+
+                    // Gọi Database Transaction
+                    boolean isSuccess = bidRepository.placeBidTransaction(userId, auctionId, bidAmount, newBidId);
+                    if (isSuccess) {
+                        // Nếu trừ tiền và ghi DB thành công, mới báo cáo cho cả Server biết
+                        Message update = new Message("UPDATE_PRICE", msgFromClient.getUsername(),
+                                auctionId, bidAmount);
+                        server.broadcastToItem(auctionId, update);
+
+                        // Báo riêng cho người đặt giá là thành công
+                        this.sendToClient(new Message("BID_SUCCESS", "Bạn đã đặt giá thành công!"));
+                    } else {
+                        // Nếu thất bại (Lỗi DB hoặc không đủ tiền), báo lỗi về cho riêng Client này
+                        this.sendToClient(new Message("BID_FAIL", "Đặt giá thất bại! Vui lòng kiểm tra lại số dư."));
+                    }
                 }
                 // Khi Client click vào xem một sản phẩm
                 else if ("WATCH_ITEM".equals(msgFromClient.getType())) {
-                    server.watchItem(msgFromClient.getItemId(), this);
+                    server.watchItem(msgFromClient.getAuctionId(), this);
                 }
                 // Khi Client quay lại màn hình chính hoặc xem sản phẩm khác
                 else if ("UNWATCH_ITEM".equals(msgFromClient.getType())) {
-                    server.unwatchItem(msgFromClient.getItemId(), this);
+                    server.unwatchItem(msgFromClient.getAuctionId(), this);
                 }
                 else if ("LOGIN".equals(msgFromClient.getType())) {
                     // 1. Mở gói hàng lấy dữ liệu Client gửi
@@ -54,7 +78,7 @@ public class ClientHandler implements Runnable {
                     String pass = data[1];
 
                     // 2. Chọc xuống Database kiểm tra
-                    com.nhomX.example.model.User loggedInUser = userRepository.login(email, pass);
+                    User loggedInUser = userRepository.login(email, pass);
 
                     // 3. Nói thầm kết quả lại cho ĐÚNG Client này
                     if (loggedInUser != null) {
@@ -70,8 +94,13 @@ public class ClientHandler implements Runnable {
                     String name = (String) data[2];
                     long balance = (Long) data[3];
 
-                    String newId = java.util.UUID.randomUUID().toString();
-                    com.nhomX.example.model.User newUser = new com.nhomX.example.model.User(newId, email, pass, name, balance);
+                    String newId = UUID.randomUUID().toString();
+                    // Khởi tạo ngươ dùng:
+                    RegularUser newUser = new RegularUser(newId, email, pass, name, balance);
+
+                    // Cấp quyền mặc định cho họ để họ có thể Mua và Bán
+                    newUser.addRole(Role.BIDDER);
+                    newUser.addRole(Role.SELLER);
 
                     boolean isSuccess = userRepository.register(newUser);
 
@@ -80,12 +109,12 @@ public class ClientHandler implements Runnable {
                     } else {
                         this.sendToClient(new Message("REGISTER_FAIL", "Email đã tồn tại!"));
                     }
-                }else if ("GET_ALL_ITEMS".equals(msgFromClient.getType())) {
+                }else if ("GET_ALL_AUCTIONS".equals(msgFromClient.getType())) {
                     // Server chọc vào DB lấy 10 item
-                    java.util.List<com.nhomX.example.model.Items> itemList = itemRepository.findAll();
+                    List<Auction> auctionsList = auctionRepository.findAllActiveAuctions();
 
                     // Đóng gói danh sách gửi trả lại ĐÚNG cái Client vừa xin
-                    Message response = new Message("RETURN_ALL_ITEMS", itemList);
+                    Message response = new Message("RETURN_ALL_AUCTIONS", auctionsList);
                     this.sendToClient(response);
                 }
             }

@@ -48,7 +48,7 @@
     <!-- ── Giá hiện tại cao nhất ── -->
     <HBox alignment="CENTER_LEFT" spacing="6">
         <Label styleClass="label-caption" text="Giá cao nhất:" />
-        <Label fx:id="lblCurrentPrice" styleClass="bid-price" text="0 VNĐ" />
+        <Label fx:id="lblCurrentPrice" styleClass="bidTransaction-price" text="0 VNĐ" />
     </HBox>
 
     <Separator opacity="0.3" />
@@ -70,7 +70,7 @@
 
     <!-- ── Nút hành động ── -->
     <HBox spacing="8">
-        <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" styleClass="btn-bid" text="Đấu giá" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" styleClass="btn-bidTransaction" text="Đấu giá" HBox.hgrow="ALWAYS" />
         <Button fx:id="btnDetail" maxWidth="Infinity" onAction="#handleDetailAction" prefHeight="26.0" prefWidth="82.0" styleClass="btn-detail" text="Xem chi tiết" HBox.hgrow="ALWAYS" />
     </HBox>
 

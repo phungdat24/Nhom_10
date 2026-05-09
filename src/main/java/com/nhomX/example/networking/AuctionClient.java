@@ -1,6 +1,7 @@
 package com.nhomX.example.networking;
 
 import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.User;
 
@@ -11,9 +12,13 @@ import java.net.Socket;
 import java.util.List;
 
 public class AuctionClient {
+
     private String username;
-    private ObjectOutputStream out;
-    private ObjectInputStream in;
+    //Đưa socket lên làm thuộc tính class để chống Leak
+    private Socket socket;
+    //Thêm volatile để chống Race Condition khi đọc/ghi đa luồng:
+    private volatile ObjectOutputStream out;
+    private volatile ObjectInputStream in;
 
     private ServerEventListener listener;
 
@@ -28,7 +33,8 @@ public class AuctionClient {
 
     public void connect(String host, int port) {
         try {
-            Socket socket = new Socket(host, port);
+            this.socket = new Socket(host, port);
+            // Khởi tạo luồng (Out trước, In sau chống Deadlock)
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
@@ -41,13 +47,31 @@ public class AuctionClient {
             System.err.println("CLIENT: Không thể kết nối tới Server.");
         }
     }
+    // Dọn dẹp tài nguyên chống leak:
+    public void disconnect() {
+        try {
+            if (in != null) in.close();
+            if (out != null) out.close();
+            if (socket != null && !socket.isClosed()) socket.close();
+            System.out.println("CLIENT: Đã đóng kết nối an toàn.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     // Gửi yêu cầu đặt giá lên Server
-    public void placeBid(String itemId, long price) {
+    public void placeBid(String userId,String auctionId , long bidAmount) {
         try {
-            Message bid = new Message("BID", username, itemId, price);
-            out.writeObject(bid);
-            out.flush();
+            // Đóng gói mảng data gửi lên ClientHandler
+            Object[] bidData = new Object[]{userId, auctionId};
+            Message bid = new Message("BID", username, auctionId, bidAmount, bidData);
+            if (out != null) {
+                // Thêm synchronized để an toàn luồng
+                synchronized (out) {
+                    out.writeObject(bid);
+                    out.flush();
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,14 +85,19 @@ public class AuctionClient {
                 String msgType = msgFromServer.getType();
 
                 if ("UPDATE_PRICE".equals(msgType)) {
-                    String itemId = msgFromServer.getItemId();
+                    String auctionId = msgFromServer.getAuctionId();
                     long newPrice = msgFromServer.getAmount();
 
                     if (listener != null) {
                         javafx.application.Platform.runLater(() -> {
-                            listener.onPriceUpdated(itemId, newPrice);
+                            listener.onHighestBidUpdated(auctionId, newPrice);
                         });
                     }
+                }else if ("BID_SUCCESS".equals(msgType) || "BID_FAIL".equals(msgType)) {
+                    // Xử lý thông báo cá nhân khi đặt giá (từ ClientHandler gửi riêng)
+                    String alertMsg = (String) msgFromServer.getData();
+                    System.out.println("HỆ THỐNG: " + alertMsg);
+                    // Ở đây em có thể gọi listener để popup thông báo lên UI
                 }
                 // Xử lý Đăng nhập thành công:
                 else if ("LOGIN_SUCCESS".equals(msgType)) {
@@ -109,13 +138,13 @@ public class AuctionClient {
                             listener.onRegisterResult(false, errorMsg);
                         });
                     }
-                } else if ("RETURN_ALL_ITEMS".equals(msgType)) {
+                } else if ("RETURN_ALL_AUCTIONS".equals(msgType)) {
                     // Ép kiểu lấy danh sách Item ra
-                    List<Items> itemList = (List<Items>) msgFromServer.getData();
+                    List<Auction> auctionList = (List<Auction>) msgFromServer.getData();
 
                     if (listener != null) {
                         javafx.application.Platform.runLater(() -> {
-                            listener.onItemsReceived(itemList);
+                            listener.onAuctionsReceived(auctionList);
                         });
                     }
                 }
