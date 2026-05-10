@@ -21,8 +21,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public void save(Auction auction) {
     String sql =
         "INSERT INTO auctions (id, starting_price, highest_bid, start_time, end_time, status, item_id, winner_id, approved_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auction.getId());
 
@@ -53,8 +53,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public Auction findById(String id) {
     String sql = "SELECT * FROM auctions WHERE id = ?";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -72,8 +72,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public List<Auction> findAllActiveAuctions() {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * FROM auctions WHERE status = 'OPEN'";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
 
       while (rs.next()) {
@@ -90,9 +90,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String now = LocalDateTime.now().toString();
     String sql = "SELECT * FROM auctions WHERE status = 'OPEN' AND end_time <= ?";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, now);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -109,8 +108,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public void updateStatus(String auctionId, String status) {
     String sql = "UPDATE auctions SET status = ? WHERE id = ?";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, status);
       pstmt.setString(2, auctionId);
@@ -124,8 +123,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public void updatePriceAndWinner(String auctionId, long newPrice, String winnerId) {
     String sql = "UPDATE auctions SET highest_bid = ?, winner_id = ? WHERE id = ?";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setLong(1, newPrice);
       pstmt.setString(2, winnerId);
@@ -135,8 +134,6 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       System.err.println("❌ Lỗi cập nhật người thắng: " + e.getMessage());
     }
   }
-
-
   // HÀM PHỤ TRỢ: Map dòng dữ liệu từ DB sang Object
 
   private Auction mapRowToAuction(ResultSet rs) throws SQLException {
