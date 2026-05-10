@@ -40,13 +40,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // 1. LẤY AUCTION CLIENT TỪ KHO CHUNG RA DÙNG LUÔN
-        this.auctionClient = SessionManager.getInstance().getAuctionClient();
 
-        // 2. Bắt sóng sự kiện (để cập nhật giá realtime)
-        if (this.auctionClient != null) {
-            this.auctionClient.setServerEventListener(this);
-        }
         if (txtBidAmount != null) {
             txtBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue == null || newValue.isEmpty()) return;

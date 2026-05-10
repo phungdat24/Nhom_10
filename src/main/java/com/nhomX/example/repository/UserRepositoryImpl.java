@@ -17,8 +17,8 @@ public class UserRepositoryImpl implements UserRepository {
   public boolean register(User user) {
     String sql =
         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES (?,? , ?, ?, ?, ?)";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, user.getId());
       pstmt.setString(2, user.getUserName());
       pstmt.setString(3, user.getPasswordHash());
@@ -41,8 +41,8 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User login(String username, String password) {
     String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, username);
       pstmt.setString(2, password);
       try(ResultSet rs = pstmt.executeQuery()) {
@@ -60,8 +60,8 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public User findById(String id) {
     String sql = "SELECT * FROM users WHERE id = ?";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, id);
 
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -79,8 +79,8 @@ public class UserRepositoryImpl implements UserRepository {
   @Override
   public void updateBalance(String userId, long deltaAmount) {
     String sql = "UPDATE users SET balance = balance + ? WHERE id = ?";
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       // VD: Truyền +50000 để nạp, -50000 để trừ:
       pstmt.setLong(1, deltaAmount);
       pstmt.setString(2, userId);
