@@ -6,8 +6,6 @@ target/
 
 ### IntelliJ IDEA ###
 .idea/
-
-
 ### Eclipse ###
 .apt_generated
 .classpath
@@ -41,4 +39,4 @@ build/
 out/
 gen/
 *.db
-
+auction.db

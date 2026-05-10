@@ -8,7 +8,7 @@ public interface UserRepository {
     // Thêm một User mới:
     boolean register(User user);
     // Tính năng nạp/rút tiền:
-    void updateBalance(String userId, double amount);
+    void updateBalance(String userId, long deltaAmount);
     // Lấy thông tin User:
     User findById(String userId);
 }

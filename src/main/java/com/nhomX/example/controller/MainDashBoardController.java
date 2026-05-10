@@ -1,5 +1,6 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -47,17 +48,17 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     public static MainDashBoardController instance;
 
     @Override
-    public void onItemsReceived(List<Items> items) {
+    public void onAuctionsReceived(List<Auction> auctions) {
         // Xóa sạch dữ liệu cũ trên màn hình
         contentArea.getChildren().clear();
         // 2. Lặp qua từng món hàng và in ra màn hình
-        for (Items item : items) {
+        for (Auction auction : auctions) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
                 VBox cardItem = loader.load(); // Load giao diện thẻ
                 // Lấy controller của thẻ đó để nhồi dữ liệu
                 ItemCardController cardController = loader.getController();
-                cardController.setItemData(item);
+                cardController.setAuctionData(auction);;
                 // Gắn thẻ vừa tạo vào màn hình chính
                 contentArea.getChildren().add(cardItem);
 
@@ -82,7 +83,7 @@ public class MainDashBoardController implements Initializable, ServerEventListen
             // Dành quyền:
             client.setServerEventListener(this);
             // Lấy item từ server
-            client.sendToServer(new Message("GET_ALL_ITEMS", null));
+            client.sendToServer(new Message("GET_ALL_AUCTIONS", null));
             System.out.println("DASHBOARD: Đã gửi yêu cầu lấy danh sách Item.");
         }
 
@@ -176,7 +177,7 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     }
 
     @Override
-    public void onPriceUpdated(String itemId, double newPrice) {
+    public void onHighestBidUpdated(String itemId, long newPrice) {
         System.out.println("DASHBOARD BẮT SÓNG: Món hàng " + itemId + " vừa nhảy giá lên $" + newPrice);
 
         // Sau viết code quét danh sách ItemCard đang hiển thị

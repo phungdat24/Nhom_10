@@ -1,5 +1,7 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
@@ -15,6 +17,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class ItemDetailController implements ServerEventListener, Initializable {
@@ -31,12 +34,19 @@ public class ItemDetailController implements ServerEventListener, Initializable 
     private TextField txtBidAmount;
 
 
-    private Items currentItem;
+    private Auction currentAuction;
 
     private AuctionClient auctionClient;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        // 1. LẤY AUCTION CLIENT TỪ KHO CHUNG RA DÙNG LUÔN
+        this.auctionClient = SessionManager.getInstance().getAuctionClient();
+
+        // 2. Bắt sóng sự kiện (để cập nhật giá realtime)
+        if (this.auctionClient != null) {
+            this.auctionClient.setServerEventListener(this);
+        }
         if (txtBidAmount != null) {
             txtBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue == null || newValue.isEmpty()) return;
@@ -48,7 +58,7 @@ public class ItemDetailController implements ServerEventListener, Initializable 
                     return;
                 }
                 try {
-                    double amount = Double.parseDouble(plainText);
+                    long amount = Long.parseLong(plainText);
                     // Dùng class CurrencyFormatter:
                     String formattedText = CurrencyFormatter.formatNumber(amount);
 
@@ -63,27 +73,32 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         }
     }
 
-    public void setItemData(Items item) {
-        this.currentItem = item;
+    public void setAuctionData(Auction auction) {
+        this.currentAuction = auction;
+
+        // Rút thông tin vật lý ra từ phiên đấu giá
+        Items item = auction.getItem();
 
         lblItemName.setText(item.getTitle());
-        lblCurrentPrice.setText(item.getCurrentPrice() + "VNĐ");
+
+        // ✅ LẤY GIÁ CAO NHẤT TỪ CLASS AUCTION (Như em đã đề xuất!)
+        lblCurrentPrice.setText(CurrencyFormatter.formatVND(auction.getHighestBid()));
         // Mô tả sản phẩm
         if (item.getDescription() != null && !item.getDescription().isEmpty()) {
             lblDescription.setText(item.getDescription());
         } else {
             lblDescription.setText("Sản phẩm này chưa có mô tả chi tiết.");
         }
-        // Anh sản phẩm
-        String imagePath = item.getImagePath();
+        List<ItemImage> images = item.getImages();
 
-        if (imagePath != null && !imagePath.trim().isEmpty()) {
+        if (images != null && !images.isEmpty() && images.get(0).getImagePath() != null) {
+            String firstImagePath = images.get(0).getImagePath().trim();
             try {
                 // Lấy ảnh từ thư mục resources
-                Image img = new Image(getClass().getResourceAsStream(imagePath));
+                Image img = new Image(getClass().getResourceAsStream(firstImagePath));
                 imgItem.setImage(img);
             } catch (Exception e) {
-                System.err.println("Không tìm thấy ảnh tại đường dẫn: " + imagePath);
+                System.err.println("Không tìm thấy ảnh tại đường dẫn: " + firstImagePath);
                 // (Tùy chọn) Có thể set một ảnh mặc định (Placeholder) nếu lỗi
                 // imgItem.setImage(new Image(getClass().getResourceAsStream("/com/nhomX/example/images/default.png")));
             }
@@ -96,25 +111,25 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         if (auctionClient != null) {
             auctionClient.setServerEventListener(this);
             // Báo cho Server bắt đầu zem:
-            auctionClient.watchItem(item.getId());
+            auctionClient.watchItem(currentAuction.getId());
         }
     }
         @FXML
         void handleBackAction (ActionEvent event) {
-            if (auctionClient != null && currentItem != null) {
+            if (auctionClient != null && currentAuction != null) {
                 // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
-                auctionClient.unwatchItem(currentItem.getId());
+                auctionClient.unwatchItem(currentAuction.getId());
             }
             SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/dashboard.fxml");
     }
 
     @Override
-    public void onPriceUpdated(String updatedItemId, double newPrice) {
+    public void onHighestBidUpdated(String updatedItemId, long newPrice) {
         // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem không?
-        if (currentItem != null && currentItem.getId().equals(updatedItemId)) {
+        if (currentAuction != null && currentAuction.getId().equals(updatedItemId)) {
 
             // Cập nhật giá trên Model
-            currentItem.setCurrentPrice(newPrice);
+            currentAuction.setHighestBid(newPrice);
 
             // Bọc trong Platform.runLater để giao cho luồng UI (Tránh Crash)
             javafx.application.Platform.runLater(() -> {
@@ -168,21 +183,28 @@ public class ItemDetailController implements ServerEventListener, Initializable 
         }
 
         try {
-            double bidAmount = Double.parseDouble(rawValue);
+            long bidAmount = Long.parseLong(rawValue);
 
             // 3. Kiểm tra xem giá đặt có lớn hơn giá hiện tại không
-            if (bidAmount <= currentItem.getCurrentPrice()) {
+            if (bidAmount <= currentAuction.getHighestBid()) {
                 AlertUtils.showWarning("Lỗi đặt giá", "Giá đấu phải CAO HƠN giá hiện tại!");
                 return;
             }
 
             // 4. Bắn lệnh lên Server
             if (auctionClient != null) {
-                auctionClient.placeBid(currentItem.getId(), bidAmount);
-                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món " + currentItem.getId());
+                // ✅ FIX LỖI: Truyền đủ 3 tham số (userId, auctionId, bidAmount)
+                String currentUserId = SessionManager.getInstance().getCurrentUser().getId();
+                String auctionId = currentAuction.getId(); // Tạm thời dùng ItemID làm AuctionID
+                auctionClient.placeBid(currentUserId, auctionId, bidAmount);
+                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món " + currentAuction.getId());
 
                 // Xóa trắng ô nhập để chuẩn bị cho lần gõ tiếp theo
                 txtBidAmount.clear();
+            }else {
+                // Thêm log và cảnh báo để dễ phát hiện lỗi
+                AlertUtils.showError("Lỗi kết nối", "Hệ thống chưa kết nối được tới Server (Client null)!");
+                System.err.println("❌ Lỗi: auctionClient chưa được truyền vào Controller này!");
             }
         } catch (NumberFormatException e) {
             AlertUtils.showError("Lỗi hệ thống", "Dữ liệu nhập không hợp lệ.");

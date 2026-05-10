@@ -1,5 +1,7 @@
 package com.nhomX.example.networking;
 
+import com.nhomX.example.repository.*;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -19,50 +21,67 @@ public class AuctionServer {
 
     // THÊM MỚI: Map quản lý người xem theo từng itemId
     // Key: itemId, Value: Tập hợp (Set) các ClientHandler đang xem món đó
-    private final ConcurrentHashMap<String, Set<ClientHandler>> itemViewers =
-            new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Set<ClientHandler>> auctionViewers = new ConcurrentHashMap<>();
+
+    //Khởi tạo Repository dùng chung tại cấp độ Server
+    private final ItemRepository itemRepository = new ItemRepositoryImpl();
+    private final UserRepository userRepository = new UserRepositoryImpl();
+    private final BidRepository bidRepository = new BidRepositoryImpl();
+    private final AuctionRepository auctionRepository = new AuctionRepositoryImpl();
 
     public void start() {
+        // Đăng ký Shutdown Hook. Khi tắt app đoạn code này sẽ chạy để đóng sạch luồng.
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("SERVER: Đang tiến hành dọn dẹp và tắt ExecutorService...");
+            serverExecutor.shutdown();
+        }));
+
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("SERVER: Đang đợi kết nối tại cổng " + PORT + "...");
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("SERVER: Có kết nối mới từ " + socket.getInetAddress());
-                ClientHandler handler = new ClientHandler(socket, this);
+                ClientHandler handler = new ClientHandler(socket, this, itemRepository, userRepository, bidRepository, auctionRepository);
                 clients.add(handler);
                 serverExecutor.execute(handler);
             }
         } catch (IOException e) {
             System.err.println("SERVER ERROR: " + e.getMessage());
+        }finally {
+            // Đề phòng trường hợp vòng lặp văng lỗi, chặn luôn luồng ở đây
+            if (!serverExecutor.isShutdown()) {
+                serverExecutor.shutdown();
+            }
         }
     }
 
-    // THÊM MỚI: Client gọi hàm này khi bấm vào xem chi tiết một món hàng
-    public void watchItem(String itemId, ClientHandler client) {
+    // Client gọi hàm này khi bấm vào xem chi tiết một món hàng
+    public void watchItem(String auctionId, ClientHandler client) {
         // NẾU ITEM ID BỊ NULL, BỎ QUA LUÔN, KHÔNG ĐƯA VÀO HASHMAP
-        if (itemId == null || itemId.isEmpty()) {
+        if (auctionId== null || auctionId.isEmpty()) {
             System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
             return;
         }
         // Nếu itemId chưa ai xem thì tạo danh sách mới, sau đó thêm client vào
-        itemViewers.computeIfAbsent(itemId, k -> ConcurrentHashMap.newKeySet()).add(client);
-        System.out.println("SERVER: Một client vừa tham gia xem món " + itemId);
+        auctionViewers.computeIfAbsent(auctionId, k -> ConcurrentHashMap.newKeySet()).add(client);
+        System.out.println("SERVER: Một client vừa tham gia xem món " + auctionId);
     }
 
-    // THÊM MỚI: Client gọi hàm này khi thoát khỏi trang chi tiết món hàng
-    public void unwatchItem(String itemId, ClientHandler client) {
-        Set<ClientHandler> viewers = itemViewers.get(itemId);
+    // Client gọi hàm này khi thoát khỏi trang chi tiết món hàng
+    public void unwatchItem(String auctionId, ClientHandler client) {
+        Set<ClientHandler> viewers = auctionViewers.get(auctionId);
         if (viewers != null) {
             viewers.remove(client);
             if (viewers.isEmpty()) {
-                itemViewers.remove(itemId); // Dọn dẹp bộ nhớ nếu không còn ai xem
+                // Dọn dẹp bộ nhớ nếu không còn ai xem
+                auctionViewers.remove(auctionId);
             }
         }
     }
 
     // ĐÃ SỬA: Gửi tin nhắn cho những ai ĐANG XEM itemId cụ thể
-    public void broadcastToItem(String itemId, Message msg) {
-        Set<ClientHandler> viewers = itemViewers.get(itemId);
+    public void broadcastToItem(String auctionId, Message msg) {
+        Set<ClientHandler> viewers = auctionViewers.get(auctionId);
         if (viewers != null) {
             for (ClientHandler client : viewers) {
                 client.sendToClient(msg);
@@ -74,7 +93,7 @@ public class AuctionServer {
     public void removeClient(ClientHandler client) {
         clients.remove(client);
         // Xóa client này khỏi tất cả các danh sách món hàng đang xem
-        for (Set<ClientHandler> viewers : itemViewers.values()) {
+        for (Set<ClientHandler> viewers : auctionViewers.values()) {
             viewers.remove(client);
         }
     }
