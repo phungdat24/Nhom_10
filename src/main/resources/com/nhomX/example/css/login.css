@@ -105,3 +105,17 @@
 .hyperlink-register:visited {
     -fx-text-fill: #ffffff;
 }
+
+.main-root {
+    /* Trỏ đến file ảnh nền của bạn */
+    -fx-background-image: url("../images/anh_nen_5.jpg");
+
+    /* Thuộc tính 'cover' giúp ảnh luôn tự động phóng to/thu nhỏ để che kín toàn bộ màn hình mà không bị méo */
+    -fx-background-size: cover;
+
+    /* Luôn giữ trọng tâm ảnh ở giữa */
+    -fx-background-position: center center;
+
+    /* Tùy chọn: Thêm màu nền dự phòng trường hợp ảnh load chậm */
+    -fx-background-color: #2c3e50;
+}
