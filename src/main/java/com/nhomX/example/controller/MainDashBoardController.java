@@ -12,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -29,8 +30,7 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     @FXML
     private HBox userInfoBox; // HBox tên user (hiện khi đã login)
     @FXML
-    private Label lblUsername; // Label tên user bên trong userInfoBox
-
+    private MenuButton menuUser;
     // ===== Sidebar =====
     @FXML
     private Button btnDashboard;
@@ -38,8 +38,6 @@ public class MainDashBoardController implements Initializable, ServerEventListen
     private Button btnLiveAuction;
     @FXML
     private Button btnMyAuction;
-    @FXML
-    private Button btnProfile;
     @FXML
     private Button btnSeller;
     @FXML
@@ -116,13 +114,15 @@ public class MainDashBoardController implements Initializable, ServerEventListen
         if (SessionManager.getInstance().isLoggedIn()) {
             // ---- Đã đăng nhập ----
             String name = SessionManager.getInstance().getCurrentUser().getFullName();
-            lblUsername.setText("👤  " + name);
+
+            // THAY ĐỔI Ở ĐÂY: Gán tên người dùng vào nút Menu thả xuống
+            menuUser.setText("👤  " + name);
 
             // Ẩn nút Đăng nhập
             btnLogin.setVisible(false);
             btnLogin.setManaged(false);
 
-            // Hiện HBox tên user
+            // Hiện HBox chứa MenuButton
             userInfoBox.setVisible(true);
             userInfoBox.setManaged(true);
 

@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 public abstract class Entity implements Serializable {
-    // PROTECTED ĐỂ CÁC LỚP COM TRUY CẬP:
+    // PROTECTED ĐỂ CÁC LỚP CON TRUY CẬP:
     protected String id;
     //Hàm tạo rỗng(ĐỂ ĐỌC DỮ LIỆU TỪ DB):
     public Entity(){

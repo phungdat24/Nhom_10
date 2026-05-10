@@ -1,9 +1,10 @@
 package com.nhomX.example.model;
 
+import java.beans.ConstructorProperties;
 import java.time.Year;
 
 public class Art extends Items {
-    private String artistName;
+    private String artistName;//ten tac gia
     private int yearCreated; // kiểu int chỉ để lưu trữ năm
 
     public Art(){

@@ -23,6 +23,7 @@ public class Main extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 1024, 700);
         primaryStage.setTitle("Auction Project");
         primaryStage.setScene(scene);
+        primaryStage.setResizable(true);
         primaryStage.show();
     }
 

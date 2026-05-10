@@ -16,23 +16,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/login.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.RegisterController">
+<StackPane styleClass="main-root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/login.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.RegisterController">
     <children>
-        <ImageView fitHeight="600.0" fitWidth="800.0" pickOnBounds="true">
-            <image>
-                <Image url="@../images/anh_nen_5.jpg" />
-            </image>
-            <effect>
-                <Lighting>
-                    <bumpInput>
-                        <Shadow />
-                    </bumpInput>
-                    <light>
-                        <Light.Distant />
-                    </light>
-                </Lighting>
-            </effect>
-        </ImageView>
         <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" spacing="25.0" styleClass="login-card" StackPane.alignment="CENTER">
             <children>
                 <Label text="Đăng ký" textAlignment="CENTER" textFill="#f4f4f4">
