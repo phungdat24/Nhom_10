@@ -152,8 +152,12 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         auction.setStatus(AuctionStatus.OPEN);
       }
     }
+    String startStr = rs.getString("start_time");
+    if (startStr != null && !startStr.isEmpty()) {
+      auction.setStartTime(parseDateTime(startStr));
+    }
 
-    // Bỏ qua startTime, chỉ map endTime
+    //  endTime
     String endStr = rs.getString("end_time");
     if (endStr != null && !endStr.isEmpty()) {
       auction.setEndTime(parseDateTime(endStr));

@@ -29,14 +29,14 @@ public class DatabaseTest {
       stmt.executeUpdate(insertItems);
 
       String insertImages = "INSERT INTO item_images (id, image_path, item_id) VALUES "
-              + "('IMG001', 'dell_front.png', 'ITM001'), "
-              + "('IMG002', 'dell_side.png', 'ITM001'), "
-              + "('IMG003', 'rolex_main.png', 'ITM002')";
+              + "('IMG001', 'item1.png', 'ITM001'), "
+              + "('IMG002', 'item2.png', 'ITM001'), "
+              + "('IMG003', 'item3.png', 'ITM002')";
       stmt.executeUpdate(insertImages);
 
       String insertAuctions = "INSERT INTO auctions (id, starting_price, highest_bid, start_time, end_time, status, item_id) VALUES "
               + "('AUC001', 15000000, 15000000, '2026-05-10 08:00:00', '2026-05-15 20:00:00', 'OPEN', 'ITM001'), "
-              + "('AUC002', 80000000, 80000000, '2026-05-11 09:00:00', '2026-05-16 21:00:00', 'OPEN', 'ITM002')";
+              + "('AUC002', 80000000, 80000000, '2026-05-11 19:25:00', '2026-05-16 21:00:00', 'OPEN', 'ITM002')";
       stmt.executeUpdate(insertAuctions);
 
       System.out.println("--------------------------------------------------");

@@ -22,7 +22,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class MainDashBoardController implements Initializable, ServerEventListener {
+public class MainDashBoardController extends BaseController implements Initializable, ServerEventListener {
 
     // ===== Header =====
     @FXML
@@ -108,72 +108,6 @@ public class MainDashBoardController implements Initializable, ServerEventListen
             System.err.println("Client: Lỗi kết nối Socket - " + e.getMessage());
 
         }
-    }
-
-    private void updateHeaderUI() {
-        if (SessionManager.getInstance().isLoggedIn()) {
-            // ---- Đã đăng nhập ----
-            String name = SessionManager.getInstance().getCurrentUser().getFullName();
-
-            // THAY ĐỔI Ở ĐÂY: Gán tên người dùng vào nút Menu thả xuống
-            menuUser.setText("👤  " + name);
-
-            // Ẩn nút Đăng nhập
-            btnLogin.setVisible(false);
-            btnLogin.setManaged(false);
-
-            // Hiện HBox chứa MenuButton
-            userInfoBox.setVisible(true);
-            userInfoBox.setManaged(true);
-
-        } else {
-            // ---- Chưa đăng nhập ----
-            btnLogin.setVisible(true);
-            btnLogin.setManaged(true);
-
-            userInfoBox.setVisible(false);
-            userInfoBox.setManaged(false);
-        }
-    }
-
-    @FXML
-    void handleLogin(ActionEvent event) {
-        // Chuyển sang màn hình Login
-        SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/login.fxml");
-    }
-
-    @FXML
-    void handleLogout(ActionEvent event) {
-        // Xóa session
-        SessionManager.getInstance().logout();
-        // Cập nhật lại header ngay lập tức
-        updateHeaderUI();
-        System.out.println("Đã đăng xuất!");
-    }
-
-    @FXML
-    void handleDashboard(ActionEvent event) {
-        System.out.println("Dashboard được nhấn");
-    }
-
-    @FXML
-    void handleLiveAuction(ActionEvent event) {
-        System.out.println("Live Auction được nhấn");
-    }
-
-    @FXML
-    void handleMyAuctions(ActionEvent event) {
-        System.out.println("My Auctions được nhấn");
-    }
-
-    @FXML
-    void handleProfile(ActionEvent event) {
-        System.out.println("Profile được nhấn");
-    }
-
-    @FXML
-    void handleSeller(ActionEvent event) {
-        System.out.println("Seller được nhấn");
     }
 
     @Override

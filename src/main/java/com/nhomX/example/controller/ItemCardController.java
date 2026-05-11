@@ -15,9 +15,11 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
-public class ItemCardController {
+public class ItemCardController extends BaseController {
     @FXML
     // Thời gian
     private Label lblTimeLeft;
@@ -43,33 +45,61 @@ public class ItemCardController {
         Items item = auction.getItem();
         lblItemName.setText(item.getTitle());
         lblCurrentPrice.setText("Giá: " + auction.getHighestBid() + " VNĐ");
-         // Xử lý hình ảnh (Hỗ trợ ảnh trống và nhiều ảnh Slideshow)
+
+        String basePath = "/com/nhomX/example/images/";
         List<ItemImage> images = item.getImages();
 
-        if (images == null || images.isEmpty()|| images.get(0).getImagePath() == null || images.get(0).getImagePath().trim().isEmpty()) {
-            try {
-                itemImageView.setImage(new Image(
-                        getClass().getResourceAsStream("/com/nhomX/example/images/no_image.png")));
-            } catch (Exception e) {
-                System.err.println("❌ Không tìm thấy file no_image.png trong thư mục!");
+        try {
+            if (images == null || images.isEmpty() || images.get(0).getImagePath() == null || images.get(0).getImagePath().trim().isEmpty()) {
+                // Không có ảnh -> Load ảnh mặc định
+                itemImageView.setImage(new Image(getClass().getResourceAsStream(basePath + "no_image.png")));
+            } else {
+                // Có ảnh -> Ghép thư mục gốc với tên file từ DB (VD: /.../images/dell_front.png)
+                String fileName = images.get(0).getImagePath().trim();
+                Image img = new Image(getClass().getResourceAsStream(basePath + fileName));
+
+                // Nếu file bị lỗi (VD: đuôi png sai, file bị xóa mất) -> Load ảnh mặc định
+                if (img.isError()) {
+                    System.err.println("❌ Không thể đọc được file ảnh: " + fileName);
+                    itemImageView.setImage(new Image(getClass().getResourceAsStream(basePath + "no_image.png")));
+                } else {
+                    itemImageView.setImage(img);
+                }
             }
-        }
-        // 2. Nếu có dữ liệu ảnh -> Cắt chuỗi lấy ảnh đầu tiên
-        else {
-            String firstImage = images.get(0).getImagePath().trim();
-            try {
-                itemImageView.setImage(new Image(getClass().getResourceAsStream(firstImage)));
-            } catch (Exception e) {
-                // Nếu file ảnh bị sai đường dẫn, fallback về No Image cho an toàn
-                System.err.println(
-                        "❌ Lỗi load ảnh cho: " + item.getTitle() + ". Đường dẫn: " + firstImage);
-                itemImageView.setImage(new Image(
-                        getClass().getResourceAsStream("/com/nhomX/example/images/no_image.png")));
-            }
+        } catch (NullPointerException e) {
+            // Lỗi này xảy ra khi chính cái file "no_image.png" hoặc file thật KHÔNG TỒN TẠI trong thư mục resources
+            System.err.println("❌ CẢNH BÁO: Thiếu file ảnh trong thư mục resources!");
         }
 
         // TODO: Logic set ảnh dựa theo item.getImagePath()
-        // TODO: Logic đếm ngược thời gian
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime end = auction.getEndTime();
+        LocalDateTime start = auction.getStartTime();
+        if (start != null && now.isBefore(start)) {
+            // Trạng thái 1: Chưa đến giờ mở bán
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM");
+            lblTimeLeft.setText("Sắp mở lúc: " + start.format(formatter));
+            lblTimeLeft.setStyle("-fx-text-fill: #d35400;"); // Chữ màu cam
+
+        } else if (end != null && now.isBefore(end)) {
+            // Trạng thái 2: Đang diễn ra -> Đếm ngược thời gian kết thúc
+            Duration duration = Duration.between(now, end);
+            long days = duration.toDays();
+            long hours = duration.toHoursPart();
+            long minutes = duration.toMinutesPart();
+
+            if (days > 0) {
+                lblTimeLeft.setText(String.format("Còn lại: %d ngày %d giờ", days, hours));
+            } else {
+                lblTimeLeft.setText(String.format("Còn lại: %d giờ %d phút", hours, minutes));
+            }
+            lblTimeLeft.setStyle("-fx-text-fill: #27ae60;"); // Chữ màu xanh lá
+
+        } else {
+            // Trạng thái 3: Quá hạn end_time
+            lblTimeLeft.setText("Đã kết thúc");
+            lblTimeLeft.setStyle("-fx-text-fill: #c0392b;"); // Chữ màu đỏ
+        }
     }
 
     @FXML
@@ -85,7 +115,7 @@ public class ItemCardController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/nhomX/example/fxml/ItemDetail.fxml"));
             Parent root = loader.load();
-            
+
             ItemDetailController detailController = loader.getController();
             detailController.setAuctionData(this.currentAuction);
 
@@ -94,10 +124,23 @@ public class ItemCardController {
             stage.setScene(new Scene(root));
             stage.show();
 
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             System.out.println("KHÔNG THỂ MỞ TRANG CHI TIẾT SẢN PHẨM!" + e.getMessage());
         }
         System.out.println("Information: " + currentAuction.getItem().getDescription());
+    }
+
+    public void updateRealtimePrice(long newPrice) {
+        if (currentAuction != null) {
+            currentAuction.setHighestBid(newPrice);
+
+            // Dùng hàm format tiền tệ mà bạn đã định nghĩa ở các file khác
+            String formattedPrice = com.nhomX.example.utils.CurrencyFormatter.formatVND(newPrice);
+            lblCurrentPrice.setText("Giá: " + formattedPrice);
+
+            // Tùy chọn: Thêm hiệu ứng nháy màu đỏ/vàng cho Label giá để người xem chú ý
+            lblCurrentPrice.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        }
     }
 }
