@@ -79,7 +79,7 @@
                         </padding>
                         <children>
                             <!-- Nút Danh mục -->
-                            <Button fx:id="buttonCategory" mnemonicParsing="false" onAction="#handleCategory" prefHeight="40.0" styleClass="live-filter-btn" text="🛒 Danh mục" />
+                            <Button fx:id="btnCategory" mnemonicParsing="false" onAction="#handleCategory" prefHeight="40.0" styleClass="live-filter-btn" text="🛒 Danh mục" />
 
                             <!-- BỌC TEXTFIELD VÀO TRONG MỘT HBOX .live-search-box -->
                             <HBox alignment="CENTER_LEFT" maxWidth="600.0" styleClass="live-search-box" HBox.hgrow="ALWAYS">
@@ -92,7 +92,7 @@
                             </HBox>
 
                             <!-- Nút Bộ lọc -->
-                            <Button fx:id="btnFillter" mnemonicParsing="false" onAction="#handleFillter" prefHeight="40.0" styleClass="live-filter-btn" text="⏳ Bộ lọc" />
+                            <Button fx:id="btnFilter" mnemonicParsing="false" onAction="#handleFilter" prefHeight="40.0" styleClass="live-filter-btn" text="⏳ Bộ lọc" />
                         </children>
                     </HBox>
                     <VBox>
@@ -105,7 +105,7 @@
                     </VBox>
 
                     <!-- ── 4. GRID ITEMCARD ── -->
-                    <FlowPane fx:id="contentArea" hgap="16" prefHeight="51.0" prefWidth="804.0" styleClass="content-area" vgap="16">
+                    <FlowPane fx:id="liveAuctionContainer" hgap="16" prefHeight="51.0" prefWidth="804.0" styleClass="content-area" vgap="16">
                         <padding><Insets bottom="20" left="20" right="20" /></padding>
                     </FlowPane>
 

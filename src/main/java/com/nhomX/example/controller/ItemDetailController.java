@@ -11,16 +11,22 @@ import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class ItemDetailController implements ServerEventListener, Initializable {
+public class ItemDetailController extends BaseController implements ServerEventListener, Initializable {
     @FXML
     private Label lblItemName;
     @FXML
@@ -32,11 +38,18 @@ public class ItemDetailController implements ServerEventListener, Initializable 
     private ImageView imgItem;
     @FXML
     private TextField txtBidAmount;
-
+    @FXML
+    private Button btnBid;
+    @FXML
+    private Label lblStatusMessage;
+    @FXML
+    private LineChart<String, Number> priceChart;
+    private XYChart.Series<String, Number> priceSeries;
 
     private Auction currentAuction;
 
     private AuctionClient auctionClient;
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -77,11 +90,49 @@ public class ItemDetailController implements ServerEventListener, Initializable 
 
         // ✅ LẤY GIÁ CAO NHẤT TỪ CLASS AUCTION (Như em đã đề xuất!)
         lblCurrentPrice.setText(CurrencyFormatter.formatVND(auction.getHighestBid()));
+
+        priceSeries = new XYChart.Series<>();
+        priceSeries.setName("Biến động giá");
+        priceChart.getData().clear();
+        priceChart.getData().add(priceSeries);
+
+        // Lấy giờ hiện tại (Format thành String cho đẹp) làm trục X, giá khởi điểm làm trục Y
+        String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        priceSeries.getData().add(new XYChart.Data<>(currentTime, auction.getHighestBid()));
         // Mô tả sản phẩm
         if (item.getDescription() != null && !item.getDescription().isEmpty()) {
             lblDescription.setText(item.getDescription());
         } else {
             lblDescription.setText("Sản phẩm này chưa có mô tả chi tiết.");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = auction.getStartTime();
+
+        if (start != null && now.isBefore(start)) {
+            // 1. CHƯA ĐẾN GIỜ: Khóa mõm các nút bấm
+            txtBidAmount.setDisable(true);
+            txtBidAmount.setPromptText("Chưa đến giờ đấu giá");
+
+            if (btnBid != null) {
+                btnBid.setDisable(true);
+                btnBid.setText("Sắp diễn ra");
+            }
+
+            if (lblStatusMessage != null) {
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+                lblStatusMessage.setText("Bắt đầu vào lúc: " + start.format(formatter));
+                lblStatusMessage.setVisible(true);
+            }
+        } else {
+            // 2. ĐÃ MỞ BÁN: Mở khóa cho người dùng tranh giành
+            txtBidAmount.setDisable(false);
+            if (btnBid != null) {
+                btnBid.setDisable(false);
+                btnBid.setText("Đấu giá");
+            }
+            if (lblStatusMessage != null) {
+                lblStatusMessage.setVisible(false);
+            }
         }
         List<ItemImage> images = item.getImages();
 
@@ -128,40 +179,13 @@ public class ItemDetailController implements ServerEventListener, Initializable 
             // Bọc trong Platform.runLater để giao cho luồng UI (Tránh Crash)
             javafx.application.Platform.runLater(() -> {
                 lblCurrentPrice.setText(CurrencyFormatter.formatVND(newPrice));
+                // THÊM ĐIỂM ẢNH MỚI VÀO BIỂU ĐỒ ĐƯỜNG
+                String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                priceSeries.getData().add(new XYChart.Data<>(timeNow, newPrice));
 
                 // Có thể làm hiệu ứng đổi màu nhấp nháy ở đây sau...
             });
         }
-    }
-    @FXML
-    void handleDashboard(ActionEvent event){
-
-    }
-    @FXML
-    void handleLiveAuction(ActionEvent event) {
-        System.out.println("Live Auction được nhấn");
-    }
-
-    @FXML
-    void handleMyAuctions(ActionEvent event) {
-        System.out.println("My Auctions được nhấn");
-    }
-
-    @FXML
-    void handleProfile(ActionEvent event) {
-        System.out.println("Profile được nhấn");
-    }
-
-    @FXML
-    void handleSeller(ActionEvent event) {
-        System.out.println("Seller được nhấn");
-    }
-    @FXML
-    void handleLogin(ActionEvent event){
-    }
-    @FXML
-    void handleLogout(ActionEvent event){
-
     }
     @FXML
     void handleBidAction(ActionEvent event){

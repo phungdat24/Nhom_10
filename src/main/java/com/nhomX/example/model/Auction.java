@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 public class Auction extends Entity {
     // Tham chiếu đến món đồ đang được đấu giá
     private Items item;
-
+    // Thời điểm bắt đâu đấu giá:
+    private LocalDateTime startTime;
     // Thời điểm kết thúc phiên
     private LocalDateTime endTime;
 
@@ -113,5 +114,13 @@ public class Auction extends Entity {
      */
     public void setHighestBid(long highestBid) {
         this.highestBid = highestBid;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
     }
 }
