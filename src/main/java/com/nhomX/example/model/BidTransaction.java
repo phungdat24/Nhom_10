@@ -6,11 +6,11 @@ public class BidTransaction extends Entity {
 
     // Thời gian đấu giá
     private LocalDateTime bidTime;
-    // ID của vật phẩm đặt giá
+    // Người đặt giá:
     private RegularUser bidder;
     // Gía đấu
     private long amount;
-    // id của lượt trả giá
+    // Phiên đấu giá
     private Auction auction;
 
     public BidTransaction() {
@@ -35,6 +35,9 @@ public class BidTransaction extends Entity {
         }
         // Giao dịch không thể thiếu Người đặt hoặc Phiên đấu giá
         if (this.bidder == null || this.auction == null) {
+            return false;
+        }
+        if (this.amount <= this.auction.getHighestBid()) {
             return false;
         }
         // Có thể thêm logic: Kiểm tra xem user có bị ban/cấm không, v.v.

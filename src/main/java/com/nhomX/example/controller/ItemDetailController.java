@@ -156,14 +156,14 @@ public class ItemDetailController extends BaseController implements ServerEventL
         if (auctionClient != null) {
             auctionClient.setServerEventListener(this);
             // Báo cho Server bắt đầu zem:
-            auctionClient.watchItem(currentAuction.getId());
+            auctionClient.watchAuction(currentAuction.getId());
         }
     }
         @FXML
         void handleBackAction (ActionEvent event) {
             if (auctionClient != null && currentAuction != null) {
                 // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
-                auctionClient.unwatchItem(currentAuction.getId());
+                auctionClient.unwatchAuction(currentAuction.getId());
             }
             SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/dashboard.fxml");
     }

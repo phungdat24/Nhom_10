@@ -49,7 +49,7 @@ public class RegularUser extends User {
     // Ghi đè hàm của lớp cha để hiển thị lên giao diện (Ví dụ: Trả về "BIDDER, SELLER")
     @Override
     public String getRoleName() {
-        if (roles.isEmpty()) {
+        if (roles.isEmpty() || roles == null) {
             // Chưa có quyền gì
             return "GUEST";
         }
@@ -57,6 +57,14 @@ public class RegularUser extends User {
         return roles.stream()
                 .map(Enum::name)
                 .collect(Collectors.joining(", "));
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
     }
     // PHẦN 2: CÁC HÀNH VI NGHIỆP VỤ (OOP BEHAVIORS)
 
@@ -70,6 +78,10 @@ public class RegularUser extends User {
         }
         if (!auction.canAcceptBids()) {
             throw new IllegalStateException("Phiên đấu giá này đã đóng hoặc chưa bắt đầu!");
+        }
+        if (amount <= auction.getHighestBid()) {
+            throw new IllegalArgumentException(
+                    "Giá đặt phải cao hơn giá hiện tại: " + auction.getHighestBid());
         }
         // Khởi tạo một giao dịch Bid mới
         BidTransaction newBid = new BidTransaction();
@@ -98,6 +110,10 @@ public class RegularUser extends User {
         // 2. Kiểm tra xem phiên đấu giá còn nhận đặt giá không
         if (!auction.canAcceptBids()) {
             throw new IllegalStateException("Phiên đấu giá này đã đóng hoặc chưa bắt đầu!");
+        }
+        if (maxLimit <= auction.getHighestBid()) {
+            throw new IllegalArgumentException(
+                    "Giới hạn giá tối đa phải cao hơn giá hiện tại: " + auction.getHighestBid());
         }
 
         // 3. Khởi tạo cấu hình và liên kết các đối tượng
@@ -131,7 +147,7 @@ public class RegularUser extends User {
      */
     public void closeAuction(Auction auction) {
         // 1. Kiểm tra quyền sở hữu (Chỉ người bán món đồ này mới được đóng phiên)
-        if (this.equals(auction.getItem().getSeller())) {
+        if (this.getId() != null && this.getId().equals(auction.getItem().getSeller().getId())) {
 
             // 2. Nếu đúng là chủ, mới gọi hàm logic nội bộ của Auction để thực hiện chốt
             auction.closeAuction();

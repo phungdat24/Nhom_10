@@ -36,6 +36,48 @@ public class Message implements Serializable {
         this.type = type;
         this.data = data;
     }
+    //  Factory methods để tạo message chuẩn, tránh lỗi typo type string
+    // và đảm bảo mọi nơi dùng cùng một cách tạo message.
+
+    public static Message bidSuccess() {
+        return new Message("BID_SUCCESS", "Đặt giá thành công!");
+    }
+
+    public static Message bidFail(String reason) {
+        return new Message("BID_FAIL", reason);
+    }
+
+    public static Message updatePrice(String username, String auctionId, long newPrice) {
+        return new Message("UPDATE_PRICE", username, auctionId, newPrice);
+    }
+
+    public static Message auctionClosed(String auctionId) {
+        return new Message("AUCTION_CLOSED", null, auctionId, 0);
+    }
+
+    public static Message loginSuccess(Object user) {
+        return new Message("LOGIN_SUCCESS", user);
+    }
+
+    public static Message loginFail() {
+        return new Message("LOGIN_FAIL", "Sai tên đăng nhập hoặc mật khẩu!");
+    }
+
+    public static Message registerSuccess() {
+        return new Message("REGISTER_SUCCESS", "Tạo tài khoản thành công! Vui lòng đăng nhập.");
+    }
+
+    public static Message registerFail(String reason) {
+        return new Message("REGISTER_FAIL", reason);
+    }
+
+    public static Message returnAllAuctions(Object list) {
+        return new Message("RETURN_ALL_AUCTIONS", list);
+    }
+
+    public static Message error(String errorMsg) {
+        return new Message("ERROR", errorMsg);
+    }
 
     // Getter
     public String getType() {

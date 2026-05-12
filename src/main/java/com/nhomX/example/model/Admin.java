@@ -29,7 +29,7 @@ public class Admin extends User{
      * @param reason Lý do hủy để ghi log
      */
     public void forceCancelAuction(Auction auction, String reason) {
-        if (auction.getStatus() == AuctionStatus.FINISHED) {
+        if (auction.getStatus() == AuctionStatus.FINISHED || auction.getStatus() == AuctionStatus.PAID) {
             throw new IllegalStateException("Không thể hủy phiên đấu giá đã kết thúc và chốt người thắng!");
         }
 
@@ -63,5 +63,19 @@ public class Admin extends User{
         }
         user.updateBalance(amount);
         System.out.println("💰 ADMIN " + this.getUserName() + " đã nạp " + amount + " vào tài khoản " + user.getUserName());
+    }
+    /**
+     * [THÊM MỚI] Duyệt phiên đấu giá từ trạng thái PENDING → OPEN.
+     * Theo ERD, auctions có trường approved_by tham chiếu đến users.
+     *
+     * @param auction Phiên cần duyệt.
+     */
+    public void approveAuction(Auction auction) {
+        if (auction.getStatus() != AuctionStatus.PENDING) {
+            throw new IllegalStateException("Chỉ có thể duyệt phiên ở trạng thái PENDING!");
+        }
+        auction.setStatus(AuctionStatus.OPEN);
+        System.out.println("✅ ADMIN " + this.getUserName()
+                + " đã duyệt phiên đấu giá " + auction.getId());
     }
 }

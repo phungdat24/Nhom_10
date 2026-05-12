@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.nhomX.example.model.Admin;
 import com.nhomX.example.model.RegularUser;
@@ -15,6 +17,11 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public boolean register(User user) {
+    // Kiểm tra username đã tồn tại trước khi INSERT
+    if (findByUsername(user.getUserName()) != null) {
+      System.err.println("❌ Email đã tồn tại: " + user.getUserName());
+      return false;
+    }
     String sql =
         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES (?,? , ?, ?, ?, ?)";
     Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -39,12 +46,12 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public User login(String username, String password) {
+  public User login(String username, String passwordHash) {
     String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, username);
-      pstmt.setString(2, password);
+      pstmt.setString(2, passwordHash);
       try(ResultSet rs = pstmt.executeQuery()) {
 
         if (rs.next()) {
@@ -78,16 +85,52 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public void updateBalance(String userId, long deltaAmount) {
-    String sql = "UPDATE users SET balance = balance + ? WHERE id = ?";
+    String sql = "UPDATE users SET balance = balance + ? WHERE id = ? AND (balance + ?) >=0";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       // VD: Truyền +50000 để nạp, -50000 để trừ:
       pstmt.setLong(1, deltaAmount);
       pstmt.setString(2, userId);
-      pstmt.executeUpdate();
+      pstmt.setLong(3, deltaAmount);
+      int rows = pstmt.executeUpdate();
+      if (rows == 0) {
+        System.err.println("❌ Cập nhật số dư thất bại: số dư không đủ hoặc user không tồn tại.");
+      }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi cập nhật số dư: " + e.getMessage());
     }
+  }
+  @Override
+  public User findByUsername(String username) {
+    String sql = "SELECT * FROM users WHERE username = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, username);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+          return mapRowToUser(rs);
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi tìm user theo username: " + e.getMessage());
+    }
+    return null;
+  }
+
+  @Override
+  public List<User> findAll() {
+    List<User> users = new ArrayList<>();
+    String sql = "SELECT * FROM users";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql);
+         ResultSet rs = pstmt.executeQuery()) {
+      while (rs.next()) {
+        users.add(mapRowToUser(rs));
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi lấy danh sách user: " + e.getMessage());
+    }
+    return users;
   }
   // Đọc User từ ResultSet:
   private User mapRowToUser(ResultSet rs) throws SQLException {

@@ -56,7 +56,7 @@ public class AuctionServer {
     }
 
     // Client gọi hàm này khi bấm vào xem chi tiết một món hàng
-    public void watchItem(String auctionId, ClientHandler client) {
+    public void watchAuction(String auctionId, ClientHandler client) {
         // NẾU ITEM ID BỊ NULL, BỎ QUA LUÔN, KHÔNG ĐƯA VÀO HASHMAP
         if (auctionId== null || auctionId.isEmpty()) {
             System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
@@ -68,7 +68,7 @@ public class AuctionServer {
     }
 
     // Client gọi hàm này khi thoát khỏi trang chi tiết món hàng
-    public void unwatchItem(String auctionId, ClientHandler client) {
+    public void unwatchAuction(String auctionId, ClientHandler client) {
         Set<ClientHandler> viewers = auctionViewers.get(auctionId);
         if (viewers != null) {
             viewers.remove(client);
@@ -79,13 +79,27 @@ public class AuctionServer {
         }
     }
 
-    // ĐÃ SỬA: Gửi tin nhắn cho những ai ĐANG XEM itemId cụ thể
-    public void broadcastToItem(String auctionId, Message msg) {
+    /**
+     * Broadcast message tới tất cả Client đang xem một phiên cụ thể.
+     * Đây là trung tâm của Realtime Update.
+     *
+     * [FIX] Đổi tên từ broadcastToItem → broadcastToAuction cho đúng ngữ nghĩa.
+     */
+    public void broadcastToAuction(String auctionId, Message msg) {
         Set<ClientHandler> viewers = auctionViewers.get(auctionId);
         if (viewers != null) {
             for (ClientHandler client : viewers) {
                 client.sendToClient(msg);
             }
+        }
+    }
+    /**
+     *  Broadcast tới toàn bộ client đang kết nối.
+     * Dùng cho thông báo hệ thống (VD: Server sắp tắt, phiên mới được duyệt...).
+     */
+    public void broadcastToAll(Message msg) {
+        for (ClientHandler client : clients) {
+            client.sendToClient(msg);
         }
     }
 

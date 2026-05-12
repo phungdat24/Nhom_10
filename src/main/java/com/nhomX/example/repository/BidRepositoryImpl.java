@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,8 @@ public class BidRepositoryImpl implements BidRepository {
   // Kho chứa ổ khóa: Mỗi ID sản phẩm sẽ tương ứng với 1 ổ khóa riêng biệt
   private static final ConcurrentHashMap<String, ReentrantLock> auctionLocks =
       new ConcurrentHashMap<>();
-  // Xóa bỏ biến Connection dùng chung gây rò rỉ và chết multi-thread
+  private static final DateTimeFormatter DB_FORMATTER =
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   @Override
   public void addBid(BidTransaction bidTransaction) { // Đã đổi save -> addBid
@@ -55,7 +57,7 @@ public class BidRepositoryImpl implements BidRepository {
   public List<BidTransaction> getBidsByAuctionId(String auctionId) {
 
     List<BidTransaction> listBidTransactions = new ArrayList<>();
-    String sql = "SELECT * FROM bids WHERE auction_id = ?";
+    String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY bid_time ASC";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -63,48 +65,7 @@ public class BidRepositoryImpl implements BidRepository {
       try (ResultSet rs = pstmt.executeQuery()) {
 
         while (rs.next()) {
-          BidTransaction bidTransaction = new BidTransaction();
-          // Đọc dữ liệu từ DB và nhét vào đối tượng Bid
-          // Thuộc tính cơ bản:
-          bidTransaction.setId(rs.getString("id"));
-          bidTransaction.setAmount(rs.getLong("amount"));
-
-          // Xử lý ngày tháng (nếu có cột bid_time trong DB)
-          String timeStr = rs.getString("bid_time");
-          if (timeStr != null && !timeStr.trim().isEmpty()) {
-            try {
-              if (timeStr.contains("T")) {
-                // TRƯỜNG HỢP 1: Chuẩn Java (VD: 2026-05-08T15:30:00)
-                // Hàm parse mặc định của Java tự hiểu được chữ T này
-                bidTransaction.setBidTime(java.time.LocalDateTime.parse(timeStr));
-              } else {
-                // TRƯỜNG HỢP 2: Chuẩn SQLite (VD: 2026-05-08 15:30:00)
-                // Cần tự tạo một bộ dịch (Formatter) chỉ cho Java biết dấu cách nằm ở đâu
-                DateTimeFormatter sqliteFormatter =
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-                bidTransaction.setBidTime(java.time.LocalDateTime.parse(timeStr, sqliteFormatter));
-              }
-            } catch (Exception e) {
-              // Nuốt lỗi an toàn, không làm sập chương trình
-              System.err.println("⚠️ Cảnh báo: Không thể parse thời gian từ DB: [" + timeStr + "]");
-              // bidTransaction.getBidTime() lúc này sẽ tự động hiểu là null
-            }
-          }
-
-          // ÁNH XẠ KHÓA NGOẠI THÀNH OBJECT CƠ BẢN
-          // Thay vì đi tìm nguyên cả User trong DB (rất chậm), ta tạo một User "vỏ rỗng" chứa ID
-          RegularUser bidder = new RegularUser();
-          bidder.setId(rs.getString("user_id"));
-          bidTransaction.setBidder(bidder); // Gán Object vào Bid
-
-          // Tương tự với Phiên đấu giá
-          Auction auction = new Auction();
-          auction.setId(rs.getString("auction_id"));
-          bidTransaction.setAuction(auction);
-
-          // Cất vào danh sách
-          listBidTransactions.add(bidTransaction);
+          listBidTransactions.add(mapRowToBid(rs));
         }
       }
     } catch (SQLException e) {
@@ -125,44 +86,7 @@ public class BidRepositoryImpl implements BidRepository {
       try (ResultSet rs = pstmt.executeQuery()) {
 
         if (rs.next()) {
-          BidTransaction bidTransaction = new BidTransaction();
-
-          bidTransaction.setId(rs.getString("id"));
-          bidTransaction.setAmount(rs.getLong("amount"));
-
-          // Ánh xạ thời gian (SQLite thường lưu dạng chuỗi ISO-8601)
-          String timeStr = rs.getString("bid_time");
-          if (timeStr != null && !timeStr.trim().isEmpty()) {
-            try {
-              if (timeStr.contains("T")) {
-                // TRƯỜNG HỢP 1: Chuẩn Java (VD: 2026-05-08T15:30:00)
-                // Hàm parse mặc định của Java tự hiểu được chữ T này
-                bidTransaction.setBidTime(java.time.LocalDateTime.parse(timeStr));
-              } else {
-                // TRƯỜNG HỢP 2: Chuẩn SQLite (VD: 2026-05-08 15:30:00)
-                // Cần tự tạo một bộ dịch (Formatter) chỉ cho Java biết dấu cách nằm ở đâu
-                DateTimeFormatter sqliteFormatter =
-                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-                bidTransaction.setBidTime(java.time.LocalDateTime.parse(timeStr, sqliteFormatter));
-              }
-            } catch (Exception e) {
-              // Nuốt lỗi an toàn, không làm sập chương trình
-              System.err.println("⚠️ Cảnh báo: Không thể parse thời gian từ DB: [" + timeStr + "]");
-              // bidTransaction.getBidTime() lúc này sẽ tự động hiểu là null
-            }
-          }
-
-          // 2. Tạo Vỏ rỗng cho Người đặt (ĐỂ TÌM NGƯỜI THẮNG)
-          RegularUser bidder = new RegularUser();
-          bidder.setId(rs.getString("user_id"));
-          bidTransaction.setBidder(bidder);
-
-          // 3. Tạo Vỏ rỗng cho Phiên đấu giá
-          Auction auctionObj = new Auction();
-          auctionObj.setId(rs.getString("auction_id"));
-          bidTransaction.setAuction(auctionObj);
-          return bidTransaction;
+          return mapRowToBid(rs);
         }
       }
     } catch (SQLException e) {
@@ -172,17 +96,33 @@ public class BidRepositoryImpl implements BidRepository {
   }
 
   @Override
-  public boolean placeBidTransaction(String userId, String auctionId, long bidAmount,
-      String bidId) {
+  public boolean executeBidTransaction(String userId, String auctionId, long bidAmount, String bidId) {
 
     Connection conn = DatabaseConnection.getInstance().getConnection();
+    // [FIX] Dùng lock theo auctionId để đảm bảo thread-safety trong transaction
+    ReentrantLock lock = auctionLocks.computeIfAbsent(auctionId, k -> new ReentrantLock());
+    lock.lock();
     // Bắt lỗi rollback:
     try {
 
       // BƯỚC 2: Tắt chế độ tự động lưu (Bắt đầu gom các lệnh vào 1 Giao dịch)
       conn.setAutoCommit(false);
-
-
+      // Bước 1: Kiểm tra số dư trước khi trừ tiền
+      // [FIX QUAN TRỌNG] Nguyên bản không kiểm tra số dư → có thể trừ âm
+      String sqlCheckBalance = "SELECT balance FROM users WHERE id = ?";
+      try (PreparedStatement pstmtCheck = conn.prepareStatement(sqlCheckBalance)) {
+        pstmtCheck.setString(1, userId);
+        try (ResultSet rs = pstmtCheck.executeQuery()) {
+          if (rs.next()) {
+            long currentBalance = rs.getLong("balance");
+            if (currentBalance < bidAmount) {
+              conn.rollback();
+              System.err.println("❌ Số dư không đủ để đặt giá!");
+              return false;
+            }
+          }
+        }
+      }
       // BƯỚC 3: Mở khối try để thực hiện chuỗi Giao dịch (3 lệnh)
       // Lệnh 1: Trừ tiền (Cập nhật balance)
       String sqlUser = "UPDATE users SET balance = balance - ? WHERE id = ?";
@@ -200,7 +140,7 @@ public class BidRepositoryImpl implements BidRepository {
         pstmt2.setString(1, bidId);
         pstmt2.setLong(2, bidAmount);
         // Ép Java tạo thời gian chuẩn có chữ T để lưu xuống DB
-        pstmt2.setString(3, java.time.LocalDateTime.now().toString());
+        pstmt2.setString(3, java.time.LocalDateTime.now().format(DB_FORMATTER));
         pstmt2.setString(4, userId);
         pstmt2.setString(5, auctionId);
 
@@ -208,10 +148,11 @@ public class BidRepositoryImpl implements BidRepository {
       }
 
       // Lệnh 3: Cập nhật giá hiện tại của sản phẩm
-      String sqlAuction = "UPDATE auctions SET highest_bid = ? WHERE id = ?";
+      String sqlAuction = "UPDATE auctions SET highest_bid = ?, winner_id = ?, " + "status = 'RUNNING' WHERE id = ?";
       try (PreparedStatement pstmt3 = conn.prepareStatement(sqlAuction)) {
         pstmt3.setLong(1, bidAmount);
-        pstmt3.setString(2, auctionId);
+        pstmt3.setString(2, userId);
+        pstmt3.setString(3, auctionId);
         pstmt3.executeUpdate();
       }
 
@@ -237,6 +178,36 @@ public class BidRepositoryImpl implements BidRepository {
       } catch (SQLException ex) {
         System.err.println("❌ Lỗi khi khôi phục commit " + ex.getMessage());
       }
+      lock.unlock();
+    }
+  }
+  private BidTransaction mapRowToBid(ResultSet rs) throws SQLException {
+    BidTransaction bid = new BidTransaction();
+    bid.setId(rs.getString("id"));
+    bid.setAmount(rs.getLong("amount"));
+    bid.setBidTime(parseDateTime(rs.getString("bid_time")));
+
+    // "Vỏ rỗng" – load đầy đủ khi cần qua UserRepository
+    RegularUser bidder = new RegularUser();
+    bidder.setId(rs.getString("user_id"));
+    bid.setBidder(bidder);
+
+    Auction auction = new Auction();
+    auction.setId(rs.getString("auction_id"));
+    bid.setAuction(auction);
+
+    return bid;
+  }
+
+  private LocalDateTime parseDateTime(String timeStr) {
+    if (timeStr == null || timeStr.trim().isEmpty()) return null;
+    try {
+      return timeStr.contains("T")
+              ? LocalDateTime.parse(timeStr)
+              : LocalDateTime.parse(timeStr, DB_FORMATTER);
+    } catch (Exception e) {
+      System.err.println("⚠️ Lỗi parse thời gian: [" + timeStr + "]");
+      return null;
     }
   }
 }

@@ -1,6 +1,8 @@
 package com.nhomX.example.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Auction extends Entity {
     // Tham chiếu đến món đồ đang được đấu giá
@@ -18,11 +20,19 @@ public class Auction extends Entity {
 
     // Mức giá cao nhất hiện tại của phiên
     private long highestBid;
+    // [THÊM MỚI] Danh sách observers để hỗ trợ Observer Pattern (realtime update)
+    private transient List<AuctionObserver> observers = new ArrayList<>();
+
+    // [THÊM MỚI] Anti-sniping: ngưỡng thời gian và thời lượng gia hạn
+    private static final int ANTI_SNIPE_THRESHOLD_SECONDS = 30;
+    private static final int ANTI_SNIPE_EXTENSION_SECONDS = 60;
 
     // 1. Hàm tạo rỗng (Phục vụ cho việc load dữ liệu từ Database)
     public Auction() {
         super();
-        this.status = AuctionStatus.OPEN; // Mặc định khi mới tạo
+        // Mặc định khi mới tạo
+        this.status = AuctionStatus.OPEN;
+        this.observers= new ArrayList<>();
     }
 
     // 2. Hàm tạo đầy đủ tham số
@@ -32,6 +42,31 @@ public class Auction extends Entity {
         this.endTime = endTime;
         this.highestBid = startingPrice;
         this.status = AuctionStatus.OPEN;
+        this.observers= new ArrayList<>();
+    }
+
+    // OBSERVER PATTERN
+
+    //Đăng ký một observer (client muốn nhận thông báo khi có bid mới).
+    public void addObserver(AuctionObserver observer) {
+        if (!observers.contains(observer)) {
+            observers.add(observer);
+        }
+    }
+
+    //Hủy đăng ký observer (client rời khỏi phòng đấu giá).
+    public void removeObserver(AuctionObserver observer) {
+        observers.remove(observer);
+    }
+
+    /**
+     * Thông báo toàn bộ observer khi có bid mới.
+     * Được gọi sau mỗi lần cập nhật highestBid thành công.
+     */
+    public void notifyObservers(BidTransaction newBid) {
+        for (AuctionObserver observer : observers) {
+            observer.onBidPlaced(this, newBid);
+        }
     }
 
     /**
@@ -45,7 +80,7 @@ public class Auction extends Entity {
      * Kiểm tra xem phiên còn cho phép đặt giá không.
      */
     public boolean canAcceptBids() {
-        return(this.status==AuctionStatus.OPEN || this.status == AuctionStatus.RUNNING && !isExpired());
+        return(this.status==AuctionStatus.OPEN || (this.status == AuctionStatus.RUNNING && !isExpired()));
     }
 
     /**
@@ -54,8 +89,21 @@ public class Auction extends Entity {
      */
     public void extendTime(int seconds) {
         this.endTime = this.endTime.plusSeconds(seconds);
+        // Thông báo observers rằng thời gian đã thay đổi
+        notifyObservers(null);
     }
-
+    /**
+     * [THÊM MỚI] Kiểm tra và tự động gia hạn nếu bid xảy ra trong ngưỡng anti-snipe.
+     * Được gọi từ AuctionService sau khi xác nhận bid hợp lệ.
+     */
+    public void applyAntiSnipe() {
+        long secondsRemaining = java.time.Duration.between(LocalDateTime.now(), endTime).getSeconds();
+        if (secondsRemaining > 0 && secondsRemaining <= ANTI_SNIPE_THRESHOLD_SECONDS) {
+            extendTime(ANTI_SNIPE_EXTENSION_SECONDS);
+            System.out.println("⏱ Anti-snipe: Gia hạn thêm " + ANTI_SNIPE_EXTENSION_SECONDS
+                    + "s cho phiên " + this.getId());
+        }
+    }
     /**
      * Chốt phiên đấu giá và cập nhật trạng thái thành FINISHED.
      */

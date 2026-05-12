@@ -1,11 +1,11 @@
 package com.nhomX.example.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 public abstract class Entity implements Serializable {
-    // PROTECTED ĐỂ CÁC LỚP CON TRUY CẬP:
-    protected String id;
+    private String id;
     //Hàm tạo rỗng(ĐỂ ĐỌC DỮ LIỆU TỪ DB):
     public Entity(){
     }
@@ -27,4 +27,21 @@ public abstract class Entity implements Serializable {
     public void setId(String id) {
         this.id = id;
     }
+    /**
+     * [THÊM MỚI] Override equals/hashCode dựa trên id.
+     * Bắt buộc để so sánh đối tượng đúng cách (ví dụ: kiểm tra winner, so sánh trong Set).
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Entity entity = (Entity) o;
+        return Objects.equals(id, entity.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
 }

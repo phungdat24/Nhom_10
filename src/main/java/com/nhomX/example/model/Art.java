@@ -1,6 +1,5 @@
 package com.nhomX.example.model;
 
-import java.beans.ConstructorProperties;
 import java.time.Year;
 
 public class Art extends Items {
@@ -26,16 +25,16 @@ public class Art extends Items {
     @Override
     public void printItemDetails() {
         System.out.println("--- CHI TIẾT TÁC PHẨM NGHỆ THUẬT ---");
-        System.out.println("Tác phẩm: " + this.title);
+        System.out.println("Tác phẩm: " + getTitle());
         System.out.println("Tác giả: " + this.artistName);
         System.out.println("Năm sáng tác: " + this.yearCreated);
-        System.out.println("Mô tả: " + this.description);
+        System.out.println("Mô tả: " + getDescription());
     }
 
     @Override
     public boolean validate() {
-        if (this.title == null || this.title.trim().isEmpty()) return false;
-        if (this.startingPrice < 0) return false;
+        if (getTitle()  == null || getTitle().trim().isEmpty()) return false;
+        if (getStartingPrice() < 0) return false;
         // Năm sáng tác không được lớn hơn năm hiện tại
         if (this.yearCreated > Year.now().getValue()) return false;
         return true;

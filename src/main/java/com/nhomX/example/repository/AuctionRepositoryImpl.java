@@ -1,5 +1,11 @@
 package com.nhomX.example.repository;
 
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.GeneralItem;
+import com.nhomX.example.model.RegularUser;
+import com.nhomX.example.utils.DatabaseConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,13 +15,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.RegularUser;
-import com.nhomX.example.utils.DatabaseConnection;
-
 public class AuctionRepositoryImpl implements AuctionRepository {
+
+  // Formatter chuẩn để lưu/đọc thời gian nhất quán
+  private static final DateTimeFormatter DB_FORMATTER =
+          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   @Override
   public void save(Auction auction) {
@@ -26,16 +30,17 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
       pstmt.setString(1, auction.getId());
 
-      // Dùng highestBid làm giá khởi điểm vì Model không có startingPrice
-      pstmt.setLong(2, auction.getHighestBid());
+      // [FIX] Lưu startingPrice (giá khởi điểm gốc) lấy từ item, không dùng highestBid
+      long startingPrice = (auction.getItem() != null) ? auction.getItem().getStartingPrice() : auction.getHighestBid();
+      pstmt.setLong(2, startingPrice);
       pstmt.setLong(3, auction.getHighestBid());
 
-      // Truyền null vì Model không có startTime
-      pstmt.setString(4, null);
-      pstmt.setString(5, auction.getEndTime() != null ? auction.getEndTime().toString() : null);
+      // Lưu start_time đúng định dạng:
+      pstmt.setString(4, auction.getStartTime() != null ? auction.getStartTime().format(DB_FORMATTER) : null);
+      pstmt.setString(5, auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
 
       // Xử lý Enum
-      pstmt.setString(6, auction.getStatus() != null ? auction.getStatus().name() : "OPEN");
+      pstmt.setString(6, auction.getStatus() != null ? auction.getStatus().name() : AuctionStatus.PENDING.name());
 
       pstmt.setString(7, auction.getItem() != null ? auction.getItem().getId() : null);
       pstmt.setString(8, auction.getWinner() != null ? auction.getWinner().getId() : null);
@@ -55,7 +60,6 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE id = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
       pstmt.setString(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -71,11 +75,10 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public List<Auction> findAllActiveAuctions() {
     List<Auction> list = new ArrayList<>();
-    String sql = "SELECT * FROM auctions WHERE status = 'OPEN'";
+    String sql = "SELECT * FROM auctions WHERE status IN('OPEN', 'RUNNING') ";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql);
-        ResultSet rs = pstmt.executeQuery()) {
-
+         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
         list.add(mapRowToAuction(rs));
       }
@@ -89,7 +92,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public List<Auction> findExpiredOpenAuctions() {
     List<Auction> list = new ArrayList<>();
     String now = LocalDateTime.now().toString();
-    String sql = "SELECT * FROM auctions WHERE status = 'OPEN' AND end_time <= ?";
+    String sql = "SELECT * FROM auctions WHERE status IN ('OPEN', 'RUNNING') AND end_time <= ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -106,12 +109,12 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   }
 
   @Override
-  public void updateStatus(String auctionId, String status) {
+  public void updateStatus(String auctionId, AuctionStatus status) {
     String sql = "UPDATE auctions SET status = ? WHERE id = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-      pstmt.setString(1, status);
+      pstmt.setString(1, status.name());
       pstmt.setString(2, auctionId);
       pstmt.executeUpdate();
       System.out.println("🔄 Đã cập nhật trạng thái phiên " + auctionId + " thành: " + status);
@@ -121,8 +124,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   }
 
   @Override
-  public void updatePriceAndWinner(String auctionId, long newPrice, String winnerId) {
-    String sql = "UPDATE auctions SET highest_bid = ?, winner_id = ? WHERE id = ?";
+  public void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId) {
+    String sql = "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING' WHERE id = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -133,6 +136,38 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     } catch (SQLException e) {
       System.err.println("❌ Lỗi cập nhật người thắng: " + e.getMessage());
     }
+  }
+  @Override
+  public void updateEndTime(String auctionId, LocalDateTime newEndTime) {
+    String sql = "UPDATE auctions SET end_time = ? WHERE id = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, newEndTime.format(DB_FORMATTER));
+      pstmt.setString(2, auctionId);
+      pstmt.executeUpdate();
+      System.out.println("⏱ Đã gia hạn thời gian phiên " + auctionId + " → " + newEndTime);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi cập nhật end_time: " + e.getMessage());
+    }
+  }
+
+  @Override
+  public List<Auction> findBySellerId(String sellerId) {
+    List<Auction> list = new ArrayList<>();
+    // Join với bảng items để lọc theo seller_id
+    String sql = "SELECT a.* FROM auctions a " + "JOIN items i ON a.item_id = i.id " + "WHERE i.seller_id = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, sellerId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi lấy phiên theo seller: " + e.getMessage());
+    }
+    return list;
   }
   // HÀM PHỤ TRỢ: Map dòng dữ liệu từ DB sang Object
 
@@ -152,21 +187,16 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         auction.setStatus(AuctionStatus.OPEN);
       }
     }
-    String startStr = rs.getString("start_time");
-    if (startStr != null && !startStr.isEmpty()) {
-      auction.setStartTime(parseDateTime(startStr));
-    }
+    auction.setStartTime(parseDateTime(rs.getString("start_time")));
+    auction.setEndTime(parseDateTime(rs.getString("end_time")));
 
-    //  endTime
-    String endStr = rs.getString("end_time");
-    if (endStr != null && !endStr.isEmpty()) {
-      auction.setEndTime(parseDateTime(endStr));
+    // Tạo "vỏ rỗng" cho Item (chỉ có ID, load đầy đủ khi cần qua ItemRepository)
+    String itemId = rs.getString("item_id");
+    if (itemId != null) {
+      GeneralItem item = new GeneralItem();
+      item.setId(itemId);
+      auction.setItem(item);
     }
-
-    // Tạo vỏ rỗng cho Items
-    GeneralItem item = new GeneralItem();
-    item.setId(rs.getString("item_id"));
-    auction.setItem(item);
 
     // Tạo vỏ rỗng cho Winner
     String winnerId = rs.getString("winner_id");
@@ -186,8 +216,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       if (timeStr.contains("T")) {
         return LocalDateTime.parse(timeStr);
       } else {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return LocalDateTime.parse(timeStr, formatter);
+        return LocalDateTime.parse(timeStr, DB_FORMATTER);
       }
     } catch (Exception e) {
       System.err.println("⚠️ Lỗi parse ngày giờ: " + timeStr);
