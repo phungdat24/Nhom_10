@@ -403,3 +403,12 @@
     -fx-background-color: rgba(60, 42, 26, 0.1); /* Nâu nhạt mờ */
 }
 
+/* ---- Detail Card (Dành cho khung lớn) ---- */
+.detail-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 10, 0, 0, 4);
+    /* Giữ nguyên hiệu ứng đổ bóng và bo góc, KHÔNG giới hạn width */
+}
+
