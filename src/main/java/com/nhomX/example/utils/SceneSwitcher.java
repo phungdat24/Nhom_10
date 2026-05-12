@@ -15,13 +15,16 @@ public class SceneSwitcher {
 
     public static void switchScene(ActionEvent event, String fxmlPath){
         try {
-            Parent root = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
+            // 1. Tải phần giao diện mới (.fxml)
+            Parent newRoot = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
 
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            // 2. Lấy Scene HIỆN TẠI từ cái nút vừa bấm
+            Scene currentScene = ((Node) event.getSource()).getScene();
 
-            stage.setScene(new Scene(root));
-            stage.show();
-        }catch (IOException e){
+            // 3. Thay lõi (root) của Scene hiện tại bằng giao diện mới
+            currentScene.setRoot(newRoot);
+
+        } catch (IOException e){
             System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
             e.printStackTrace();
         }
@@ -29,11 +32,19 @@ public class SceneSwitcher {
 
     public static void switchScene(String fxmlPath){
         try {
-            Parent root = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
+            // 1. Tải phần giao diện mới (.fxml)
+            Parent newRoot = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
 
-            mainStage.setScene(new Scene(root));
-            mainStage.show();
-        }catch (IOException e){
+            // 2. Kiểm tra nếu mainStage đã có Scene thì chỉ thay Root (giữ nguyên Fullscreen)
+            if (mainStage.getScene() != null) {
+                mainStage.getScene().setRoot(newRoot);
+            } else {
+                // Đề phòng trường hợp gọi hàm này lúc mới khởi động app, chưa có Scene nào
+                mainStage.setScene(new Scene(newRoot));
+                mainStage.show();
+            }
+
+        } catch (IOException e){
             System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
             e.printStackTrace();
         }

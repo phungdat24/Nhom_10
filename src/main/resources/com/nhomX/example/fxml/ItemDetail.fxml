@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ItemDetailController">
+<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ItemDetailController">
 
     <!-- ===== TOP: Header ===== -->
     <top>
@@ -80,9 +80,9 @@
                 <HBox alignment="TOP_CENTER" spacing="30.0" VBox.vgrow="ALWAYS">
 
                     <!-- CỘT 1: THÔNG TIN SẢN PHẨM & ĐẶT GIÁ (VBox bên trái) -->
-                    <VBox spacing="20">
+                    <VBox prefWidth="400.0" spacing="20">
                         <VBox alignment="CENTER" styleClass="product-card">
-                            <ImageView fx:id="imgItem" fitHeight="300" fitWidth="200.0" preserveRatio="true" />
+                            <ImageView fx:id="imgItem" fitHeight="300" preserveRatio="true" />
                      <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </padding>
@@ -112,7 +112,7 @@
                     <!-- CỘT 2: BIỂU ĐỒ & LỊCH SỬ (VBox bên phải - Tính năng nâng cao) -->
                     <VBox spacing="20" HBox.hgrow="ALWAYS">
                         <!-- Biểu đồ biến động giá -->
-                        <VBox spacing="10" styleClass="product-card">
+                        <VBox maxWidth="Infinity" prefHeight="354.0" spacing="10" styleClass="detail-card" >
                             <Label styleClass="featured-tag" text="📈 Biểu đồ giá thời gian thực" />
                             <LineChart fx:id="priceChart" prefHeight="300" title="Price Curve">
                                 <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
@@ -121,9 +121,9 @@
                         </VBox>
 
                         <!-- Danh sách lịch sử đấu giá -->
-                        <VBox spacing="10" styleClass="product-card" VBox.vgrow="ALWAYS">
+                        <VBox maxWidth="1.7976931348623157E308" spacing="10" styleClass="detail-card" VBox.vgrow="ALWAYS">
                             <Label styleClass="featured-tag" text="📜 Lịch sử đặt giá" />
-                            <ListView fx:id="lvBidHistory" prefHeight="200" style="-fx-background-color: transparent;" />
+                            <ListView fx:id="lvBidHistory" prefHeight="200" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS" />
                         </VBox>
                     </VBox>
 
