@@ -18,15 +18,15 @@ public class GeneralItem extends Items {
     @Override
     public void printItemDetails() {
         System.out.println("--- CHI TIẾT SẢN PHẨM ---");
-        System.out.println("Tên SP: " + this.title);
-        System.out.println("Mô tả: " + this.description);
-        System.out.println("Giá khởi điểm: " + this.startingPrice);
+        System.out.println("Tên SP: " + getTitle());
+        System.out.println("Mô tả: " + getDescription());
+        System.out.println("Giá khởi điểm: " + getStartingPrice());
     }
 
     @Override
     public boolean validate() {
-        if (this.title == null || this.title.trim().isEmpty()) return false;
-        if (this.startingPrice < 0) return false;
+        if (getTitle() == null || getTitle().trim().isEmpty()) return false;
+        if (getStartingPrice() < 0) return false;
         return true;
     }
 }

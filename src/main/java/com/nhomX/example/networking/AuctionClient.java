@@ -20,7 +20,7 @@ public class AuctionClient {
     private volatile ObjectOutputStream out;
     private volatile ObjectInputStream in;
 
-    private ServerEventListener listener;
+    private volatile ServerEventListener listener;
 
     // Cung cấp hàm để các Controller sử dụng:
     public void setServerEventListener(ServerEventListener listener) {
@@ -39,10 +39,10 @@ public class AuctionClient {
             in = new ObjectInputStream(socket.getInputStream());
 
             // LUỒNG NGẦM: Luôn lắng nghe cập nhật từ Server để không làm treo UI
-            Thread listenerThread = new Thread(this::listenToServer);
+            Thread listenerThread = new Thread(this::listenToServer,"client-listener" );
             listenerThread.setDaemon(true); // Tự tắt khi ứng dụng chính tắt
             listenerThread.start();
-
+            System.out.println("CLIENT: Đã kết nối tới " + host + ":" + port);
         } catch (IOException e) {
             System.err.println("CLIENT: Không thể kết nối tới Server.");
         }
@@ -61,20 +61,31 @@ public class AuctionClient {
 
     // Gửi yêu cầu đặt giá lên Server
     public void placeBid(String userId,String auctionId , long bidAmount) {
-        try {
-            // Đóng gói mảng data gửi lên ClientHandler
-            Object[] bidData = new Object[]{userId, auctionId};
-            Message bid = new Message("BID", username, auctionId, bidAmount, bidData);
-            if (out != null) {
-                // Thêm synchronized để an toàn luồng
-                synchronized (out) {
-                    out.writeObject(bid);
-                    out.flush();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Object[] bidData = {userId, auctionId, bidAmount};
+        Message bid = new Message("BID", username, auctionId, bidAmount, bidData);
+        sendToServer(bid);
+    }
+    /** Yêu cầu Server trả về danh sách phiên đang mở. */
+    public void requestAllAuctions() {
+        sendToServer(new Message("GET_ALL_AUCTIONS"));
+    }
+
+    /** Gửi yêu cầu đăng nhập. Password phải đã hash SHA-256 trước khi gọi. */
+    public void login(String username, String passwordHash) {
+        String[] data = {username, passwordHash};
+        sendToServer(new Message("LOGIN", username, null, 0, data));
+    }
+
+    /** Gửi yêu cầu đăng ký tài khoản. Password phải đã hash SHA-256 trước khi gọi. */
+    public void register(String username, String passwordHash, String fullName) {
+        Object[] data = {username, passwordHash, fullName, 0L};
+        sendToServer(new Message("REGISTER", username, null, 0, data));
+    }
+
+    /** Thiết lập auto-bid cho một phiên. */
+    public void setupAutoBid(String auctionId, long maxLimit, long increment) {
+        Object[] data = {auctionId, maxLimit, increment};
+        sendToServer(new Message("SETUP_AUTO_BID", username, auctionId, 0, data));
     }
 
     // Lắng nghe các UPDATE từ Server gửi về (Realtime)
@@ -82,119 +93,163 @@ public class AuctionClient {
         try {
             Message msgFromServer;
             while ((msgFromServer = (Message) in.readObject()) != null) {
-                String msgType = msgFromServer.getType();
-
-                if ("UPDATE_PRICE".equals(msgType)) {
-                    String auctionId = msgFromServer.getAuctionId();
-                    long newPrice = msgFromServer.getAmount();
-
-                    if (listener != null) {
-                        javafx.application.Platform.runLater(() -> {
-                            listener.onHighestBidUpdated(auctionId, newPrice);
-                        });
-                    }
-                }else if ("BID_SUCCESS".equals(msgType) || "BID_FAIL".equals(msgType)) {
-                    // Xử lý thông báo cá nhân khi đặt giá (từ ClientHandler gửi riêng)
-                    String alertMsg = (String) msgFromServer.getData();
-                    System.out.println("HỆ THỐNG: " + alertMsg);
-                    // Ở đây em có thể gọi listener để popup thông báo lên UI
-                }
-                // Xử lý Đăng nhập thành công:
-                else if ("LOGIN_SUCCESS".equals(msgType)) {
-
-                    User loggedInUser = (User) msgFromServer.getData();
-
-                    SessionManager.getInstance().login(loggedInUser);
-
-                    if (listener != null) {
-                        javafx.application.Platform.runLater(() -> {
-                            listener.onLoginResult(true, "ĐĂNG NHẬP THÀNH CÔNG!", loggedInUser);
-                        });
-                    }
-                }
-                // Xử lý Đăng nhập thất bại
-                else if ("LOGIN_FAIL".equals(msgType)) {
-
-                    if (listener != null) {
-                        javafx.application.Platform.runLater(() -> {
-                            listener.onLoginResult(false, "ĐĂNG NHẬP THẤT BẠI!", null);
-                        });
-                    }
-                } else if ("REGISTER_SUCCESS".equals(msgType)) {
-
-                    if (listener != null) {
-                        javafx.application.Platform.runLater(() -> {
-                            listener.onRegisterResult(true,
-                                    "ĐĂNG KÝ TÀI KHOẢN THÀNH CÔNG! VUI LÒNG ĐĂNG NHÂP!");
-                        });
-                    }
-                } else if ("REGISTER_FAIL".equals(msgType)) {
-                    String errorMsg =
-                            msgFromServer.getData() != null ? (String) msgFromServer.getData()
-                                    : "ĐĂNG KÝ THẤT BẠI DO LỖI HỆ THỐNG!";
-
-                    if (listener != null) {
-                        javafx.application.Platform.runLater(() -> {
-                            listener.onRegisterResult(false, errorMsg);
-                        });
-                    }
-                } else if ("RETURN_ALL_AUCTIONS".equals(msgType)) {
-                    // Ép kiểu lấy danh sách Item ra
-                    List<Auction> auctionList = (List<Auction>) msgFromServer.getData();
-
-                    if (listener != null) {
-                        javafx.application.Platform.runLater(() -> {
-                            listener.onAuctionsReceived(auctionList);
-                        });
-                    }
-                }
+                handleServerMessage(msgFromServer);
             }
         } catch (Exception e) {
             // Khi Server sập, đứt mạng, luồng đọc object sẽ văng Exception nhảy vào đây
-            System.err.println("Mất kết nối: " + e.getMessage());
-
-            if (listener != null) {
-                javafx.application.Platform.runLater(() -> {
-                    // Mượn tạm hàm onRegisterResult (hoặc onLoginResult) để báo lỗi bung popup
-                    // Tốt nhất là sau này đẻ thêm hàm: listener.onConnectionError("Mất kết nối
-                    // Server!");
-                    listener.onRegisterResult(false, "Mất kết nối với Server! Vui lòng thử lại.");
-                });
-            }
+            System.err.println("CLIENT: Mất kết nối: " + e.getMessage());
         }
     }
-
+    //Thêm synchronized(out) để thread-safe khi nhiều luồng gửi cùng lúc.
     // Hàm mới: Gửi bất kỳ Message nào lên Server (dùng cho Login, Register...)
     public void sendToServer(Message msg) {
+        if (out == null) {
+            System.err.println("CLIENT: Chưa kết nối tới Server!");
+            return;
+        }
         try {
-            if (out != null) {
+            synchronized (out) {
                 out.writeObject(msg);
                 out.flush();
-            } else {
-                System.err.println("Lỗi: Chưa kết nối tới Server!");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("CLIENT: Lỗi gửi message – " + e.getMessage());
         }
     }
 
     //Gọi khi người dùng MỞ giao diện chi tiết món hàng
-    public void watchItem(String itemId) {
-        // Gửi tin nhắn loại "WATCH" lên Server
-        Message watchMsg = new Message("WATCH_ITEM", username, itemId, 0);
-        sendToServer(watchMsg);
-        System.out.println("CLIENT: Đã đăng ký theo dõi giá món " + itemId);
+    public void watchAuction(String auctionId) {
+        sendToServer(new Message("WATCH_ITEM", username, auctionId, 0));
+        System.out.println("CLIENT: Đang theo dõi phiên " + auctionId);
     }
 
     //Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
-    public void unwatchItem(String itemId) {
+    public void unwatchAuction(String auctionId) {
         // Gửi tin nhắn loại "UNWATCH" lên Server
-        Message unwatchMsg = new Message("UNWATCH_ITEM", username, itemId, 0);
-        sendToServer(unwatchMsg);
-        System.out.println("CLIENT: Đã hủy theo dõi giá món " + itemId);
+        sendToServer(new Message("UNWATCH_ITEM", username, auctionId, 0));
+        System.out.println("CLIENT: Đã hủy theo dõi phiên " + auctionId);
     }
+    /**
+     * [FIX] Tách xử lý từng loại message ra hàm riêng thay vì một khối if-else khổng lồ.
+     * Dễ đọc và dễ thêm loại message mới.
+     */
+    private void handleServerMessage(Message msg) {
+        String type = msg.getType();
+        switch (type) {
 
+            case "UPDATE_PRICE":
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount());
+                    }
+                });
+                break;
+
+            case "AUCTION_CLOSED":
+                // [THÊM MỚI] Xử lý sự kiện phiên đóng
+                String winnerId = msg.getData() != null ? (String) msg.getData() : null;
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onAuctionClosed(msg.getAuctionId(), winnerId);
+                    }
+                });
+                break;
+
+            case "BID_SUCCESS":
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onBidResult(true, (String) msg.getData());
+                    }
+                });
+                break;
+
+            case "BID_FAIL":
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onBidResult(false, (String) msg.getData());
+                    }
+                });
+                break;
+
+            case "LOGIN_SUCCESS":
+                User loggedInUser = (User) msg.getData();
+                // Lưu session ngay khi nhận LOGIN_SUCCESS
+                SessionManager.getInstance().login(loggedInUser);
+                // [FIX] Cập nhật username trong client theo user thực tế từ DB
+                this.username = loggedInUser.getUserName();
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onLoginResult(true, "Đăng nhập thành công!", loggedInUser);
+                    }
+                });
+                break;
+
+            case "LOGIN_FAIL":
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onLoginResult(false,
+                                msg.getData() != null ? (String) msg.getData()
+                                        : "Sai tên đăng nhập hoặc mật khẩu!", null);
+                    }
+                });
+                break;
+
+            case "REGISTER_SUCCESS":
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onRegisterResult(true,
+                                "Đăng ký thành công! Vui lòng đăng nhập.");
+                    }
+                });
+                break;
+
+            case "REGISTER_FAIL":
+                String errMsg = msg.getData() != null ? (String) msg.getData()
+                        : "Đăng ký thất bại!";
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onRegisterResult(false, errMsg);
+                    }
+                });
+                break;
+
+            case "RETURN_ALL_AUCTIONS":
+                @SuppressWarnings("unchecked")
+                List<Auction> auctions = (List<Auction>) msg.getData();
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onAuctionsReceived(auctions);
+                    }
+                });
+                break;
+
+            case "ERROR":
+                System.err.println("CLIENT nhận lỗi từ Server: " + msg.getData());
+                break;
+
+            default:
+                System.err.println("CLIENT: Loại message không xác định – " + type);
+        }
+    }
+    /** Wrapper cho Platform.runLater – giúp code ngắn gọn hơn. */
+    private void runOnUiThread(Runnable action) {
+        javafx.application.Platform.runLater(action);
+    }
+    /** Thông báo mất kết nối qua listener (trên UI thread). */
+    private void notifyConnectionLost(String reason) {
+        runOnUiThread(() -> {
+            if (listener != null) {
+                listener.onConnectionLost(reason);
+            }
+        });
+    }
+    public String getUsername() {
+        return username;
+    }
     public void setUsername(String username) {
         this.username = username;
+    }
+    public boolean isConnected() {
+        return socket != null && socket.isConnected() && !socket.isClosed();
     }
 }

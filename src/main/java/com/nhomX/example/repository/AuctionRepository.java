@@ -1,8 +1,10 @@
 package com.nhomX.example.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
 
 public interface AuctionRepository {
     // Lưu phiên đấu giá mới vào DB
@@ -19,8 +21,14 @@ public interface AuctionRepository {
     List<Auction> findExpiredOpenAuctions();
 
     // Cập nhật Trạng thái phiên (Ví dụ: Từ OPEN sang FINISHED)
-    void updateStatus(String auctionId, String status);
+    void updateStatus(String auctionId, AuctionStatus status);
 
     // Cập nhật Giá cao nhất và Người đang dẫn đầu (Dùng khi có người đặt giá)
-    void updatePriceAndWinner(String auctionId, long newPrice, String winnerId);
+    void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId);
+    //[THÊM MỚI] Cập nhật thời gian kết thúc – dùng cho Anti-sniping.
+
+    void updateEndTime(String auctionId, LocalDateTime newEndTime);
+
+    // [THÊM MỚI] Lấy tất cả phiên theo seller (Seller xem phiên của mình).
+    List<Auction> findBySellerId(String sellerId);
 }

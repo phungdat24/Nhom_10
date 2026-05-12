@@ -18,6 +18,8 @@ public class ClientHandler implements Runnable {
     private final UserRepository userRepository ;
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
+    // Lưu thông tin user dùng trong logging
+    private User currentUser;
 
     public ClientHandler(Socket socket, AuctionServer server, ItemRepository itemRepo, UserRepository userRepo, BidRepository bidRepo, AuctionRepository auctionRepo) {
         this.socket = socket;
@@ -49,12 +51,12 @@ public class ClientHandler implements Runnable {
                     String newBidId = UUID.randomUUID().toString();
 
                     // Gọi Database Transaction
-                    boolean isSuccess = bidRepository.placeBidTransaction(userId, auctionId, bidAmount, newBidId);
+                    boolean isSuccess = bidRepository.executeBidTransaction(userId, auctionId, bidAmount, newBidId);
                     if (isSuccess) {
                         // Nếu trừ tiền và ghi DB thành công, mới báo cáo cho cả Server biết
                         Message update = new Message("UPDATE_PRICE", msgFromClient.getUsername(),
                                 auctionId, bidAmount);
-                        server.broadcastToItem(auctionId, update);
+                        server.broadcastToAuction(auctionId, update);
 
                         // Báo riêng cho người đặt giá là thành công
                         this.sendToClient(new Message("BID_SUCCESS", "Bạn đã đặt giá thành công!"));
@@ -65,11 +67,11 @@ public class ClientHandler implements Runnable {
                 }
                 // Khi Client click vào xem một sản phẩm
                 else if ("WATCH_ITEM".equals(msgFromClient.getType())) {
-                    server.watchItem(msgFromClient.getAuctionId(), this);
+                    server.watchAuction(msgFromClient.getAuctionId(), this);
                 }
                 // Khi Client quay lại màn hình chính hoặc xem sản phẩm khác
                 else if ("UNWATCH_ITEM".equals(msgFromClient.getType())) {
-                    server.unwatchItem(msgFromClient.getAuctionId(), this);
+                    server.unwatchAuction(msgFromClient.getAuctionId(), this);
                 }
                 else if ("LOGIN".equals(msgFromClient.getType())) {
                     // 1. Mở gói hàng lấy dữ liệu Client gửi
@@ -126,14 +128,20 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // Gửi tin nhắn ngược về máy của Client
+    /**
+     * Gửi message về client.
+     * [FIX] Thêm synchronized để thread-safe – nhiều thread có thể gọi đồng thời
+     * (ví dụ: Scheduler gọi khi phiên hết giờ, đồng thời Client đang nhận broadcast).
+     */
     public void sendToClient(Message msg) {
+        if (out == null) return;
         try {
-            if (out != null) {
+            synchronized (out) {
                 out.writeObject(msg);
                 out.flush();
             }
         } catch (IOException e) {
+            System.err.println("SERVER: Không thể gửi message tới client – " + e.getMessage());
             cleanup();
         }
     }
@@ -141,7 +149,9 @@ public class ClientHandler implements Runnable {
     private void cleanup() {
         server.removeClient(this);
         try {
-            socket.close();
-        } catch (IOException e) { e.printStackTrace(); }
+            if (socket != null && !socket.isClosed()) socket.close();
+        } catch (IOException e) {
+            System.err.println("SERVER: Lỗi đóng socket – " + e.getMessage());
+        }
     }
 }

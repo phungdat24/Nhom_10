@@ -5,18 +5,19 @@ import java.util.List;
 
 public abstract class Items extends Entity {
     // Tên sản phẩm:
-    protected String title;
+    private String title;
     // Mô tả sản phẩm:
-    protected String description;
+    private String description;
     // Giá khởi tạo
-    protected long startingPrice;
+    private long startingPrice;
     // Link ảnh:
-    protected List<ItemImage> images = new ArrayList<>();
+    private List<ItemImage> images = new ArrayList<>();
     // Người bán:
-    protected  RegularUser seller;
+    private RegularUser seller;
 
     public Items() {
         super();
+        this.images= new ArrayList<>();
     }
 
     public Items(String id, String title, String description, long startingPrice, RegularUser seller) {

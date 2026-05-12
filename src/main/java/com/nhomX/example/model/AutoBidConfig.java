@@ -57,6 +57,26 @@ public class AutoBidConfig extends Entity {
     public void deactivate() {
         this.active = false;
     }
+    /**
+     * Tính toán mức giá auto-bid tiếp theo.
+     * Trả về currentPrice + increment, nhưng không vượt maxLimit.
+     * Trả về -1 nếu không thể đặt thêm (đã chạm maxLimit).
+     *
+     * @param currentPrice Giá cao nhất hiện tại của phiên.
+     * @return Mức giá đề xuất, hoặc -1 nếu đã hết ngưỡng.
+     */
+    public long computeNextBid(long currentPrice) {
+        long nextBid = currentPrice + this.increment;
+        if (nextBid > this.maxLimit) {
+            // Nếu chính maxLimit vẫn cao hơn currentPrice thì đặt thẳng maxLimit
+            if (this.maxLimit > currentPrice) {
+                return this.maxLimit;
+            }
+            return -1; // Đã vượt ngưỡng, không thể đặt thêm
+        }
+        return nextBid;
+    }
+
 
     // GETTERS VÀ SETTERS CÓ KIỂM TRA ĐIỀU KIỆN
 

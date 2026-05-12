@@ -21,17 +21,17 @@ public class Electronics extends Items {
     @Override
     public void printItemDetails() {
         System.out.println("--- CHI TIẾT ĐỒ ĐIỆN TỬ ---");
-        System.out.println("Tên SP: " + this.title);
+        System.out.println("Tên SP: " + getTitle());
         System.out.println("Thương hiệu: " + this.brand);
         System.out.println("Bảo hành: " + this.warrantyPeriod + " tháng");
-        System.out.println("Giá khởi điểm: " + this.startingPrice);
+        System.out.println("Giá khởi điểm: " + getStartingPrice());
     }
 
     @Override
     public boolean validate() {
         // Kiểm tra hợp lệ: Tên không được rỗng, giá >= 0 và bảo hành không được âm
-        if (this.title == null || this.title.trim().isEmpty()) return false;
-        if (this.startingPrice < 0) return false;
+        if (getTitle() == null || getTitle().trim().isEmpty()) return false;
+        if (getStartingPrice() < 0) return false;
         if (this.warrantyPeriod < 0) return false;
         return true;
     }

@@ -14,4 +14,14 @@ public interface AutoBidRepository {
 
     // Xóa cấu hình nếu người dùng muốn hủy AutoBid
     void delete(String configId);
+    /**
+     * [THÊM MỚI] Tìm config của một user trong một phiên cụ thể.
+     * Dùng để kiểm tra user đã setup auto-bid chưa trước khi tạo mới.
+     */
+    AutoBidConfig findByUserAndAuction(String userId, String auctionId);
+    /**
+     * [THÊM MỚI] Vô hiệu hóa (deactivate) config thay vì xóa,
+     * giữ lại lịch sử nhưng không trigger nữa.
+     */
+    void deactivate(String configId);
 }

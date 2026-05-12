@@ -54,6 +54,23 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
     return itemsList;
   }
+  @Override
+  public List<Items> findBySellerId(String sellerId) {
+    List<Items> itemsList = new ArrayList<>();
+    String sql = "SELECT * FROM items WHERE seller_id = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, sellerId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          itemsList.add(mapRowToItem(rs, conn));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi lọc sản phẩm theo seller: " + e.getMessage());
+    }
+    return itemsList;
+  }
 
   // Hàm phụ: Lấy danh sách ảnh của 1 Item cụ thể
   private List<ItemImage> getImagesByItemId(String itemId, Connection conn) throws SQLException {
@@ -71,45 +88,6 @@ public class ItemRepositoryImpl implements ItemRepository {
       }
     }
     return imageList;
-  }
-
-  // ✅ Nhiệm vụ 3: Hàm phụ dùng để ánh xạ (map) dữ liệu từ ResultSet vào đối tượng Items
-  private Items mapRowToItem(ResultSet rs, Connection conn) throws SQLException {
-    Items item;
-    String category = rs.getString("category");
-    // Khởi tạo đúng lớp con dựa trên cột category
-    if (category != null) {
-      switch (category.toUpperCase()) {
-        case "ELECTRONICS":
-          item = new Electronics();
-          break;
-        case "JEWELRY":
-          item = new Jewelry();
-          break;
-        case "ART":
-          item = new Art();
-          break;
-        default:
-          item = new GeneralItem();
-          break;
-      }
-    } else {
-      item = new GeneralItem();
-    }
-
-    // Ánh xạ các thuộc tính:
-    item.setId(rs.getString("id"));
-    item.setTitle(rs.getString("title"));
-    item.setDescription(rs.getString("description"));
-    //Quét DB lấy danh sách ảnh nhét vào Object
-    item.setImages(getImagesByItemId(item.getId(), conn));
-    // Object cho seller
-    RegularUser seller = new RegularUser();
-    seller.setId(rs.getString("seller_id"));
-    item.setStartingPrice(rs.getLong("starting_price"));
-    item.setSeller(seller);
-
-    return item;
   }
 
   @Override
@@ -164,21 +142,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         pstmtDel.setString(1, item.getId());
         pstmtDel.executeUpdate();
       }
-
-      // 3. Chèn lại danh sách ảnh mới (nếu có)
-      List<ItemImage> images = item.getImages();
-      if (images != null && !images.isEmpty()) {
-        try (PreparedStatement pstmtImg = conn.prepareStatement(sqlInsertImages)) {
-          for (ItemImage img : images) {
-            pstmtImg.setString(1, img.getId());
-            pstmtImg.setString(2, img.getImagePath());
-            pstmtImg.setString(3, item.getId());
-            pstmtImg.addBatch();
-          }
-          pstmtImg.executeBatch();
-        }
-      }
-
+      insertImages(item, conn, sqlInsertImages);
       // 4. Chốt giao dịch
       conn.commit();
       System.out.println("✅ Đã cập nhật thành công sản phẩm: " + item.getTitle());
@@ -216,25 +180,11 @@ public class ItemRepositoryImpl implements ItemRepository {
         pstmtItem.setString(2, item.getTitle());
         pstmtItem.setString(3, item.getDescription());
         pstmtItem.setString(4, item.getCategory());
-        pstmtItem.setString(5, item.getSeller().getId());
+        pstmtItem.setString(5, item.getSeller() != null ? item.getSeller().getId() : null);;
         pstmtItem.executeUpdate();
       }
 
-      // Lưu Danh sách ảnh vào bảng item_images (Dùng Batch)
-      List<ItemImage> images = item.getImages();
-      if (images != null && !images.isEmpty()) {
-        try (PreparedStatement pstmtImage = conn.prepareStatement(sqlImage)) {
-          for (ItemImage img : images) {
-            pstmtImage.setString(1, img.getId());
-            pstmtImage.setString(2, img.getImagePath());
-            pstmtImage.setString(3, item.getId());
-            // Gom lệnh
-            pstmtImage.addBatch();
-          }
-          // Đẩy 1 lần xuống DB
-          pstmtImage.executeBatch();
-        }
-      }
+      insertImages(item, conn, sqlImage);
 
       // Chốt giao dịch
       conn.commit();
@@ -255,6 +205,80 @@ public class ItemRepositoryImpl implements ItemRepository {
         System.err.println("❌ Lỗi kết nối DB: " + e.getMessage());
       }
     }
+  }
+  @Override
+  public void delete(String itemId) {
+    // [FIX] Xóa ảnh trước, rồi mới xóa item (tránh lỗi foreign key constraint)
+    String sqlDeleteImages = "DELETE FROM item_images WHERE item_id = ?";
+    String sqlDeleteItem = "DELETE FROM items WHERE id = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try {
+      conn.setAutoCommit(false);
+      try (PreparedStatement pstmt1 = conn.prepareStatement(sqlDeleteImages)) {
+        pstmt1.setString(1, itemId);
+        pstmt1.executeUpdate();
+      }
+      try (PreparedStatement pstmt2 = conn.prepareStatement(sqlDeleteItem)) {
+        pstmt2.setString(1, itemId);
+        pstmt2.executeUpdate();
+      }
+      conn.commit();
+      System.out.println("✅ Đã xóa sản phẩm: " + itemId);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi xóa sản phẩm! Đang rollback... " + e.getMessage());
+      rollbackSilently(conn);
+    } finally {
+      restoreAutoCommit(conn);
+    }
+  }
+  private void insertImages(Items item, Connection conn, String sql) throws SQLException {
+    List<ItemImage> images = item.getImages();
+    if (images == null || images.isEmpty()) return;
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      for (ItemImage img : images) {
+        pstmt.setString(1, img.getId());
+        pstmt.setString(2, img.getImagePath());
+        pstmt.setString(3, item.getId());
+        pstmt.addBatch();
+      }
+      pstmt.executeBatch();
+    }
+  }
+  private void rollbackSilently(Connection conn) {
+    try { if (conn != null) conn.rollback(); }
+    catch (SQLException ex) { System.err.println("❌ Lỗi rollback: " + ex.getMessage()); }
+  }
+
+  private void restoreAutoCommit(Connection conn) {
+    try { if (conn != null) conn.setAutoCommit(true); }
+    catch (SQLException ex) { System.err.println("❌ Lỗi khôi phục autoCommit: " + ex.getMessage()); }
+  }
+  private Items mapRowToItem(ResultSet rs, Connection conn) throws SQLException {
+    String category = rs.getString("category");
+    Items item;
+
+    if (category != null) {
+      switch (category.toUpperCase()) {
+        case "ELECTRONICS": item = new Electronics(); break;
+        case "JEWELRY":     item = new Jewelry();     break;
+        case "ART":         item = new Art();         break;
+        default:            item = new GeneralItem(); break;
+      }
+    } else {
+      item = new GeneralItem();
+    }
+
+    item.setId(rs.getString("id"));
+    item.setTitle(rs.getString("title"));
+    item.setDescription(rs.getString("description"));
+    item.setStartingPrice(rs.getLong("starting_price"));
+
+    RegularUser seller = new RegularUser();
+    seller.setId(rs.getString("seller_id"));
+    item.setSeller(seller);
+
+    item.setImages(getImagesByItemId(item.getId(), conn));
+    return item;
   }
 }
 

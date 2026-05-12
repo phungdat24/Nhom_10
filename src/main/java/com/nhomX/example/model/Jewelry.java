@@ -20,15 +20,15 @@ public class Jewelry extends Items {
     @Override
     public void printItemDetails() {
         System.out.println("--- CHI TIẾT TRANG SỨC ---");
-        System.out.println("Tên SP: " + this.title);
+        System.out.println("Tên SP: " + getTitle());
         System.out.println("Loại đá quý đính kèm: " + this.gemstoneType);
-        System.out.println("Giá khởi điểm: " + this.startingPrice);
+        System.out.println("Giá khởi điểm: " + getStartingPrice());
     }
 
     @Override
     public boolean validate() {
-        if (this.title == null || this.title.trim().isEmpty()) return false;
-        if (this.startingPrice < 0) return false;
+        if (getTitle() == null || getTitle().trim().isEmpty()) return false;
+        if (getStartingPrice() < 0) return false;
         return true;
     }
 

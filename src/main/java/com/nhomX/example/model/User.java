@@ -2,13 +2,13 @@ package com.nhomX.example.model;
 
 public abstract class User extends Entity{
     // Email:
-    protected String userName;
+    private String userName;
     // Mật khẩu:
-    protected String passwordHash;
+    private String passwordHash;
     //Họ và tên:
-    protected String fullName;
+    private String fullName;
     // Số dư tài khoản:
-    protected long balance;
+    private long balance;
     // Hàm khởi tạo rỗng:
     public User(){
     }
