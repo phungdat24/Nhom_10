@@ -112,21 +112,26 @@ public class ItemCardController extends BaseController {
     @FXML
     void handleDetailAction(ActionEvent event) {
         try {
+            // 1. Tải giao diện trang Chi tiết
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/nhomX/example/fxml/ItemDetail.fxml"));
+                    getClass().getResource("/com/nhomX/example/fxml/ItemDetailContent.fxml"));
             Parent root = loader.load();
 
+            // 2. Lấy bộ điều khiển của trang Chi tiết và truyền dữ liệu sản phẩm qua
             ItemDetailController detailController = loader.getController();
             detailController.setAuctionData(this.currentAuction);
 
-            // 3. Chuyển Scene
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
+            // 3. THAY ĐỔI QUAN TRỌNG: Thay vì setScene đập đi xây lại,
+            // ta nhờ "Quản gia" MainController nhét cái giao diện này vào giữa màn hình
+            if (MainController.instance != null) {
+                MainController.instance.setCenterContent(root);
+            } else {
+                System.err.println("Lỗi: MainController chưa được khởi tạo!");
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("KHÔNG THỂ MỞ TRANG CHI TIẾT SẢN PHẨM!" + e.getMessage());
+            System.out.println("KHÔNG THỂ MỞ TRANG CHI TIẾT SẢN PHẨM! " + e.getMessage());
         }
         System.out.println("Information: " + currentAuction.getItem().getDescription());
     }

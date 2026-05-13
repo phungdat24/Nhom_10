@@ -1,5 +1,6 @@
 package com.nhomX.example.utils;
 
+import com.nhomX.example.controller.MainController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -47,6 +48,17 @@ public class SceneSwitcher {
         } catch (IOException e){
             System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Hàm mới: Chỉ thay đổi nội dung phần Center của MainLayout
+     */
+    public static void loadContent(String fxmlPath) {
+        if (MainController.instance != null) {
+            MainController.instance.loadView(fxmlPath);
+        } else {
+            System.err.println("Lỗi: MainController chưa được khởi tạo!");
         }
     }
 }
