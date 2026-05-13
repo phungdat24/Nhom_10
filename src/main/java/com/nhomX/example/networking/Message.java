@@ -13,6 +13,9 @@ public class Message implements Serializable {
     private long amount;
     private Object data;
 
+    public static final String AUCTION_CLOSED = "AUCTION_CLOSED";
+    public static final String ERROR = "ERROR";
+
     //Constructor siêu rỗng (Dùng khi chỉ cần gửi mỗi cái Lệnh, ví dụ: "GET_ALL_ITEMS")
     public Message(String type) {
         this.type = type;
@@ -128,6 +131,9 @@ public class Message implements Serializable {
                 (auctionId != null ? auctionId : "N/A"),
                 amount,
                 dataStr);
+    }
+    public static Message auctionClosed(String auctionId, String winnerName, long finalPrice) {
+        return new Message(AUCTION_CLOSED, winnerName, auctionId, finalPrice);
     }
 
 }
