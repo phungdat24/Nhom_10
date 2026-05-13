@@ -29,11 +29,23 @@ public class AuctionServer {
     private final BidRepository bidRepository = new BidRepositoryImpl();
     private final AuctionRepository auctionRepository = new AuctionRepositoryImpl();
 
+    private AuctionScheduler auctionScheduler;
+
     public void start() {
         // Đăng ký Shutdown Hook. Khi tắt app đoạn code này sẽ chạy để đóng sạch luồng.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("SERVER: Đang tiến hành dọn dẹp và tắt ExecutorService...");
             serverExecutor.shutdown();
+        }));
+
+        // 1. Khởi động Scheduler để quét DB tự động
+        auctionScheduler = new AuctionScheduler(this, auctionRepository, bidRepository);
+        auctionScheduler.start();
+
+        // Đảm bảo khi tắt ứng dụng thì Scheduler cũng dừng
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("🛑 Đang đóng hệ thống...");
+            auctionScheduler.shutdown();
         }));
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
