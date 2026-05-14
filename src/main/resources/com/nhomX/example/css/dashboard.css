@@ -81,7 +81,7 @@
 .sidebar {
     -fx-background-color: #2b1f12;
     -fx-pref-width: 220px;
-    -fx-min-width: 200px;
+    -fx-min-width: 0px;
     -fx-border-color: #5c3d1e;
     -fx-border-width: 0 2 0 0;
 }

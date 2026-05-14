@@ -1,6 +1,7 @@
 package com.nhomX.example.controller;
 
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
@@ -11,6 +12,7 @@ import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
@@ -18,6 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.time.LocalDateTime;
@@ -26,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class ItemDetailController extends BaseController implements ServerEventListener, Initializable {
+public class ItemDetailController extends BaseController implements ServerEventListener {
     @FXML
     private Label lblItemName;
     @FXML
@@ -45,15 +48,16 @@ public class ItemDetailController extends BaseController implements ServerEventL
     @FXML
     private LineChart<String, Number> priceChart;
     private XYChart.Series<String, Number> priceSeries;
+    @FXML
+    private VBox vboxBidHistory;
 
     private Auction currentAuction;
 
     private AuctionClient auctionClient;
 
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-
+    @FXML
+    public void initialize() {
         if (txtBidAmount != null) {
             txtBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue == null || newValue.isEmpty()) return;
@@ -157,30 +161,41 @@ public class ItemDetailController extends BaseController implements ServerEventL
             auctionClient.setServerEventListener(this);
             // Báo cho Server bắt đầu zem:
             auctionClient.watchAuction(currentAuction.getId());
+            // GỬI YÊU CẦU LẤY DỮ LIỆU CŨ
+            auctionClient.getBidHistory(currentAuction.getId());
         }
     }
         @FXML
         void handleBackAction (ActionEvent event) {
             if (auctionClient != null && currentAuction != null) {
+                clearServerListener();
                 // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
                 auctionClient.unwatchAuction(currentAuction.getId());
             }
-            SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/dashboard.fxml");
+            if (MainDashBoardController.instance != null) {
+                MainDashBoardController.instance.loadView("/com/nhomX/example/fxml/LiveAuctionContent.fxml");
+            } else {
+                System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
+            }
     }
 
     @Override
-    public void onHighestBidUpdated(String updatedItemId, long newPrice) {
+    public void onHighestBidUpdated(String updatedItemId, long newPrice, String bidderName) {
         // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem không?
         if (currentAuction != null && currentAuction.getId().equals(updatedItemId)) {
 
-            // Cập nhật giá trên Model
-            currentAuction.setHighestBid(newPrice);
-
             // Bọc trong Platform.runLater để giao cho luồng UI (Tránh Crash)
             javafx.application.Platform.runLater(() -> {
+                currentAuction.setHighestBid(newPrice);
                 lblCurrentPrice.setText(CurrencyFormatter.formatVND(newPrice));
-                // THÊM ĐIỂM ẢNH MỚI VÀO BIỂU ĐỒ ĐƯỜNG
                 String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                // TẠO DÒNG LỊCH SỬ MỚI
+                javafx.scene.Node newRow = createBidRow(bidderName, newPrice, timeNow);
+
+                // THÊM VÀO VBOX (Chèn vào vị trí 0 để người mới nhất luôn nằm trên cùng)
+                vboxBidHistory.getChildren().add(0, newRow);
+                // THÊM ĐIỂM ẢNH MỚI VÀO BIỂU ĐỒ ĐƯỜNG
+
                 priceSeries.getData().add(new XYChart.Data<>(timeNow, newPrice));
 
                 // Có thể làm hiệu ứng đổi màu nhấp nháy ở đây sau...
@@ -228,6 +243,49 @@ public class ItemDetailController extends BaseController implements ServerEventL
             AlertUtils.showError("Lỗi hệ thống", "Dữ liệu nhập không hợp lệ.");
             System.out.println("Lỗi đặt giá"+e.getMessage());
         }
+    }
+    @Override
+    public void onBidHistoryReceived(List<BidTransaction> history) {
+        javafx.application.Platform.runLater(() -> {
+            // 1. Dọn dẹp giao diện trước khi đổ dữ liệu mới
+            vboxBidHistory.getChildren().clear();
+            priceSeries.getData().clear();
+
+            for (BidTransaction bid : history) {
+                // 2. Nạp vào Biểu đồ đường (LineChart)
+                String timeStr = bid.getBidTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                priceSeries.getData().add(new XYChart.Data<>(timeStr, bid.getAmount()));
+
+                // Sử dụng hàm createBidRow mà mình đã hướng dẫn ở bước trước
+                Node row = createBidRow(bid.getBidder().getUserName(), bid.getAmount(), timeStr);
+                vboxBidHistory.getChildren().add(0, row); // Cái mới nhất vẫn nằm trên cùng
+            }
+        });
+    }
+    private javafx.scene.Node createBidRow(String bidderName, long amount, String timeStr) {
+        // 1. Tạo hộp ngang chứa các thành phần
+        javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(15);
+        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        row.setStyle("-fx-padding: 10; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
+
+        // 2. Icon và Tên người đặt giá
+        Label lblUser = new Label("👤 " + (bidderName != null ? bidderName : "Ẩn danh"));
+        lblUser.setStyle("-fx-font-weight: bold; -fx-text-fill: #2f3542;");
+
+        // 3. Spacer để đẩy giá và thời gian sang bên phải
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+        // 4. Số tiền (Sử dụng CurrencyFormatter đã có của bạn)
+        Label lblAmount = new Label(CurrencyFormatter.formatVND(amount));
+        lblAmount.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
+
+        // 5. Thời gian đặt giá
+        Label lblTime = new Label(timeStr);
+        lblTime.setStyle("-fx-text-fill: #a4b0be; -fx-font-size: 11px;");
+
+        row.getChildren().addAll(lblUser, spacer, lblAmount, lblTime);
+        return row;
     }
 }
 

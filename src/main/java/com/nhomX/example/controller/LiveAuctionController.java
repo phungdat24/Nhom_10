@@ -89,7 +89,7 @@ public class LiveAuctionController extends BaseController implements Initializab
     }
 
     @Override
-    public void onHighestBidUpdated(String itemId, long newPrice) {
+    public void onHighestBidUpdated(String itemId, long newPrice, String bidderName) {
         // Nhận tín hiệu giá mới từ Server
         Platform.runLater(() -> {
             ItemCardController card = activeAuctionCards.get(itemId);
