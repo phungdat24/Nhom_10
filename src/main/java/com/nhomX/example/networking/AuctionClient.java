@@ -2,6 +2,7 @@ package com.nhomX.example.networking;
 
 import com.nhomX.example.controller.SessionManager;
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.User;
 
@@ -129,6 +130,9 @@ public class AuctionClient {
         sendToServer(new Message("UNWATCH_ITEM", username, auctionId, 0));
         System.out.println("CLIENT: Đã hủy theo dõi phiên " + auctionId);
     }
+    public void getBidHistory(String auctionId) {
+        sendToServer(new Message("GET_BID_HISTORY", auctionId));
+    }
     /**
      * [FIX] Tách xử lý từng loại message ra hàm riêng thay vì một khối if-else khổng lồ.
      * Dễ đọc và dễ thêm loại message mới.
@@ -140,7 +144,7 @@ public class AuctionClient {
             case "UPDATE_PRICE":
                 runOnUiThread(() -> {
                     if (listener != null) {
-                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount());
+                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(), msg.getUsername());
                     }
                 });
                 break;
@@ -219,6 +223,15 @@ public class AuctionClient {
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onAuctionsReceived(auctions);
+                    }
+                });
+                break;
+            case "RETURN_BID_HISTORY":
+                List<BidTransaction> history = (List<BidTransaction>) msg.getData();
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        // Cần thêm hàm này vào ServerEventListener.java trước
+                        listener.onBidHistoryReceived(history);
                     }
                 });
                 break;

@@ -49,18 +49,17 @@ public class LoginController implements ServerEventListener {
 
     @Override
     public void onLoginResult(boolean isSuccess, String message, User userData) {
-        javafx.application.Platform.runLater(() ->{
-            if(isSuccess && userData != null){
-                SessionManager.getInstance().login(userData);
-                // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
-                AuctionClient client = SessionManager.getInstance().getAuctionClient();
-                if (client != null) {
-                    client.setUsername(userData.getUserName());
-                }
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
-            }else {
-                AlertUtils.showError("Đăng nhập thất bại", message);
+        // AuctionClient của đã thực hiện Platform.runLater ở hàm handleServerMessage rồi:
+        if (isSuccess && userData != null) {
+            SessionManager.getInstance().login(userData);
+            // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
+            AuctionClient client = SessionManager.getInstance().getAuctionClient();
+            if (client != null) {
+                client.setUsername(userData.getUserName());
             }
-        });
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+        } else {
+            AlertUtils.showError("Đăng nhập thất bại", message);
+        }
     }
 }

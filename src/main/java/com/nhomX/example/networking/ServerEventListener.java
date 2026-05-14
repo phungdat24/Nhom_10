@@ -1,6 +1,7 @@
 package com.nhomX.example.networking;
 
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.User;
 
@@ -10,7 +11,7 @@ public interface ServerEventListener {
     // Sự kiện đăng nhập
     default void onLoginResult (boolean isSuccess, String message, User userData) {};
     // Sự kiện cập nhật Realtime
-    default void onHighestBidUpdated(String auctionId, long newPrice) {};
+    default void onHighestBidUpdated(String auctionId, long newPrice, String bidderName) {};
     // Sự kiên nhận danh sách Items:
     default void onAuctionsReceived(List<Auction> auctions) {};
     // Thêm sự kiện phản hồi Đăng ký
@@ -28,4 +29,5 @@ public interface ServerEventListener {
 
     /** Mất kết nối với Server – hiển thị popup hoặc chuyển màn hình. */
     default void onConnectionLost(String reason) {}
+    default void onBidHistoryReceived(List<BidTransaction> history) {}
 }

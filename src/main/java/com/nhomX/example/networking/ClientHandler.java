@@ -118,6 +118,12 @@ public class ClientHandler implements Runnable {
                     // Đóng gói danh sách gửi trả lại ĐÚNG cái Client vừa xin
                     Message response = new Message("RETURN_ALL_AUCTIONS", auctionsList);
                     this.sendToClient(response);
+                }else if ("GET_BID_HISTORY".equals(msgFromClient.getType())) {
+                    String auctionId = (String) msgFromClient.getData();
+                    // Lấy dữ liệu từ Repo
+                    List<BidTransaction> history = bidRepository.getBidsByAuctionId(auctionId);
+                    // Gửi trả lại đúng Client đó
+                    this.sendToClient(new Message("RETURN_BID_HISTORY", history));
                 }
             }
         } catch (Exception e) {

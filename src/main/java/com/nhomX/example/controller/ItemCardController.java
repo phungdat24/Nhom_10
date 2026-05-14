@@ -122,9 +122,9 @@ public class ItemCardController extends BaseController {
             detailController.setAuctionData(this.currentAuction);
 
             // 3. THAY ĐỔI QUAN TRỌNG: Thay vì setScene đập đi xây lại,
-            // ta nhờ "Quản gia" MainController nhét cái giao diện này vào giữa màn hình
-            if (MainController.instance != null) {
-                MainController.instance.setCenterContent(root);
+            // ta nhờ "Quản gia" MainDashBoardController nhét cái giao diện này vào giữa màn hình
+            if (MainDashBoardController.instance != null) {
+                MainDashBoardController.instance.setCenterContent(root);
             } else {
                 System.err.println("Lỗi: MainController chưa được khởi tạo!");
             }

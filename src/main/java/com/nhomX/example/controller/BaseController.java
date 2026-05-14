@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public abstract class BaseController {
 
@@ -24,6 +25,7 @@ public abstract class BaseController {
     @FXML
     protected Label lblBalance;
 
+
     // ── Cập nhật header sau khi login/logout ──────────────────────────
     protected void updateHeaderUI() {
         if (btnLogin == null) return; // Màn hình không có header thì bỏ qua
@@ -32,9 +34,9 @@ public abstract class BaseController {
             User user = SessionManager.getInstance().getCurrentUser();
 
             menuUser.setText("👤  " + user.getFullName());
-            if (lblBalance != null)
+            if (lblBalance != null) {
                 lblBalance.setText(CurrencyFormatter.formatVND(user.getBalance()));
-
+            }
             btnLogin.setVisible(false);
             btnLogin.setManaged(false);
             userInfoBox.setVisible(true);
@@ -46,56 +48,42 @@ public abstract class BaseController {
             userInfoBox.setManaged(false);
         }
     }
+    // Hàm mới: Hỗ trợ dọn dẹp chống Memory Leak
+    protected void clearServerListener() {
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.setServerEventListener(null);
+        }
+    }
 
     // ── Nav handlers dùng chung — viết 1 lần ─────────────────────────
-    @FXML
-    protected void handleDashboard(ActionEvent event) {
-        SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/dashboard.fxml");
-    }
 
     @FXML
-    protected void handleLiveAuction(ActionEvent event) {
-        SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/LiveAuction.fxml");
-    }
-
-    @FXML
-    protected void handleMyAuctions(ActionEvent event) {
-        SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/MyAuctions.fxml");
-    }
-
-    @FXML
-    protected void handleSeller(ActionEvent event) {
+    protected void handleProfile(ActionEvent event) {
         if (!SessionManager.getInstance().isLoggedIn()) {
+            clearServerListener();
             SceneSwitcher.switchScene(event,
                     "/com/nhomX/example/fxml/login.fxml");
             return;
         }
-        SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/Seller.fxml");
-    }
-
-    @FXML
-    protected void handleProfile(ActionEvent event) {
-        SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/Profile.fxml");
+        if (MainDashBoardController.instance != null) {
+            MainDashBoardController.instance.loadView("/com/nhomX/example/fxml/ProfileContent.fxml");
+        }
     }
 
     @FXML
     protected void handleLogin(ActionEvent event) {
+        clearServerListener();
         SceneSwitcher.switchScene(event,
                 "/com/nhomX/example/fxml/login.fxml");
     }
 
     @FXML
     protected void handleLogout(ActionEvent event) {
-        AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        if (client != null) client.setServerEventListener(null);
+        clearServerListener();
         SessionManager.getInstance().logout();
-        SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/login.fxml");
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
     }
 }
+
 

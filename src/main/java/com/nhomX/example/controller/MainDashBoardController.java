@@ -6,32 +6,36 @@ import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.SceneSwitcher;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
 public class MainDashBoardController extends BaseController implements Initializable, ServerEventListener {
 
-    // ===== Header =====
-    @FXML
-    private Button btnLogin; // Nút "Đăng nhập" (hiện khi chưa login)
-    @FXML
-    private HBox userInfoBox; // HBox tên user (hiện khi đã login)
-    @FXML
-    private MenuButton menuUser;
     // ===== Sidebar =====
+    @FXML
+    private VBox sidebar;
     @FXML
     private Button btnDashboard;
     @FXML
@@ -41,90 +45,135 @@ public class MainDashBoardController extends BaseController implements Initializ
     @FXML
     private Button btnSeller;
     @FXML
-    private FlowPane contentArea;
+    private StackPane mainContentArea;
 
     public static MainDashBoardController instance;
-
-    @Override
-    public void onAuctionsReceived(List<Auction> auctions) {
-        // Xóa sạch dữ liệu cũ trên màn hình
-        contentArea.getChildren().clear();
-        // 2. Lặp qua từng món hàng và in ra màn hình
-        for (Auction auction : auctions) {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
-                VBox cardItem = loader.load(); // Load giao diện thẻ
-                // Lấy controller của thẻ đó để nhồi dữ liệu
-                ItemCardController cardController = loader.getController();
-                cardController.setAuctionData(auction);;
-                // Gắn thẻ vừa tạo vào màn hình chính
-                contentArea.getChildren().add(cardItem);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+    @FXML
+    private List<Button> navButtons;
 
     private AuctionClient auctionClient;
+    private boolean isSidebarOpen = true;
+    private static final double SIDEBAR_WIDTH = 220.0;
+
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+
         // lưu lại bản thân khi update:
         instance = this;
-
-        connectToAuctionServer();
         updateHeaderUI();
-
-        AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        if (client != null) {
-            // Dành quyền:
-            client.setServerEventListener(this);
-            // Lấy item từ server
-            client.sendToServer(new Message("GET_ALL_AUCTIONS", null));
-            System.out.println("DASHBOARD: Đã gửi yêu cầu lấy danh sách Item.");
+        // Cài đặt Sidebar mặc định đóng
+        if (btnDashboard != null) {
+            navButtons = Arrays.asList(btnDashboard, btnLiveAuction, btnMyAuction, btnSeller);
+            setActiveButton(btnDashboard);
+            Platform.runLater(() -> {
+                isSidebarOpen = false;
+                sidebar.setMinWidth(0);
+                sidebar.setPrefWidth(0);
+                sidebar.setOpacity(0);
+            });
         }
+        // Load trang mặc định
+        loadView("/com/nhomX/example/fxml/DashboardContent.fxml");
+    }
+    // ===== SIDEBAR LOGIC =====
+    @FXML
+    protected void toggleSidebar(ActionEvent event) {
+        if (sidebar == null) return;
+        sidebar.setMinWidth(0);
+        Timeline timeline = new Timeline();
 
+        if (isSidebarOpen) {
+            timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
+                    new KeyValue(sidebar.prefWidthProperty(), 0),
+                    new KeyValue(sidebar.opacityProperty(), 0)));
+        } else {
+            timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
+                    new KeyValue(sidebar.prefWidthProperty(), SIDEBAR_WIDTH),
+                    new KeyValue(sidebar.opacityProperty(), 1)));
+        }
+        timeline.play();
+        isSidebarOpen = !isSidebarOpen;
     }
 
-    public void connectToAuctionServer() {
-        // nếu kết nối roi thì không tạo lại nữa
-        if(SessionManager.getInstance().getAuctionClient() != null){
-            this.auctionClient = SessionManager.getInstance().getAuctionClient();
+    public void closeSidebar() {
+        if (!isSidebarOpen || sidebar == null) return;
+        Timeline timeline = new Timeline();
+        timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
+                new KeyValue(sidebar.prefWidthProperty(), 0),
+                new KeyValue(sidebar.opacityProperty(), 0)));
+        timeline.setOnFinished(e -> isSidebarOpen = false);
+        timeline.play();
+    }
+
+    // Cập nhật các nu trang thái trên giao diện:
+    private void setActiveButton(Button activeBtn) {
+        if(activeBtn == null) return;
+        for (Button btn : navButtons) {
+            // Xóa class active khỏi tất cả các nút
+            btn.getStyleClass().remove("nav-btn-active");
+            // Đảm bảo vẫn giữ class gốc nav-btn
+            if (!btn.getStyleClass().contains("nav-btn")) {
+                btn.getStyleClass().add("nav-btn");
+            }
+        }
+        // Thêm class active cho nút vừa được chọn
+        if (activeBtn != null && !activeBtn.getStyleClass().contains("nav-btn-active")) {
+            activeBtn.getStyleClass().add("nav-btn-active");
+        }
+    }
+    // ===== ĐIỀU HƯỚNG TỪ SIDEBAR =====
+    @FXML
+    protected void handleDashboard(ActionEvent event) {
+        loadView("/com/nhomX/example/fxml/DashboardContent.fxml");
+        setActiveButton(btnDashboard);
+        closeSidebar();
+    }
+
+    @FXML
+    protected void handleLiveAuction(ActionEvent event) {
+        loadView("/com/nhomX/example/fxml/LiveAuctionContent.fxml");
+        setActiveButton(btnLiveAuction);
+        closeSidebar();
+    }
+
+    @FXML
+    protected void handleMyAuctions(ActionEvent event) {
+        if (!SessionManager.getInstance().isLoggedIn()) {
+            clearServerListener();
+            com.nhomX.example.utils.SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
             return;
         }
-        String userName="Guest";
-        if(SessionManager.getInstance().isLoggedIn()){
-            userName = SessionManager.getInstance().getCurrentUser().getUserName();
-        }
-        this.auctionClient = new AuctionClient(userName);
-        // Khởi tạo Client
-        try {
-            auctionClient.connect("localhost", 8080);
-            System.out.println("Client: [" + userName + "] đã kết nối tới Server đấu giá!");
-            // Cất vào kho cho các màn hình khác dùng chung
-            SessionManager.getInstance().setAuctionClient(this.auctionClient);
-        }catch (Exception e){
-            System.err.println("Client: Lỗi kết nối Socket - " + e.getMessage());
-
-        }
+        loadView("/com/nhomX/example/fxml/MyAuctionsContent.fxml");
+        setActiveButton(btnMyAuction);
+        closeSidebar();
     }
 
-    @Override
-    public void onHighestBidUpdated(String itemId, long newPrice) {
-        System.out.println("DASHBOARD BẮT SÓNG: Món hàng " + itemId + " vừa nhảy giá lên $" + newPrice);
-
-        // Sau viết code quét danh sách ItemCard đang hiển thị
-        // để update lại cái Label tiền trên màn hình ở đây
-    }
     @FXML
-    void handleFeaturedBid(ActionEvent event) {
-
+    protected void handleSeller(ActionEvent event) {
+        if (!SessionManager.getInstance().isLoggedIn()) {
+            clearServerListener();
+            com.nhomX.example.utils.SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+            return;
+        }
+        loadView("/com/nhomX/example/fxml/SellerContent.fxml");
+        setActiveButton(btnSeller);
+        closeSidebar();
     }
-    @FXML
-    void handleFeaturedDetail(ActionEvent event){
-
+    public void loadView(String fxmlPath){
+        try{
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
+            javafx.scene.Node newNode = loader.load();
+            mainContentArea.getChildren().clear();
+            mainContentArea.getChildren().add(newNode);
+        }catch (java.io.IOException e){
+            e.printStackTrace();
+            System.err.println("Lỗi không thể tải trang con: " + fxmlPath);
+        }
     }
-
-
+    //5. Hàm nhận một Node đã có sẵn dữ liệu (Dùng cho ItemDetail)
+    public void setCenterContent(Node node) {
+        mainContentArea.getChildren().clear();
+        mainContentArea.getChildren().add(node);
+    }
 }

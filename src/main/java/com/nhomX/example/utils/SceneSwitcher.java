@@ -1,6 +1,6 @@
 package com.nhomX.example.utils;
 
-import com.nhomX.example.controller.MainController;
+import com.nhomX.example.controller.MainDashBoardController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -55,8 +55,8 @@ public class SceneSwitcher {
      * Hàm mới: Chỉ thay đổi nội dung phần Center của MainLayout
      */
     public static void loadContent(String fxmlPath) {
-        if (MainController.instance != null) {
-            MainController.instance.loadView(fxmlPath);
+        if (MainDashBoardController.instance != null) {
+            MainDashBoardController.instance.loadView(fxmlPath);
         } else {
             System.err.println("Lỗi: MainController chưa được khởi tạo!");
         }
