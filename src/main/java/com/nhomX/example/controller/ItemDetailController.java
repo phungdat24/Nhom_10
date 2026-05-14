@@ -1,5 +1,9 @@
 package com.nhomX.example.controller;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.ItemImage;
@@ -8,10 +12,8 @@ import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
-import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
@@ -21,13 +23,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.ResourceBundle;
 
 public class ItemDetailController extends BaseController implements ServerEventListener {
     @FXML
@@ -60,7 +55,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
     public void initialize() {
         if (txtBidAmount != null) {
             txtBidAmount.textProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue == null || newValue.isEmpty()) return;
+                if (newValue == null || newValue.isEmpty())
+                    return;
 
                 // Lọc bỏ ký tự không phải số
                 String plainText = newValue.replaceAll("[^\\d]", "");
@@ -123,7 +119,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             }
 
             if (lblStatusMessage != null) {
-                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+                java.time.format.DateTimeFormatter formatter =
+                        java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
                 lblStatusMessage.setText("Bắt đầu vào lúc: " + start.format(formatter));
                 lblStatusMessage.setVisible(true);
             }
@@ -149,7 +146,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             } catch (Exception e) {
                 System.err.println("Không tìm thấy ảnh tại đường dẫn: " + firstImagePath);
                 // (Tùy chọn) Có thể set một ảnh mặc định (Placeholder) nếu lỗi
-                // imgItem.setImage(new Image(getClass().getResourceAsStream("/com/nhomX/example/images/default.png")));
+                // imgItem.setImage(new
+                // Image(getClass().getResourceAsStream("/com/nhomX/example/images/default.png")));
             }
         } else {
             System.out.println("Món hàng này chưa có đường dẫn ảnh trong Database.");
@@ -165,23 +163,26 @@ public class ItemDetailController extends BaseController implements ServerEventL
             auctionClient.getBidHistory(currentAuction.getId());
         }
     }
-        @FXML
-        void handleBackAction (ActionEvent event) {
-            if (auctionClient != null && currentAuction != null) {
-                clearServerListener();
-                // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
-                auctionClient.unwatchAuction(currentAuction.getId());
-            }
-            if (MainDashBoardController.instance != null) {
-                MainDashBoardController.instance.loadView("/com/nhomX/example/fxml/LiveAuctionContent.fxml");
-            } else {
-                System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
-            }
+
+    @FXML
+    void handleBackAction(ActionEvent event) {
+        if (auctionClient != null && currentAuction != null) {
+            clearServerListener();
+            // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
+            auctionClient.unwatchAuction(currentAuction.getId());
+        }
+        if (MainDashBoardController.instance != null) {
+            MainDashBoardController.instance
+                    .loadView("/com/nhomX/example/fxml/LiveAuctionContent.fxml");
+        } else {
+            System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
+        }
     }
 
     @Override
     public void onHighestBidUpdated(String updatedItemId, long newPrice, String bidderName) {
-        // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem không?
+        // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem
+        // không?
         if (currentAuction != null && currentAuction.getId().equals(updatedItemId)) {
 
             // Bọc trong Platform.runLater để giao cho luồng UI (Tránh Crash)
@@ -202,9 +203,10 @@ public class ItemDetailController extends BaseController implements ServerEventL
             });
         }
     }
+
     @FXML
-    void handleBidAction(ActionEvent event){
-        if(!SessionManager.getInstance().isLoggedIn()){
+    void handleBidAction(ActionEvent event) {
+        if (!SessionManager.getInstance().isLoggedIn()) {
             AlertUtils.showWarning("Yêu cầu đăng nhập", "Bạn cần đăng nhập để tham gia đấu giá!");
             return;
         }
@@ -230,20 +232,23 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 String currentUserId = SessionManager.getInstance().getCurrentUser().getId();
                 String auctionId = currentAuction.getId(); // Tạm thời dùng ItemID làm AuctionID
                 auctionClient.placeBid(currentUserId, auctionId, bidAmount);
-                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món " + currentAuction.getId());
+                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món "
+                        + currentAuction.getId());
 
                 // Xóa trắng ô nhập để chuẩn bị cho lần gõ tiếp theo
                 txtBidAmount.clear();
-            }else {
+            } else {
                 // Thêm log và cảnh báo để dễ phát hiện lỗi
-                AlertUtils.showError("Lỗi kết nối", "Hệ thống chưa kết nối được tới Server (Client null)!");
+                AlertUtils.showError("Lỗi kết nối",
+                        "Hệ thống chưa kết nối được tới Server (Client null)!");
                 System.err.println("❌ Lỗi: auctionClient chưa được truyền vào Controller này!");
             }
         } catch (NumberFormatException e) {
             AlertUtils.showError("Lỗi hệ thống", "Dữ liệu nhập không hợp lệ.");
-            System.out.println("Lỗi đặt giá"+e.getMessage());
+            System.out.println("Lỗi đặt giá" + e.getMessage());
         }
     }
+
     @Override
     public void onBidHistoryReceived(List<BidTransaction> history) {
         javafx.application.Platform.runLater(() -> {
@@ -262,6 +267,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             }
         });
     }
+
     private javafx.scene.Node createBidRow(String bidderName, long amount, String timeStr) {
         // 1. Tạo hộp ngang chứa các thành phần
         javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(15);

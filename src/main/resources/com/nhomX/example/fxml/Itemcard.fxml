@@ -29,11 +29,8 @@
     </padding>
 
     <!-- ── Ảnh sản phẩm ── -->
-    <ImageView fx:id="itemImageView" fitHeight="140" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
-        <image>
-            <Image url="@../images/item1.png" />
-        </image>
-    </ImageView>
+<!-- Ảnh sản phẩm -->
+        <ImageView fx:id="itemImageView" fitHeight="140" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image" />
 
     <!-- ── Tên sản phẩm ── -->
     <Label fx:id="lblItemName" maxWidth="190" styleClass="product-name" text="Tên sản phẩm..." wrapText="true" />

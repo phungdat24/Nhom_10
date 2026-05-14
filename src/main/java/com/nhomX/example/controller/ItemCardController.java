@@ -1,23 +1,19 @@
 package com.nhomX.example.controller;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.Stage;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
 
 public class ItemCardController extends BaseController {
     @FXML
@@ -50,25 +46,32 @@ public class ItemCardController extends BaseController {
         List<ItemImage> images = item.getImages();
 
         try {
-            if (images == null || images.isEmpty() || images.get(0).getImagePath() == null || images.get(0).getImagePath().trim().isEmpty()) {
-                // Không có ảnh -> Load ảnh mặc định
-                itemImageView.setImage(new Image(getClass().getResourceAsStream(basePath + "no_image.png")));
-            } else {
-                // Có ảnh -> Ghép thư mục gốc với tên file từ DB (VD: /.../images/dell_front.png)
-                String fileName = images.get(0).getImagePath().trim();
-                Image img = new Image(getClass().getResourceAsStream(basePath + fileName));
+            // Sửa lại cho ĐÚNG tên file ảnh có trong thư mục của bạn
+            String defaultImage = "default_item.png";
 
-                // Nếu file bị lỗi (VD: đuôi png sai, file bị xóa mất) -> Load ảnh mặc định
-                if (img.isError()) {
-                    System.err.println("❌ Không thể đọc được file ảnh: " + fileName);
-                    itemImageView.setImage(new Image(getClass().getResourceAsStream(basePath + "no_image.png")));
+            if (images == null || images.isEmpty() || images.get(0).getImagePath() == null
+                    || images.get(0).getImagePath().trim().isEmpty()) {
+                // Không có ảnh thật -> Load ảnh mặc định
+                itemImageView.setImage(
+                        new Image(getClass().getResourceAsStream(basePath + defaultImage)));
+            } else {
+                // Có ảnh thật -> Ghép thư mục gốc với tên file từ DB
+                String fileName = images.get(0).getImagePath().trim();
+                var imageStream = getClass().getResourceAsStream(basePath + fileName);
+
+                // Kiểm tra cực kỳ chặt chẽ: File ảnh thật có tồn tại trong thư mục không?
+                if (imageStream != null) {
+                    itemImageView.setImage(new Image(imageStream));
                 } else {
-                    itemImageView.setImage(img);
+                    System.out.println("❌ Cảnh báo: Không tìm thấy ảnh thật: " + fileName
+                            + " -> Dùng ảnh mặc định.");
+                    itemImageView.setImage(
+                            new Image(getClass().getResourceAsStream(basePath + defaultImage)));
                 }
             }
-        } catch (NullPointerException e) {
-            // Lỗi này xảy ra khi chính cái file "no_image.png" hoặc file thật KHÔNG TỒN TẠI trong thư mục resources
-            System.err.println("❌ CẢNH BÁO: Thiếu file ảnh trong thư mục resources!");
+        } catch (Exception e) {
+            System.err.println(
+                    "❌ Lỗi load ảnh: Bạn chưa có file default_item.png trong thư mục images!");
         }
 
         // TODO: Logic set ảnh dựa theo item.getImagePath()
@@ -77,7 +80,8 @@ public class ItemCardController extends BaseController {
         LocalDateTime start = auction.getStartTime();
         if (start != null && now.isBefore(start)) {
             // Trạng thái 1: Chưa đến giờ mở bán
-            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM");
+            java.time.format.DateTimeFormatter formatter =
+                    java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM");
             lblTimeLeft.setText("Sắp mở lúc: " + start.format(formatter));
             lblTimeLeft.setStyle("-fx-text-fill: #d35400;"); // Chữ màu cam
 

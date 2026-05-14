@@ -1,11 +1,5 @@
 package com.nhomX.example.repository;
 
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.RegularUser;
-import com.nhomX.example.utils.DatabaseConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,12 +8,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.model.RegularUser;
+import com.nhomX.example.utils.DatabaseConnection;
 
 public class AuctionRepositoryImpl implements AuctionRepository {
 
   // Formatter chuẩn để lưu/đọc thời gian nhất quán
   private static final DateTimeFormatter DB_FORMATTER =
-          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   @Override
   public void save(Auction auction) {
@@ -31,16 +30,20 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       pstmt.setString(1, auction.getId());
 
       // [FIX] Lưu startingPrice (giá khởi điểm gốc) lấy từ item, không dùng highestBid
-      long startingPrice = (auction.getItem() != null) ? auction.getItem().getStartingPrice() : auction.getHighestBid();
+      long startingPrice = (auction.getItem() != null) ? auction.getItem().getStartingPrice()
+          : auction.getHighestBid();
       pstmt.setLong(2, startingPrice);
       pstmt.setLong(3, auction.getHighestBid());
 
       // Lưu start_time đúng định dạng:
-      pstmt.setString(4, auction.getStartTime() != null ? auction.getStartTime().format(DB_FORMATTER) : null);
-      pstmt.setString(5, auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
+      pstmt.setString(4,
+          auction.getStartTime() != null ? auction.getStartTime().format(DB_FORMATTER) : null);
+      pstmt.setString(5,
+          auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
 
       // Xử lý Enum
-      pstmt.setString(6, auction.getStatus() != null ? auction.getStatus().name() : AuctionStatus.PENDING.name());
+      pstmt.setString(6,
+          auction.getStatus() != null ? auction.getStatus().name() : AuctionStatus.PENDING.name());
 
       pstmt.setString(7, auction.getItem() != null ? auction.getItem().getId() : null);
       pstmt.setString(8, auction.getWinner() != null ? auction.getWinner().getId() : null);
@@ -78,7 +81,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE status IN('OPEN', 'RUNNING') ";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql);
-         ResultSet rs = pstmt.executeQuery()) {
+        ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
         list.add(mapRowToAuction(rs));
       }
@@ -125,7 +128,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
   @Override
   public void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId) {
-    String sql = "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING' WHERE id = ?";
+    String sql =
+        "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING' WHERE id = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -137,6 +141,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       System.err.println("❌ Lỗi cập nhật người thắng: " + e.getMessage());
     }
   }
+
   @Override
   public void updateEndTime(String auctionId, LocalDateTime newEndTime) {
     String sql = "UPDATE auctions SET end_time = ? WHERE id = ?";
@@ -155,7 +160,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public List<Auction> findBySellerId(String sellerId) {
     List<Auction> list = new ArrayList<>();
     // Join với bảng items để lọc theo seller_id
-    String sql = "SELECT a.* FROM auctions a " + "JOIN items i ON a.item_id = i.id " + "WHERE i.seller_id = ?";
+    String sql = "SELECT a.* FROM auctions a " + "JOIN items i ON a.item_id = i.id "
+        + "WHERE i.seller_id = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, sellerId);
@@ -190,12 +196,12 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     auction.setStartTime(parseDateTime(rs.getString("start_time")));
     auction.setEndTime(parseDateTime(rs.getString("end_time")));
 
-    // Tạo "vỏ rỗng" cho Item (chỉ có ID, load đầy đủ khi cần qua ItemRepository)
+    // Gọi ItemRepository để lấy nguyên bộ thông tin chi tiết của món đồ (Tên, Ảnh, Mô tả...)
     String itemId = rs.getString("item_id");
     if (itemId != null) {
-      GeneralItem item = new GeneralItem();
-      item.setId(itemId);
-      auction.setItem(item);
+      ItemRepository itemRepo = new ItemRepositoryImpl();
+      Items fullItem = itemRepo.findById(itemId);
+      auction.setItem(fullItem);
     }
 
     // Tạo vỏ rỗng cho Winner
