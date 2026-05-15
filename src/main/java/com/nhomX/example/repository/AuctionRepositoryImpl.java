@@ -8,10 +8,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.model.RegularUser;
+
+import com.nhomX.example.model.*;
 import com.nhomX.example.utils.DatabaseConnection;
 
 public class AuctionRepositoryImpl implements AuctionRepository {
@@ -172,6 +170,64 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi khi lấy phiên theo seller: " + e.getMessage());
+    }
+    return list;
+  }
+  // =========================================================================
+  // BỔ SUNG HÀM LẤY DANH SÁCH "MY AUCTIONS" CỦA RIÊNG USER ĐANG ĐĂNG NHẬP
+  // =========================================================================
+  @Override
+  public List<MyAuctionDTO> getMyAuctions(String userId) {
+    List<MyAuctionDTO> list = new ArrayList<>();
+
+    // SQL: Lấy thông tin phiên đấu giá + Giá cao nhất mà userId này từng đặt
+    // Lưu ý: Tên bảng 'bids' và cột 'bidder_id', 'amount' có thể thay đổi tùy Database thực tế của em.
+    String sql = "SELECT a.*, MAX(b.amount) AS my_highest_bid " +
+            "FROM auctions a " +
+            "JOIN bids b ON a.id = b.auction_id " +
+            "WHERE b.user_id = ? " +
+            "GROUP BY a.id " +
+            "ORDER BY a.end_time DESC";
+
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, userId);
+
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          // 1. Tận dụng hàm phụ trợ cũ để lấy thông tin lõi của Auction
+          Auction auction = mapRowToAuction(rs);
+
+          // 2. Lấy mức giá cao nhất của RIÊNG user này từ kết quả MAX(b.amount)
+          long myHighestBid = rs.getLong("my_highest_bid");
+
+          // 3. LOGIC SO SÁNH TRẠNG THÁI (Đang dẫn đầu / Bị vượt / Thắng / Thua)
+          MyAuctionStatus myStatus;
+          boolean isClosed = (auction.getStatus() == AuctionStatus.FINISHED || auction.getStatus() == AuctionStatus.PAID);
+
+          if (isClosed) {
+            // Nếu phiên đã đóng, kiểm tra xem ID người thắng có phải ID của mình không
+            if (auction.getWinner() != null && userId.equals(auction.getWinner().getId())) {
+              myStatus = MyAuctionStatus.WON;
+            } else {
+              myStatus = MyAuctionStatus.LOST;
+            }
+          } else {
+            // Nếu phiên đang chạy, so sánh Giá của mình với Giá trần hiện tại
+            if (myHighestBid >= auction.getHighestBid()) {
+              myStatus = MyAuctionStatus.LEADING; // Bằng hoặc hơn giá trần -> Đang dẫn đầu
+            } else {
+              myStatus = MyAuctionStatus.OUTBID;  // Thấp hơn giá trần -> Đã bị người khác vượt
+            }
+          }
+
+          // 4. Đóng gói vào DTO và ném vào danh sách
+          MyAuctionDTO dto = new MyAuctionDTO(auction, myHighestBid, myStatus);
+          list.add(dto);
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi lấy danh sách My Auctions: " + e.getMessage());
     }
     return list;
   }
