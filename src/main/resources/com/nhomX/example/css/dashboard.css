@@ -412,3 +412,35 @@
     /* Giữ nguyên hiệu ứng đổ bóng và bo góc, KHÔNG giới hạn width */
 }
 
+/*--- Profile --- */
+.profile-card {
+    -fx-background-color: #d9c8b0;
+
+}
+/* --- Thanh Tỷ lệ thắng (Xanh lá) --- */
+.win-rate-bar .bar {
+    -fx-background-color: linear-gradient(to right, #2ecc71, #00c853);
+    -fx-background-radius: 10;
+    /* Tạo hiệu ứng phát sáng xanh nhẹ */
+    -fx-effect: dropshadow(three-pass-box, rgba(46, 204, 113, 0.4), 10, 0, 0, 0);
+}
+
+/* --- Thanh Điểm uy tín (Cam lửa) --- */
+.reputation-bar .bar {
+    -fx-background-color: linear-gradient(to right, #ff8c00, #ff4500);
+    -fx-background-radius: 10;
+    /* Tạo hiệu ứng phát sáng cam rực */
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 69, 0, 0.5), 12, 0, 0, 0);
+}
+
+/* --- Chỉnh text cho đồng bộ --- */
+.text-win-rate {
+    -fx-text-fill: #2ecc71;
+    -fx-font-weight: bold;
+}
+
+.text-reputation {
+    -fx-text-fill: #ff8c00;
+    -fx-font-weight: bold;
+}
+
