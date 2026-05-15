@@ -3,6 +3,7 @@ package com.nhomX.example;
 import java.sql.Connection;
 import java.sql.Statement;
 import com.nhomX.example.utils.DatabaseConnection;
+import com.nhomX.example.utils.SecurityUtils;
 
 public class DatabaseTest {
         public static void main(String[] args) {
@@ -20,9 +21,10 @@ public class DatabaseTest {
                         // 2. Nạp dữ liệu mới (Cũng tách riêng từng bảng)
 
                         // --- USERS ---
+                        String pass = SecurityUtils.hashPassword("123456789");
                         String insertUsers =
                                         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES "
-                                                        + "('U001', 'seller1', '123', 'Nguyen Van Ban', 0, 'USER'), "
+                                                        + "('U001', 'seller1','"+pass+"'  , 'Nguyen Van Ban', 5000000000000000, 'USER'), "
                                                         + "('U002', 'buyer1', '123', 'Tran Thi Mua', 500000000, 'USER')";
                         stmt.executeUpdate(insertUsers);
 

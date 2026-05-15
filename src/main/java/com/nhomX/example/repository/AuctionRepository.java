@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.MyAuctionDTO;
 
 public interface AuctionRepository {
     // Lưu phiên đấu giá mới vào DB
@@ -16,7 +17,7 @@ public interface AuctionRepository {
     // Lấy danh sách các phiên đang mở (OPEN / RUNNING) để hiển thị lên Dashboard
     List<Auction> findAllActiveAuctions();
 
-    // [THÊM MỚI] Dành riêng cho AuctionScheduler (Ông bảo vệ chạy ngầm)
+    // Dành riêng cho AuctionScheduler (Ông bảo vệ chạy ngầm)
     // Nhiệm vụ: Tìm các phiên đã vượt quá thời gian end_time nhưng chưa đóng
     List<Auction> findExpiredOpenAuctions();
 
@@ -25,10 +26,12 @@ public interface AuctionRepository {
 
     // Cập nhật Giá cao nhất và Người đang dẫn đầu (Dùng khi có người đặt giá)
     void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId);
-    //[THÊM MỚI] Cập nhật thời gian kết thúc – dùng cho Anti-sniping.
+    //Cập nhật thời gian kết thúc – dùng cho Anti-sniping.
 
     void updateEndTime(String auctionId, LocalDateTime newEndTime);
 
-    // [THÊM MỚI] Lấy tất cả phiên theo seller (Seller xem phiên của mình).
+    // Lấy tất cả phiên theo seller (Seller xem phiên của mình).
     List<Auction> findBySellerId(String sellerId);
+    // [MỚI]: Lấy danh sách phiên người dùng đã tham gia kèm trạng thái DTO
+    List<MyAuctionDTO> getMyAuctions(String userId);
 }
