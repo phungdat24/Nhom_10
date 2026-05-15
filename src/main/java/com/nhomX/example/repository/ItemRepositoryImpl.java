@@ -1,26 +1,31 @@
 package com.nhomX.example.repository;
 
-import com.nhomX.example.model.*;
-import com.nhomX.example.utils.DatabaseConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import com.nhomX.example.model.Art;
+import com.nhomX.example.model.Electronics;
+import com.nhomX.example.model.GeneralItem;
+import com.nhomX.example.model.ItemImage;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.model.Jewelry;
+import com.nhomX.example.model.RegularUser;
+import com.nhomX.example.utils.DatabaseConnection;
 
 public class ItemRepositoryImpl implements ItemRepository {
 
-  //Lấy toàn bộ danh sách sản phẩm (SELECT *)
+  // Lấy toàn bộ danh sách sản phẩm (SELECT *)
   @Override
   public List<Items> findAll() {
     List<Items> itemsList = new ArrayList<>();
     String sql = "SELECT * FROM items";
     Connection conn = DatabaseConnection.getInstance().getConnection();
-    //Xử lý đóng kết nối an toàn (try-with-resources)
+    // Xử lý đóng kết nối an toàn (try-with-resources)
     try (PreparedStatement pstmt = conn.prepareStatement(sql);
-         ResultSet rs = pstmt.executeQuery()) {
+        ResultSet rs = pstmt.executeQuery()) {
 
       while (rs.next()) {
         // Đẩy dữ liệu vào danh sách
@@ -32,7 +37,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     return itemsList;
   }
 
-  //Lọc sản phẩm theo danh mục (WHERE category = ?)
+  // Lọc sản phẩm theo danh mục (WHERE category = ?)
   @Override
   public List<Items> findByCategory(String category) {
     List<Items> itemsList = new ArrayList<>();
@@ -54,6 +59,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
     return itemsList;
   }
+
   @Override
   public List<Items> findBySellerId(String sellerId) {
     List<Items> itemsList = new ArrayList<>();
@@ -80,10 +86,7 @@ public class ItemRepositoryImpl implements ItemRepository {
       pstmt.setString(1, itemId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
-          imageList.add(new ItemImage(
-                  rs.getString("id"),
-                  rs.getString("image_path")
-          ));
+          imageList.add(new ItemImage(rs.getString("id"), rs.getString("image_path")));
         }
       }
     }
@@ -120,7 +123,7 @@ public class ItemRepositoryImpl implements ItemRepository {
   public void update(Items item) {
     // Câu lệnh SQL cập nhật dữ liệu, bao gồm cả cột image_path
     String sqlItem =
-            "UPDATE items SET title = ?, description = ?, category = ?, seller_id = ? WHERE id = ?";
+        "UPDATE items SET title = ?, description = ?, category = ?, seller_id = ? WHERE id = ?";
     String sqlDeleteImages = "DELETE FROM item_images WHERE item_id = ?";
     String sqlInsertImages = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
     Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -167,7 +170,8 @@ public class ItemRepositoryImpl implements ItemRepository {
 
   @Override
   public void save(Items item) {
-    String sqlItem = "INSERT INTO items (id, title, description, category, seller_id) VALUES (?, ?, ?, ?, ?)";
+    String sqlItem =
+        "INSERT INTO items (id, title, description, category, seller_id) VALUES (?, ?, ?, ?, ?)";
     String sqlImage = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
 
     Connection conn = DatabaseConnection.getInstance().getConnection();
@@ -193,19 +197,22 @@ public class ItemRepositoryImpl implements ItemRepository {
     } catch (SQLException e) {
       System.err.println("❌ Lỗi Giao dịch Lưu Sản Phẩm! Đang Rollback... " + e.getMessage());
       try {
-        if (conn != null) conn.rollback();
+        if (conn != null)
+          conn.rollback();
         System.out.println("🔄 Đã hoàn tác an toàn.");
       } catch (SQLException ex) {
         System.err.println("❌ Lỗi nghiêm trọng khi Rollback: " + ex.getMessage());
       }
     } finally {
       try {
-        if(conn !=null) conn.setAutoCommit(true);
+        if (conn != null)
+          conn.setAutoCommit(true);
       } catch (SQLException e) {
         System.err.println("❌ Lỗi kết nối DB: " + e.getMessage());
       }
     }
   }
+
   @Override
   public void delete(String itemId) {
     // [FIX] Xóa ảnh trước, rồi mới xóa item (tránh lỗi foreign key constraint)
@@ -231,9 +238,11 @@ public class ItemRepositoryImpl implements ItemRepository {
       restoreAutoCommit(conn);
     }
   }
+
   private void insertImages(Items item, Connection conn, String sql) throws SQLException {
     List<ItemImage> images = item.getImages();
-    if (images == null || images.isEmpty()) return;
+    if (images == null || images.isEmpty())
+      return;
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       for (ItemImage img : images) {
         pstmt.setString(1, img.getId());
@@ -244,25 +253,43 @@ public class ItemRepositoryImpl implements ItemRepository {
       pstmt.executeBatch();
     }
   }
+
   private void rollbackSilently(Connection conn) {
-    try { if (conn != null) conn.rollback(); }
-    catch (SQLException ex) { System.err.println("❌ Lỗi rollback: " + ex.getMessage()); }
+    try {
+      if (conn != null)
+        conn.rollback();
+    } catch (SQLException ex) {
+      System.err.println("❌ Lỗi rollback: " + ex.getMessage());
+    }
   }
 
   private void restoreAutoCommit(Connection conn) {
-    try { if (conn != null) conn.setAutoCommit(true); }
-    catch (SQLException ex) { System.err.println("❌ Lỗi khôi phục autoCommit: " + ex.getMessage()); }
+    try {
+      if (conn != null)
+        conn.setAutoCommit(true);
+    } catch (SQLException ex) {
+      System.err.println("❌ Lỗi khôi phục autoCommit: " + ex.getMessage());
+    }
   }
+
   private Items mapRowToItem(ResultSet rs, Connection conn) throws SQLException {
     String category = rs.getString("category");
     Items item;
 
     if (category != null) {
       switch (category.toUpperCase()) {
-        case "ELECTRONICS": item = new Electronics(); break;
-        case "JEWELRY":     item = new Jewelry();     break;
-        case "ART":         item = new Art();         break;
-        default:            item = new GeneralItem(); break;
+        case "ELECTRONICS":
+          item = new Electronics();
+          break;
+        case "JEWELRY":
+          item = new Jewelry();
+          break;
+        case "ART":
+          item = new Art();
+          break;
+        default:
+          item = new GeneralItem();
+          break;
       }
     } else {
       item = new GeneralItem();
@@ -271,7 +298,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     item.setId(rs.getString("id"));
     item.setTitle(rs.getString("title"));
     item.setDescription(rs.getString("description"));
-    item.setStartingPrice(rs.getLong("starting_price"));
+
 
     RegularUser seller = new RegularUser();
     seller.setId(rs.getString("seller_id"));
