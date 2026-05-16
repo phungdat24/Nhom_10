@@ -379,4 +379,14 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return count;
   }
+
+  @Override
+  public List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus) {
+    return List.of();
+  }
+
+  @Override
+  public boolean updateAuctionStatus(Auction auction) {
+    return false;
+  }
 }

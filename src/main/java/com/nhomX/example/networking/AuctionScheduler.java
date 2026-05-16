@@ -6,71 +6,81 @@ import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.repository.AuctionRepository;
 import com.nhomX.example.repository.BidRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class AuctionScheduler {
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private final AuctionServer server;
-    private final AuctionRepository auctionRepo;
-    private final BidRepository bidRepo;
+    private static final int CHECK_INTERVAL_SECONDS = 5;
 
-    public AuctionScheduler(AuctionServer server, AuctionRepository auctionRepo, BidRepository bidRepo) {
+    private final ScheduledExecutorService scheduler =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "auction-scheduler");
+                t.setDaemon(true);  // Tự tắt khi Server tắt
+                return t;
+            });
+
+    private final AuctionServer server;
+
+    public AuctionScheduler(AuctionServer server) {
         this.server = server;
-        this.auctionRepo = auctionRepo;
-        this.bidRepo = bidRepo;
     }
 
     public void start() {
-        System.out.println("⏰ [SCHEDULER] Hệ thống quét phiên hết hạn đã chạy (5 giây/lần)...");
+        System.out.println("SCHEDULER: Khởi động, kiểm tra "
+                + CHECK_INTERVAL_SECONDS + "s/lần...");
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                checkAndCloseAuctions();
+                checkAndCloseExpiredAuctions();
             } catch (Exception e) {
-                System.err.println("❌ [SCHEDULER ERROR]: " + e.getMessage());
+                // Bắt mọi exception để tránh làm chết ScheduledExecutor
+                // (ScheduledExecutorService dừng task nếu task ném unchecked exception)
+                System.err.println("SCHEDULER LỖI: " + e.getMessage());
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
-    private void checkAndCloseAuctions() {
-        // 1. Gọi đúng hàm bạn vừa thêm: lấy các phiên hết giờ nhưng vẫn OPEN
-        List<Auction> expiredList = auctionRepo.findExpiredOpenAuctions();
+    private void checkAndCloseExpiredAuctions() {
+        List<Auction> runningAuctions =
+                server.getAuctionRepository().findAuctionsByStatus(AuctionStatus.RUNNING);
 
-        for (Auction auction : expiredList) {
-            System.out.println("⚡ [PROCESS] Chốt phiên: " + auction.getId());
+        if (runningAuctions == null || runningAuctions.isEmpty()) return;
 
-            // 2. Tìm lượt trả giá cao nhất từ BidRepository
-            BidTransaction highestBid = bidRepo.getHighestBid(auction.getId());
+        LocalDateTime now = LocalDateTime.now();
 
-            String winnerName = "Không có";
-            String winnerId = null;
-            long finalPrice = auction.getHighestBid(); // Mặc định lấy giá hiện tại
-
-            if (highestBid != null) {
-                // Lưu ý: Code của bạn dùng getBidder() trả về RegularUser
-                winnerName = highestBid.getBidder().getUserName();
-                winnerId = highestBid.getBidder().getId();
-                finalPrice = highestBid.getAmount();
-
-                // 3. Cập nhật người thắng vào Database (Dùng đúng tên hàm của bạn)
-                auctionRepo.updateHighestBidAndWinner(auction.getId(), finalPrice, winnerId);
+        for (Auction auction : runningAuctions) {
+            if (auction.getEndTime() == null || !now.isBefore(auction.getEndTime())) {
+                continue; // Chưa hết giờ
             }
 
-            // 4. Chốt trạng thái phiên thành FINISHED (Sử dụng Enum AuctionStatus)
-            auctionRepo.updateStatus(auction.getId(), AuctionStatus.FINISHED);
+            // Đóng phiên: FINISHED nếu có winner, CANCELED nếu không ai bid
+            auction.closeAuction();
+            boolean saved = server.getAuctionRepository().updateAuctionStatus(auction);
 
-            // 5. Gửi thông báo Real-time cho những người đang xem phiên này
-            Message closeMsg = Message.auctionClosed(auction.getId(), winnerName, finalPrice);
-            server.broadcastToAuction(auction.getId(), closeMsg);
+            if (saved) {
+                String winnerId = (auction.getWinner() != null)
+                        ? auction.getWinner().getId() : null;
 
-            System.out.println("✅ [DONE] Đã đóng ID: " + auction.getId() + ". Thắng: " + winnerName);
+                // Thông báo realtime tới mọi Client đang xem phiên này
+                server.broadcastToAuction(
+                        auction.getId(),
+                        Message.auctionClosed(auction.getId(), winnerId));
+
+                System.out.println("SCHEDULER: Đã đóng phiên " + auction.getId()
+                        + " | Winner: " + (winnerId != null ? winnerId : "Không có"));
+            } else {
+                System.err.println("SCHEDULER: Không thể lưu trạng thái đóng cho phiên "
+                        + auction.getId());
+            }
         }
     }
 
     public void shutdown() {
-        scheduler.shutdown();
-        System.out.println("🛑 [SCHEDULER] Đã dừng.");
+        if (!scheduler.isShutdown()) {
+            scheduler.shutdown();
+            System.out.println("SCHEDULER: Đã tắt.");
+        }
     }
 }

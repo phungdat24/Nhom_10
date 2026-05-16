@@ -42,5 +42,9 @@ public interface AuctionRepository {
     int countActiveAuctions();
 
     int countEndingSoonAuctions();
+
+    List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus);
+
+    boolean updateAuctionStatus(Auction auction);
 }
 

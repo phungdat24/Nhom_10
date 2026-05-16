@@ -1,10 +1,7 @@
 package com.nhomX.example.networking;
 
 import com.nhomX.example.controller.SessionManager;
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.BidTransaction;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.model.User;
+import com.nhomX.example.model.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -227,6 +224,7 @@ public class AuctionClient {
                 });
                 break;
             case "RETURN_BID_HISTORY":
+                @SuppressWarnings("unchecked")
                 List<BidTransaction> history = (List<BidTransaction>) msg.getData();
                 runOnUiThread(() -> {
                     if (listener != null) {
@@ -238,6 +236,24 @@ public class AuctionClient {
 
             case "ERROR":
                 System.err.println("CLIENT nhận lỗi từ Server: " + msg.getData());
+                break;
+
+            case "DASHBOARD_DATA_RESULT":
+                Object[] payload = (Object[]) msg.getData();
+                List<Auction> endingSoon = (List<Auction>) payload[0];
+                List<Auction> trending = (List<Auction>) payload[1];
+                if (listener != null){
+                    listener.onDashboardDataReceived(endingSoon, trending);
+                }
+                break;
+
+            case "MY_AUCTION_RESULT":
+                List<com.nhomX.example.model.MyAuctionDTO> myAuctionsList =
+                        (List<MyAuctionDTO>) msg.getData();
+
+                if (listener != null){
+                    listener.onMyAuctionsReceived(myAuctionsList);
+                }
                 break;
 
             default:

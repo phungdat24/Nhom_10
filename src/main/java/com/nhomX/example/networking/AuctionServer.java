@@ -33,20 +33,12 @@ public class AuctionServer {
 
     public void start() {
         // Đăng ký Shutdown Hook. Khi tắt app đoạn code này sẽ chạy để đóng sạch luồng.
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("SERVER: Đang tiến hành dọn dẹp và tắt ExecutorService...");
-            serverExecutor.shutdown();
-        }));
+        registerShutdownHook();
 
-        // 1. Khởi động Scheduler để quét DB tự động
-        auctionScheduler = new AuctionScheduler(this, auctionRepository, bidRepository);
-        auctionScheduler.start();
-
-        // Đảm bảo khi tắt ứng dụng thì Scheduler cũng dừng
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("🛑 Đang đóng hệ thống...");
-            auctionScheduler.shutdown();
-        }));
+        // BUG FIX: Scheduler được tạo nhưng start() không bao giờ được gọi trong code gốc
+        // → phiên đấu giá hết hạn không bao giờ tự đóng
+        AuctionScheduler scheduler = new AuctionScheduler(this);
+        scheduler.start();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("SERVER: Đang đợi kết nối tại cổng " + PORT + "...");
@@ -65,6 +57,15 @@ public class AuctionServer {
                 serverExecutor.shutdown();
             }
         }
+    }
+    /** Đăng ký hook dọn dẹp khi JVM tắt (Ctrl+C hoặc kill). */
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("SERVER: Đang dọn dẹp trước khi tắt...");
+            if (!serverExecutor.isShutdown()) {
+                serverExecutor.shutdown();
+            }
+        }, "shutdown-hook"));
     }
 
     // Client gọi hàm này khi bấm vào xem chi tiết một món hàng
@@ -123,10 +124,13 @@ public class AuctionServer {
             viewers.remove(client);
         }
     }
+    public AuctionRepository getAuctionRepository() {
+        return auctionRepository;
+    }
 
     public static void main(String[] args) {
-        AuctionServer server = new AuctionServer();
+        new AuctionServer().start();
         System.out.println("Đang khởi động Server...");
-        server.start();
+
     }
 }
