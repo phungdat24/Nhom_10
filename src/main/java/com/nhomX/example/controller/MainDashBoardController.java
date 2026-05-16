@@ -127,14 +127,12 @@ public class MainDashBoardController extends BaseController implements Initializ
     protected void handleDashboard(ActionEvent event) {
         loadView("/com/nhomX/example/fxml/DashboardContent.fxml");
         setActiveButton(btnDashboard);
-        closeSidebar();
     }
 
     @FXML
     protected void handleLiveAuction(ActionEvent event) {
         loadView("/com/nhomX/example/fxml/LiveAuctionContent.fxml");
         setActiveButton(btnLiveAuction);
-        closeSidebar();
     }
 
     @FXML
@@ -146,7 +144,6 @@ public class MainDashBoardController extends BaseController implements Initializ
         }
         loadView("/com/nhomX/example/fxml/MyAuctionsContent.fxml");
         setActiveButton(btnMyAuction);
-        closeSidebar();
     }
 
     @FXML
@@ -158,7 +155,6 @@ public class MainDashBoardController extends BaseController implements Initializ
         }
         loadView("/com/nhomX/example/fxml/SellerContent.fxml");
         setActiveButton(btnSeller);
-        closeSidebar();
     }
     public void loadView(String fxmlPath){
         try{

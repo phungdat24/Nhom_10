@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.nhomX.example.controller.MainDashBoardController">
+
+<BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
 
    <!-- ===== TOP: Header ===== -->
    <top>
@@ -37,7 +44,7 @@
          <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" visible="false">
             <MenuButton fx:id="menuUser" mnemonicParsing="false" styleClass="user-menu-button" text="👤  Tên người dùng">
                <items>
-                  <MenuItem mnemonicParsing="false" onAction="#handleProfile" text="👤 Hồ sơ của tôi" />
+                  <MenuItem fx:id="handleProfile" mnemonicParsing="false" onAction="#handleProfile" text="👤 Hồ sơ của tôi" />
 
                   <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="🚪 Đăng xuất" />
                </items>
