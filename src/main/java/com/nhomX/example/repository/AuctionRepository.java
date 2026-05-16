@@ -2,7 +2,6 @@ package com.nhomX.example.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.MyAuctionDTO;
@@ -26,12 +25,22 @@ public interface AuctionRepository {
 
     // Cập nhật Giá cao nhất và Người đang dẫn đầu (Dùng khi có người đặt giá)
     void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId);
-    //Cập nhật thời gian kết thúc – dùng cho Anti-sniping.
+    // Cập nhật thời gian kết thúc – dùng cho Anti-sniping.
 
     void updateEndTime(String auctionId, LocalDateTime newEndTime);
 
     // Lấy tất cả phiên theo seller (Seller xem phiên của mình).
     List<Auction> findBySellerId(String sellerId);
+
     // [MỚI]: Lấy danh sách phiên người dùng đã tham gia kèm trạng thái DTO
     List<MyAuctionDTO> getMyAuctions(String userId);
+
+    List<Auction> getEndingSoonAuctions(int limit);
+
+    List<Auction> getTrendingAuctions(int limit);
+
+    int countActiveAuctions();
+
+    int countEndingSoonAuctions();
 }
+
