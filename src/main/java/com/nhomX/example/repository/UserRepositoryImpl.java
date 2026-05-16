@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.nhomX.example.model.Admin;
 import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.model.Role;
@@ -52,7 +51,7 @@ public class UserRepositoryImpl implements UserRepository {
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, username);
       pstmt.setString(2, passwordHash);
-      try(ResultSet rs = pstmt.executeQuery()) {
+      try (ResultSet rs = pstmt.executeQuery()) {
 
         if (rs.next()) {
           return mapRowToUser(rs);
@@ -100,6 +99,7 @@ public class UserRepositoryImpl implements UserRepository {
       System.err.println("❌ Lỗi cập nhật số dư: " + e.getMessage());
     }
   }
+
   @Override
   public User findByUsername(String username) {
     String sql = "SELECT * FROM users WHERE username = ?";
@@ -123,7 +123,7 @@ public class UserRepositoryImpl implements UserRepository {
     String sql = "SELECT * FROM users";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql);
-         ResultSet rs = pstmt.executeQuery()) {
+        ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
         users.add(mapRowToUser(rs));
       }
@@ -132,25 +132,20 @@ public class UserRepositoryImpl implements UserRepository {
     }
     return users;
   }
+
   // Đọc User từ ResultSet:
   private User mapRowToUser(ResultSet rs) throws SQLException {
     String roleString = rs.getString("role");
 
     // 1. Phân nhánh Admin
     if (roleString != null && roleString.contains("ADMIN")) {
-      return new Admin(
-              rs.getString("id"), rs.getString("username"),
-              rs.getString("password"), rs.getString("fullname"),
-              rs.getLong("balance")
-      );
+      return new Admin(rs.getString("id"), rs.getString("username"), rs.getString("password"),
+          rs.getString("fullname"), rs.getLong("balance"));
     }
 
     // 2. Phân nhánh Người dùng thường
-    RegularUser user = new RegularUser(
-            rs.getString("id"), rs.getString("username"),
-            rs.getString("password"), rs.getString("fullname"),
-            rs.getLong("balance")
-    );
+    RegularUser user = new RegularUser(rs.getString("id"), rs.getString("username"),
+        rs.getString("password"), rs.getString("fullname"), rs.getLong("balance"));
 
     // 3. Cấp lại quyền
     if (roleString != null) {
@@ -162,5 +157,24 @@ public class UserRepositoryImpl implements UserRepository {
       }
     }
     return user;
+  }
+
+  @Override
+  public int getTotalUserCount() {
+    int count = 0;
+    String sql = "SELECT COUNT(*) FROM users";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection(); // Tự động lấy kết nối
+                                                                             // chuẩn
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery()) {
+
+      if (rs.next()) {
+        count = rs.getInt(1);
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi getTotalUserCount: " + e.getMessage());
+    }
+    return count;
   }
 }

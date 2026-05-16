@@ -8,8 +8,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.nhomX.example.model.*;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.model.MyAuctionDTO;
+import com.nhomX.example.model.MyAuctionStatus;
+import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.utils.DatabaseConnection;
 
 public class AuctionRepositoryImpl implements AuctionRepository {
@@ -173,6 +177,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
+
   // =========================================================================
   // BỔ SUNG HÀM LẤY DANH SÁCH "MY AUCTIONS" CỦA RIÊNG USER ĐANG ĐĂNG NHẬP
   // =========================================================================
@@ -181,13 +186,11 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<MyAuctionDTO> list = new ArrayList<>();
 
     // SQL: Lấy thông tin phiên đấu giá + Giá cao nhất mà userId này từng đặt
-    // Lưu ý: Tên bảng 'bids' và cột 'bidder_id', 'amount' có thể thay đổi tùy Database thực tế của em.
-    String sql = "SELECT a.*, MAX(b.amount) AS my_highest_bid " +
-            "FROM auctions a " +
-            "JOIN bids b ON a.id = b.auction_id " +
-            "WHERE b.user_id = ? " +
-            "GROUP BY a.id " +
-            "ORDER BY a.end_time DESC";
+    // Lưu ý: Tên bảng 'bids' và cột 'bidder_id', 'amount' có thể thay đổi tùy Database thực tế của
+    // em.
+    String sql = "SELECT a.*, MAX(b.amount) AS my_highest_bid " + "FROM auctions a "
+        + "JOIN bids b ON a.id = b.auction_id " + "WHERE b.user_id = ? " + "GROUP BY a.id "
+        + "ORDER BY a.end_time DESC";
 
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -203,7 +206,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
           // 3. LOGIC SO SÁNH TRẠNG THÁI (Đang dẫn đầu / Bị vượt / Thắng / Thua)
           MyAuctionStatus myStatus;
-          boolean isClosed = (auction.getStatus() == AuctionStatus.FINISHED || auction.getStatus() == AuctionStatus.PAID);
+          boolean isClosed = (auction.getStatus() == AuctionStatus.FINISHED
+              || auction.getStatus() == AuctionStatus.PAID);
 
           if (isClosed) {
             // Nếu phiên đã đóng, kiểm tra xem ID người thắng có phải ID của mình không
@@ -217,7 +221,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
             if (myHighestBid >= auction.getHighestBid()) {
               myStatus = MyAuctionStatus.LEADING; // Bằng hoặc hơn giá trần -> Đang dẫn đầu
             } else {
-              myStatus = MyAuctionStatus.OUTBID;  // Thấp hơn giá trần -> Đã bị người khác vượt
+              myStatus = MyAuctionStatus.OUTBID; // Thấp hơn giá trần -> Đã bị người khác vượt
             }
           }
 
@@ -284,5 +288,95 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       System.err.println("⚠️ Lỗi parse ngày giờ: " + timeStr);
       return null;
     }
+  }
+  // ---------------- TASK 1: CHIẾN LƯỢC LẤY DANH SÁCH ----------------
+
+  @Override
+  public List<Auction> getEndingSoonAuctions(int limit) {
+    List<Auction> list = new ArrayList<>();
+    String sql = "SELECT * FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') AND end_time > ? "
+        + "ORDER BY end_time ASC LIMIT ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      // Dấu ? số 1 là thời gian hiện tại (Format chuẩn DB của nhóm bạn)
+      pstmt.setString(1, java.time.LocalDateTime.now().format(DB_FORMATTER));
+      pstmt.setInt(2, limit);
+
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi getEndingSoonAuctions: " + e.getMessage());
+    }
+    return list;
+  }
+
+  @Override
+  public List<Auction> getTrendingAuctions(int limit) {
+    List<Auction> list = new ArrayList<>();
+    String sql = "SELECT a.* FROM auctions a " + "LEFT JOIN bids b ON a.id = b.auction_id "
+        + "WHERE a.status = 'RUNNING' " + "GROUP BY a.id " + "ORDER BY COUNT(b.id) DESC LIMIT ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setInt(1, limit);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi getTrendingAuctions: " + e.getMessage());
+    }
+    return list;
+  }
+
+  // ---------------- TASK 2: VIẾT HÀM ĐẾM THỐNG KÊ ----------------
+
+  @Override
+  public int countActiveAuctions() {
+    int count = 0;
+    String sql = "SELECT COUNT(*) FROM auctions WHERE status IN ('OPEN', 'RUNNING')";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery()) {
+
+      if (rs.next())
+        count = rs.getInt(1);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi countActiveAuctions: " + e.getMessage());
+    }
+    return count;
+  }
+
+  @Override
+  public int countEndingSoonAuctions() {
+    int count = 0;
+    String sql = "SELECT COUNT(*) FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') "
+        + "AND end_time > ? AND end_time <= ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      java.time.LocalDateTime now = java.time.LocalDateTime.now();
+      java.time.LocalDateTime tomorrow = now.plusHours(24); // Sắp kết thúc trong 24h
+
+      pstmt.setString(1, now.format(DB_FORMATTER));
+      pstmt.setString(2, tomorrow.format(DB_FORMATTER));
+
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next())
+          count = rs.getInt(1);
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi countEndingSoonAuctions: " + e.getMessage());
+    }
+    return count;
   }
 }
