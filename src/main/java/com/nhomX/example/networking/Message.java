@@ -54,16 +54,13 @@ public class Message implements Serializable {
         return new Message("UPDATE_PRICE", username, auctionId, newPrice);
     }
 
-    public static Message auctionClosed(String auctionId) {
-        return new Message("AUCTION_CLOSED", null, auctionId, 0);
-    }
-
     public static Message loginSuccess(Object user) {
         return new Message("LOGIN_SUCCESS", user);
     }
 
-    public static Message loginFail() {
-        return new Message("LOGIN_FAIL", "Sai tên đăng nhập hoặc mật khẩu!");
+    public static Message loginFail(String reason) {
+        return new Message("LOGIN_FAIL",
+                reason != null ? reason : "Sai tên đăng nhập hoặc mật khẩu!");
     }
 
     public static Message registerSuccess() {
@@ -78,8 +75,24 @@ public class Message implements Serializable {
         return new Message("RETURN_ALL_AUCTIONS", list);
     }
 
+    public static Message returnBidHistory(Object list) {
+        return new Message("RETURN_BID_HISTORY", list);
+    }
+
+    public static Message autoBidSuccess() {
+        return new Message("AUTO_BID_SUCCESS", "Đã thiết lập Auto-Bid thành công!");
+    }
+
+    public static Message autoBidFail(String reason) {
+        return new Message("AUTO_BID_FAIL", reason);
+    }
+
     public static Message error(String errorMsg) {
         return new Message("ERROR", errorMsg);
+    }
+
+    public static Message auctionClosed(String auctionId, String winnerId) {
+        return new Message("AUCTION_CLOSED", null, auctionId, 0, winnerId);
     }
 
     // Getter

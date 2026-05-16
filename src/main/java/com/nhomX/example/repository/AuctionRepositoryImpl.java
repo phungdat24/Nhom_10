@@ -169,6 +169,26 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
+
+  @Override
+  public List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus) {
+    return List.of();
+  }
+
+  @Override
+  public boolean updateAuctionStatus(Auction auction) {
+    return false;
+  }
+
+  @Override
+  public List<Auction> getEndingSoonAuctions(int i) {
+    return List.of();
+  }
+
+  @Override
+  public List<Auction> getTrendingAuctions(int i) {
+    return List.of();
+  }
   // HÀM PHỤ TRỢ: Map dòng dữ liệu từ DB sang Object
 
   private Auction mapRowToAuction(ResultSet rs) throws SQLException {

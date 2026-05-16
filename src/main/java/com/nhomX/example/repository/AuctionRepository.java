@@ -31,4 +31,12 @@ public interface AuctionRepository {
 
     // [THÊM MỚI] Lấy tất cả phiên theo seller (Seller xem phiên của mình).
     List<Auction> findBySellerId(String sellerId);
+
+    List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus);
+
+    boolean updateAuctionStatus(Auction auction);
+
+    List<Auction> getEndingSoonAuctions(int i);
+
+    List<Auction> getTrendingAuctions(int i);
 }
