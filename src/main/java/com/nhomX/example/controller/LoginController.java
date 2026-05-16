@@ -7,6 +7,7 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
 import com.nhomX.example.utils.SecurityUtils;
+import com.nhomX.example.utils.ValidatorUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
@@ -29,6 +30,11 @@ public class LoginController implements ServerEventListener {
         // Kiểm tra xem có trống không
         if(email.isEmpty() || pass.isEmpty()){
             AlertUtils.showWarning("Lỗi!", "Vui lòng nhập đầy đủ email và mật khẩu!");
+            return;
+        }
+        // Chặn ngay nếu gõ linh tinh, không cần gửi lên Server làm gì cho nghẽn mạng
+        if (!ValidatorUtils.isValidEmail(email)) {
+            AlertUtils.showWarning("Sai định dạng", "Email không hợp lệ!");
             return;
         }
         String securedPass = SecurityUtils.hashPassword(pass);

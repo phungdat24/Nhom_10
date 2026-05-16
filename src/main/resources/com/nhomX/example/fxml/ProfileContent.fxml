@@ -15,9 +15,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 
-<ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ProfileContentController">
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ProfileController">
 
-    <VBox spacing="0" style="-fx-background-color: #2b1f12;" styleClass="root-pane">
+    <VBox alignment="TOP_CENTER" spacing="0" style="-fx-background-color: #2b1f12;" styleClass="root-pane">
 
         <!-- ===== PAGE TITLE ===== -->
         <VBox styleClass="stats-bar">
@@ -27,11 +27,11 @@
         </VBox>
 
         <!-- ===== MAIN CONTENT: 2 COLUMNS ===== -->
-        <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <HBox alignment="TOP_CENTER" minWidth="1000.0" spacing="20" VBox.vgrow="ALWAYS">
             <padding><Insets bottom="24" left="24" right="24" top="10" /></padding>
 
             <!-- ========== LEFT COLUMN: Profile Info ========== -->
-            <VBox maxWidth="800" minWidth="600" spacing="16" HBox.hgrow="SOMETIMES">
+            <VBox maxWidth="400.0" minWidth="350.0" spacing="16" HBox.hgrow="NEVER">
 
                 <!-- Profile Card -->
                 <VBox spacing="20" styleClass="profile-card " VBox.vgrow="ALWAYS">
@@ -97,7 +97,7 @@
             <!-- End Left Column -->
 
             <!-- ========== RIGHT COLUMN: Stats & Activity ========== -->
-            <VBox spacing="16" HBox.hgrow="ALWAYS">
+            <VBox maxWidth="550.0" minWidth="450.0" spacing="16" HBox.hgrow="ALWAYS">
 
                 <!-- Balance Card -->
                 <VBox spacing="12" styleClass="profile-card">

@@ -30,4 +30,6 @@ public interface ServerEventListener {
     /** Mất kết nối với Server – hiển thị popup hoặc chuyển màn hình. */
     default void onConnectionLost(String reason) {}
     default void onBidHistoryReceived(List<BidTransaction> history) {}
+    // Nghe ngóng OTP:
+    default void onShowOtpDialog() {}
 }

@@ -9,25 +9,31 @@ import com.nhomX.example.utils.SecurityUtils;
 import com.nhomX.example.utils.ValidatorUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class RegisterController implements ServerEventListener {
 
     @FXML
-    private TextField     userName;   // Họ tên
+    private TextField userName;   // Họ tên
     @FXML
-    private TextField     account;    // Email
+    private TextField account;    // Email
     @FXML
     private PasswordField password;   // Mật khẩu
     @FXML
     private PasswordField password1;  // Xác nhận mật khẩu
+
     //   Khi bấm nút đăng nhập:
     @FXML
     void signUp(ActionEvent event) {
-        String name     = userName.getText().trim();
-        String email    = account.getText().trim();
-        String pass     = password.getText().trim();
+        String name = userName.getText().trim();
+        String email = account.getText().trim();
+        String pass = password.getText().trim();
         String passConf = password1.getText().trim();
 
         // 1. Kiểm tra trống
@@ -55,9 +61,9 @@ public class RegisterController implements ServerEventListener {
         String securedPass = SecurityUtils.hashPassword(pass);
 
         AuctionClient auctionClient;
-        auctionClient=SessionManager.getInstance().getAuctionClient();
+        auctionClient = SessionManager.getInstance().getAuctionClient();
 
-        if(auctionClient == null){
+        if (auctionClient == null) {
             AlertUtils.showError("Lỗi kết nối!", "Chưa kết nối được với Server!");
             return;
         }
@@ -80,6 +86,7 @@ public class RegisterController implements ServerEventListener {
     void handleBackToLogin(ActionEvent event) {
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
     }
+
     @Override
     public void onRegisterResult(boolean isSuccess, String message) {
         if (isSuccess) {
@@ -90,5 +97,26 @@ public class RegisterController implements ServerEventListener {
             // Đăng ký thất bại (ví dụ: trùng Email): Báo đỏ và đứng yên tại chỗ
             AlertUtils.showError("Đăng ký thất bại", message);
         }
+    }
+
+    // [BỔ SUNG]: Hàm tự động chạy khi nhận lệnh "SHOW_OTP_DIALOG" từ Server
+    @Override
+    public void onShowOtpDialog() {
+        javafx.application.Platform.runLater(() -> {
+            try {
+                // Tải file giao diện Pop-up OTP mà em đã thiết kế
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/OtpDialog.fxml"));
+                Parent root = loader.load();
+
+                Stage stage = new Stage();
+                stage.initModality(Modality.APPLICATION_MODAL); // Khóa màn hình chính đằng sau lại
+                stage.setTitle("Xác thực mã định danh OTP");
+                stage.setScene(new Scene(root));
+                stage.show();
+
+            } catch (java.io.IOException e) {
+                System.err.println("Lỗi hiển thị Pop-up OTP: " + e.getMessage());
+            }
+        });
     }
 }
