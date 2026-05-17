@@ -16,8 +16,22 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.geometry.Insets?>
 <StackPane styleClass="main-root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@../css/login.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.RegisterController">
     <children>
+        <HBox alignment="TOP_LEFT" pickOnBounds="false" StackPane.alignment="TOP_LEFT">
+            <children>
+                <HBox alignment="CENTER" maxHeight="100.0" onMouseClicked="#handleBackToHome" styleClass="vibo-home-btn">
+                    <children>
+                        <Label styleClass="vibo-logo-text" text="🔨"  />
+                        <Label styleClass="vibo-logo-text" text="Vibo" />
+                    </children>
+                    <HBox.margin>
+                        <Insets right="30.0" top="30.0" />
+                    </HBox.margin>
+                </HBox>
+            </children>
+        </HBox>
         <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" spacing="25.0" styleClass="login-card" StackPane.alignment="CENTER">
             <children>
                 <Label text="Đăng ký" textAlignment="CENTER" textFill="#f4f4f4">

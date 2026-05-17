@@ -27,11 +27,11 @@
         </VBox>
 
         <!-- ===== MAIN CONTENT: 2 COLUMNS ===== -->
-        <HBox alignment="TOP_CENTER" minWidth="1000.0" spacing="20" VBox.vgrow="ALWAYS">
+        <HBox alignment="TOP_CENTER" maxWidth="Infinity" spacing="20" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
             <padding><Insets bottom="24" left="24" right="24" top="10" /></padding>
 
-            <!-- ========== LEFT COLUMN: Profile Info ========== -->
-            <VBox maxWidth="400.0" minWidth="350.0" spacing="16" HBox.hgrow="NEVER">
+            <!-- ========== LEFT COLUMN: Profile Info (30%) ========== -->
+            <VBox maxWidth="Infinity" prefWidth="300" spacing="16" HBox.hgrow="ALWAYS">
 
                 <!-- Profile Card -->
                 <VBox spacing="20" styleClass="profile-card " VBox.vgrow="ALWAYS">
@@ -46,9 +46,9 @@
                                         <clip>
                                             <Rectangle arcHeight="25.0" arcWidth="25.0" height="86.0" width="86.0" />
                                         </clip>
-                              <image>
-                                 <Image url="@../images/email_icon.png" />
-                              </image>
+                                        <image>
+                                            <Image url="@../images/email_icon.png" />
+                                        </image>
                                     </ImageView>
                                 </children>
                             </VBox>
@@ -96,8 +96,8 @@
             </VBox>
             <!-- End Left Column -->
 
-            <!-- ========== RIGHT COLUMN: Stats & Activity ========== -->
-            <VBox maxWidth="550.0" minWidth="450.0" spacing="16" HBox.hgrow="ALWAYS">
+            <!-- ========== RIGHT COLUMN: Stats & Activity (70%) ========== -->
+            <VBox maxWidth="Infinity" prefWidth="700" spacing="16" HBox.hgrow="ALWAYS">
 
                 <!-- Balance Card -->
                 <VBox spacing="12" styleClass="profile-card">

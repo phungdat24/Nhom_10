@@ -23,13 +23,19 @@
                <Insets bottom="24" />
             </padding>
             <children>
-               <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar" styleClass="hamburger-btn" text="☰">
-                     <font>
-                        <Font name="System Bold" size="20.0" />
-                     </font>
+               <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar"
+                       style="-fx-background-color: white;
+               -fx-border-color: rgba(201,162,39,0.30);
+               -fx-border-radius: 8;
+               -fx-border-width: 1;
+               -fx-background-radius: 8;
+               -fx-cursor: hand;
+               -fx-padding: 6 10 6 10;"
+                       text="☰">
+                  <font><Font name="System Bold" size="18.0" /></font>
                </Button>
-               <Label styleClass="logo-icon" text="🔨" textFill="RED" />
-               <Label styleClass="logo-text" text="AUCTION" />
+               <Label styleClass="logo-icon" text="🔨" textFill="rgb(155, 80, 199)" />
+               <Label styleClass="logo-text" text="Vibo" />
             </children>
          </HBox>
          <Region prefHeight="40.0" prefWidth="100.0" />
@@ -41,12 +47,46 @@
          <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
 
          <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
-         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" visible="false">
-            <MenuButton fx:id="menuUser" mnemonicParsing="false" styleClass="user-menu-button" text="👤  Tên người dùng">
-               <items>
-                  <MenuItem fx:id="handleProfile" mnemonicParsing="false" onAction="#handleProfile" text="👤 Hồ sơ của tôi" />
+         <HBox fx:id="userInfoBox" alignment="CENTER" spacing="10"
+               managed="false" visible="false"
+               style="-fx-background-color: rgba(201,162,39,0.10);
+             -fx-background-radius: 20;
+             -fx-border-color: rgba(201,162,39,0.28);
+             -fx-border-radius: 20;
+             -fx-border-width: 1;
+             -fx-padding: 6 14 6 8;">
 
-                  <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="🚪 Đăng xuất" />
+            <!-- Avatar circle -->
+            <StackPane minWidth="30" minHeight="30"
+                       style="-fx-background-color: #c9a227;
+                      -fx-background-radius: 15;">
+               <Label fx:id="lblAvatarInitial"
+                      text="U"
+                      style="-fx-text-fill: #2b1f12;
+                      -fx-font-size: 13px;
+                      -fx-font-weight: bold;" />
+            </StackPane>
+
+            <!-- Tên người dùng -->
+            <Label fx:id="lblUserName"
+                   text="Người dùng"
+                   style="-fx-text-fill: #c9a227;
+                  -fx-font-size: 13px;
+                  -fx-font-weight: bold;" />
+
+            <!-- Dropdown arrow + menu -->
+            <MenuButton fx:id="menuUser" mnemonicParsing="false" text="▾"
+                        style="-fx-background-color: transparent;
+                       -fx-text-fill: rgba(201,162,39,0.70);
+                       -fx-font-size: 13px;
+                       -fx-padding: 0 0 0 0;
+                       -fx-border-width: 0;
+                       -fx-cursor: hand;">
+               <items>
+                  <MenuItem fx:id="menuProfile" mnemonicParsing="false"
+                            onAction="#handleProfile" text="👤  Hồ sơ của tôi" />
+                  <MenuItem mnemonicParsing="false"
+                            onAction="#handleLogout" text="🚪  Đăng xuất" />
                </items>
             </MenuButton>
          </HBox>
