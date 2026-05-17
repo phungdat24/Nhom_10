@@ -195,6 +195,13 @@ public class AuctionClient {
                     }
                 });
                 break;
+            case "SHOW_OTP_DIALOG":
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onShowOtpDialog();
+                    }
+                });
+                break;
 
             case "REGISTER_SUCCESS":
                 runOnUiThread(() -> {

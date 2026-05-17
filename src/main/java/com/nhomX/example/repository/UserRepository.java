@@ -24,6 +24,4 @@ public interface UserRepository {
     List<User> findAll();
 
     int getTotalUserCount();
-
-    User findByEmail(String email);
 }

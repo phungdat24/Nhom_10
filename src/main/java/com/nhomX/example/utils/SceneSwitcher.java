@@ -61,4 +61,23 @@ public class SceneSwitcher {
             System.err.println("Lỗi: MainController chưa được khởi tạo!");
         }
     }
+    public static void switchSceneInline(Node activeNode, String fxmlPath) {
+        try {
+            // 1. Tải file FXML mới
+            FXMLLoader loader = new FXMLLoader(SceneSwitcher.class.getResource(fxmlPath));
+            Parent root = loader.load();
+
+            // 2. Lấy ra Stage hiện tại từ Node đang hoạt động
+            Stage currentStage = (Stage) activeNode.getScene().getWindow();
+
+            // 3. Thay thế ruột (Root) của Scene hiện tại thay vì đẻ Stage mới
+            currentStage.getScene().setRoot(root);
+            currentStage.sizeToScene(); // Tự động co giãn vừa vặn giao diện mới
+            currentStage.centerOnScreen(); // Căn giữa màn hình
+
+        } catch (IOException e) {
+            System.err.println("❌ Lỗi nghiêm trọng: Không thể chuyển cảnh sang " + fxmlPath);
+            e.printStackTrace();
+        }
+    }
 }
