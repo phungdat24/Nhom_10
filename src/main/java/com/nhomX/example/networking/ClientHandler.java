@@ -2,10 +2,15 @@ package com.nhomX.example.networking;
 
 import com.nhomX.example.model.*;
 import com.nhomX.example.repository.*;
+import com.nhomX.example.service.EmailService;
+import com.nhomX.example.service.GmailServiceImpl;
+import com.nhomX.example.utils.ValidatorUtils;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class ClientHandler implements Runnable {
@@ -80,16 +85,21 @@ public class ClientHandler implements Runnable {
                 case "GET_DASHBOARD_DATA":
                     List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
                     List<Auction> trendingList = auctionRepository.getTrendingAuctions(10);
-                    Object[] dashboardPayload = {endingSoonlist, trendingList};
+                    Map<String, Integer> stats = new HashMap<>();
+                    stats.put("active", auctionRepository.countActiveAuctions());
+                    stats.put("ending", auctionRepository.countEndingSoonAuctions());
+                    stats.put("users", userRepository.getTotalUserCount());
+                    stats.put("online", server.getOnlineUserCount());
+                    Object[] dashboardPayload = {stats, endingSoonlist, trendingList};
                     Message responseMsg = new Message("DASHBOARD_DATA_RESULT", dashboardPayload);
                     sendToClient(responseMsg);
                     break;
-                case "GET_MY_ACUTIONS":
+                case "GET_MY_AUCTIONS":
                     String userIdForMyAuctions = (String) msg.getData();
                     System.out.println("SERVER: Đang truy vấn danh sách đấu giá cho User:" + userIdForMyAuctions);
 
                     try{
-                        List<com.nhomX.example.model.MyAuctionDTO> myAuctionList = (List<MyAuctionDTO>) auctionRepository;
+                        List<MyAuctionDTO> myAuctionList = (List<MyAuctionDTO>) auctionRepository;
                         Message responseMyAuctions = new Message("My_AUCTIONS_RESULT", auctionRepository);
                         this.sendToClient(responseMyAuctions);
                         System.out.println("SERVER: Đã gửi " + myAuctionList.size());
@@ -102,7 +112,7 @@ public class ClientHandler implements Runnable {
                     Object[] data = (Object[]) msg.getData();
                     String email = (String) data[0];
 
-                    if (email == null || !com.nhomX.example.utils.ValidatorUtils.isValidEmail(email)){
+                    if (email == null || !ValidatorUtils.isValidEmail(email)){
                         this.sendToClient(new Message("REGISTER_FAIL","Email không đúng định dạng"));
                         break;
                     }
@@ -113,7 +123,7 @@ public class ClientHandler implements Runnable {
                     int randomPin = (int) (Math.random() * 900000) + 100000;
                     this.tempOtpCode = String.valueOf(randomPin);
                     this.temRegisterData = data;
-                    com.nhomX.example.service.EmailService emailService = new com.nhomX.example.service.GmailServiceImpl();
+                    EmailService emailService = new GmailServiceImpl();
                     emailService.sendOtp(email, tempOtpCode);
                     this.sendToClient(new Message("SHOW_OTP-_DIALOG",null));
                     break;

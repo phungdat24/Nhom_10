@@ -3,6 +3,7 @@ package com.nhomX.example.networking;
 import com.nhomX.example.model.*;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ServerEventListener {
     // Sự kiện đăng nhập
@@ -29,7 +30,11 @@ public interface ServerEventListener {
     default void onBidHistoryReceived(List<BidTransaction> history) {}
     // Nghe ngóng OTP:
     default void onShowOtpDialog() {}
-    default void onDashboardDataReceived(List<Auction> endingSoon, List<Auction> trending) {}
+
+    default void onDashboardDataReceived(Map<String, Integer> stats, List<Auction> endingSoon, List<Auction> trending) {}
 
     default void onMyAuctionsReceived(List<com.nhomX.example.model.MyAuctionDTO> myAuctionsList) {}
+
+    // Lắng nghe sự kiện thay đổi số người Online
+    default void onOnlineCountUpdated(int onlineCount) {}
 }

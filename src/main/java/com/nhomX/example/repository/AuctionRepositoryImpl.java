@@ -296,9 +296,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') AND end_time > ? "
         + "ORDER BY end_time ASC LIMIT ?";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       // Dấu ? số 1 là thời gian hiện tại (Format chuẩn DB của nhóm bạn)
       pstmt.setString(1, java.time.LocalDateTime.now().format(DB_FORMATTER));
@@ -320,9 +319,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT a.* FROM auctions a " + "LEFT JOIN bids b ON a.id = b.auction_id "
         + "WHERE a.status = 'RUNNING' " + "GROUP BY a.id " + "ORDER BY COUNT(b.id) DESC LIMIT ?";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setInt(1, limit);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -342,9 +340,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public int countActiveAuctions() {
     int count = 0;
     String sql = "SELECT COUNT(*) FROM auctions WHERE status IN ('OPEN', 'RUNNING')";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
 
       if (rs.next())
@@ -360,12 +357,11 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     int count = 0;
     String sql = "SELECT COUNT(*) FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') "
         + "AND end_time > ? AND end_time <= ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-      java.time.LocalDateTime now = java.time.LocalDateTime.now();
-      java.time.LocalDateTime tomorrow = now.plusHours(24); // Sắp kết thúc trong 24h
+      LocalDateTime now = java.time.LocalDateTime.now();
+      LocalDateTime tomorrow = now.plusHours(24); // Sắp kết thúc trong 24h
 
       pstmt.setString(1, now.format(DB_FORMATTER));
       pstmt.setString(2, tomorrow.format(DB_FORMATTER));
