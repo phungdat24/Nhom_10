@@ -177,4 +177,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
     return count;
   }
+
+  @Override
+  public User findByEmail(String email) {
+    return null;
+  }
 }

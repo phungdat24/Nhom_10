@@ -181,6 +181,12 @@ public class BidRepositoryImpl implements BidRepository {
       lock.unlock();
     }
   }
+
+  @Override
+  public boolean saveAutoBidConfig(String userId, String auctionId, long maxLimit, long increment) {
+    return false;
+  }
+
   private BidTransaction mapRowToBid(ResultSet rs) throws SQLException {
     BidTransaction bid = new BidTransaction();
     bid.setId(rs.getString("id"));
