@@ -14,6 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -118,5 +119,10 @@ public class RegisterController implements ServerEventListener {
                 System.err.println("Lỗi hiển thị Pop-up OTP: " + e.getMessage());
             }
         });
+    }
+
+    @FXML
+    public void handleBackToHome() {
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
     }
 }

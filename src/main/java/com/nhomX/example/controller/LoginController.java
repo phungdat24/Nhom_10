@@ -68,4 +68,12 @@ public class LoginController implements ServerEventListener {
             AlertUtils.showError("Đăng nhập thất bại", message);
         }
     }
+    @FXML
+    private void handleForgotPassword(ActionEvent event) {
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPassword2.fxml");
+    }
+    @FXML
+    public void handleBackToHome() {
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+    }
 }
