@@ -70,7 +70,7 @@ public class LoginController implements ServerEventListener {
     }
     @FXML
     private void handleForgotPassword(ActionEvent event) {
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPassword2.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPassword.fxml");
     }
     @FXML
     public void handleBackToHome() {
