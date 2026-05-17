@@ -444,3 +444,49 @@
     -fx-font-weight: bold;
 }
 
+/* CONTAINER BAO BỌC */
+.logo-container {
+    -fx-padding: 10 0 10 0;
+}
+
+/* NÚT HAMBURGER SVG MỚI */
+.btn-hamburger {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(201, 162, 39, 0.25);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-padding: 8 10 8 10;
+}
+
+.btn-hamburger:hover {
+    -fx-background-color: #f7f4eb; /* Đổi nền nhẹ khi di chuột */
+    -fx-border-color: rgba(201, 162, 39, 0.6);
+}
+
+/* ĐƯỜNG NÉT HAMBURGER */
+.svg-icon-hamburger {
+    -fx-fill: #2b1f12;
+}
+
+/* CỤM THƯƠNG HIỆU */
+.brand-box {
+    -fx-cursor: hand;
+}
+
+/* ICON BÚA ĐẤU GIÁ SVG */
+.brand-gavel-icon {
+    -fx-fill: #9b50c7; /* Màu tím thương hiệu */
+    -fx-scale-X: 1.2;
+    -fx-scale-Y: 1.2;
+}
+
+/* CHỮ VIBO CHUYÊN NGHIỆP */
+.brand-text {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; /* Font tiêu chuẩn, an toàn trên mọi hệ điều hành */
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #9b50c7;
+    -fx-letter-spacing: 0.5px;
+}

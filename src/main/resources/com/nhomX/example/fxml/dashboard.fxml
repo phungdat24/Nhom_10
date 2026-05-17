@@ -12,30 +12,29 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.shape.SVGPath?>
 <BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
 
    <!-- ===== TOP: Header ===== -->
    <top>
       <HBox fx:id="header" alignment="CENTER_LEFT" spacing="16.0" styleClass="header">
          <padding><Insets bottom="12" left="20" right="20" top="12" /></padding>
-         <HBox alignment="CENTER" spacing="10" styleClass="logo-box">
-            <padding>
-               <Insets bottom="24" />
-            </padding>
+         <HBox alignment="CENTER_LEFT" spacing="14" styleClass="logo-container">
             <children>
-               <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar"
-                       style="-fx-background-color: white;
-               -fx-border-color: rgba(201,162,39,0.30);
-               -fx-border-radius: 8;
-               -fx-border-width: 1;
-               -fx-background-radius: 8;
-               -fx-cursor: hand;
-               -fx-padding: 6 10 6 10;"
-                       text="☰">
-                  <font><Font name="System Bold" size="18.0" /></font>
+               <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar" styleClass="btn-hamburger">
+                  <graphic>
+                     <SVGPath content="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" styleClass="svg-icon-hamburger"/>
+                  </graphic>
                </Button>
-               <Label styleClass="logo-icon" text="🔨" textFill="rgb(155, 80, 199)" />
-               <Label styleClass="logo-text" text="Vibo" />
+
+               <HBox alignment="CENTER_LEFT" spacing="8" styleClass="brand-box">
+                  <children>
+                     <SVGPath content="M17.5 2.5L21.5 6.5L13.5 14.5L12 13L13 12L7 6L8 5L6.5 3.5L10.5 0.5L12 2L11 3L17.5 2.5ZM2 22L10 14L12 16L4 24L2 22Z"
+                              styleClass="brand-gavel-icon" />
+
+                     <Label styleClass="brand-text" text="Vibo" />
+                  </children>
+               </HBox>
             </children>
          </HBox>
          <Region prefHeight="40.0" prefWidth="100.0" />

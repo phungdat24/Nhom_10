@@ -134,8 +134,28 @@
 }
 
 .vibo-logo-text {
-    -fx-text-fill: rgb(155, 80, 199);
+    -fx-text-fill: #ffffff;;
     -fx-font-size: 20px; /* Hạ cỡ chữ xuống một chút để giao diện trông tinh tế hơn */
     -fx-font-weight: bold;
     -fx-font-family: "System";
+}
+
+/* Tinh chỉnh khoảng cách cho hộp nút Home */
+.vibo-home-btn {
+    -fx-cursor: hand;
+    -fx-spacing: 8px; /* Tạo khoảng cách vừa phải giữa búa và chữ Vibo */
+}
+
+/* Định dạng cho Icon búa Vector SVG mới */
+.brand-gavel-svg {
+    -fx-fill: #ffffff; /* Hoặc đổi thành màu tím #9b50c7 nếu nền bên ngoài của bạn là màu sáng */
+    -fx-scale-X: 1.1;  /* Cân đối lại kích thước vừa vặn với chữ */
+    -fx-scale-Y: 1.1;
+}
+
+/* Giữ hoặc tùy chỉnh font chữ Vibo bên cạnh */
+.vibo-logo-text {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
 }
