@@ -96,7 +96,7 @@
 }
 
 .logo-text {
-    -fx-text-fill: white;
+    -fx-text-fill: rgb(155, 80, 199);
     -fx-font-size: 30px;
     -fx-font-weight: bold;
     -fx-font-family: "Segoe UI", "Arial", sans-serif;

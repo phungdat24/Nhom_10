@@ -28,8 +28,8 @@
                         <Font name="System Bold" size="20.0" />
                      </font>
                </Button>
-               <Label styleClass="logo-icon" text="🔨" textFill="RED" />
-               <Label styleClass="logo-text" text="AUCTION" />
+               <Label styleClass="logo-icon" text="🔨" textFill="rgb(155, 80, 199)" />
+               <Label styleClass="logo-text" text="Vibo" />
             </children>
          </HBox>
          <Region prefHeight="40.0" prefWidth="100.0" />
