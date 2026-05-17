@@ -15,9 +15,9 @@ public class GmailServiceImpl implements EmailService{
      * Hàm gửi OTP chạy ngầm (Bất đồng bộ)
      */
     @Override
-    public void sendOtp(String recipientEmail, String otpCode) {
+    public CompletableFuture<Boolean> sendOtp(String recipientEmail, String otpCode) {
         // Chạy trong luồng riêng để không làm đơ giao diện
-        CompletableFuture.runAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             // 1. Cấu hình thông số máy chủ SMTP của Google
             Properties prop = new Properties();
             prop.put("mail.smtp.host", "smtp.gmail.com");
@@ -36,7 +36,7 @@ public class GmailServiceImpl implements EmailService{
             try {
                 // 3. Soạn nội dung Bức thư
                 Message message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(MY_EMAIL, "Hệ thống Đấu giá Nhom X"));
+                message.setFrom(new InternetAddress(MY_EMAIL, "Hệ Thống Đấu Giá Nhóm X", "UTF-8"));
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
                 message.setSubject("Mã xác thực đăng ký tài khoản (OTP)");
 
@@ -51,9 +51,10 @@ public class GmailServiceImpl implements EmailService{
                 // 4. Bấm nút "Gửi"
                 Transport.send(message);
                 System.out.println("✅ Đã gửi OTP " + otpCode + " tới email: " + recipientEmail);
-
+                return true;
             } catch (Exception e) {
                 System.err.println("❌ Lỗi khi gửi mail: " + e.getMessage());
+                return false;
             }
         });
     }

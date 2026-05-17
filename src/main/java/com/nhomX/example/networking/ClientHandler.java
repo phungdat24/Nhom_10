@@ -8,6 +8,8 @@ import com.nhomX.example.utils.ValidatorUtils;
 
 import java.io.*;
 import java.net.Socket;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +27,9 @@ public class ClientHandler implements Runnable {
     private final AuctionRepository auctionRepository;
     // Lưu thông tin user dùng trong logging
     private User currentUser;
-    private Object[] temRegisterData;
+    private Object[] tempRegisterData;
     private String tempOtpCode;
+    private LocalDateTime otpCreationTime;
 
     private volatile boolean cleaned = false;
 
@@ -116,34 +119,94 @@ public class ClientHandler implements Runnable {
                         this.sendToClient(new Message("REGISTER_FAIL","Email không đúng định dạng"));
                         break;
                     }
-                    if (userRepository.findByEmail(email) != null){
+                    if (userRepository.findByUsername(email) != null){
                         this.sendToClient(new Message("REGISTER_FAIL","Email này đã được sử dụng"));
                         break;
                     }
                     int randomPin = (int) (Math.random() * 900000) + 100000;
                     this.tempOtpCode = String.valueOf(randomPin);
-                    this.temRegisterData = data;
+                    this.tempRegisterData = data;
+                    this.otpCreationTime = java.time.LocalDateTime.now();
                     EmailService emailService = new GmailServiceImpl();
-                    emailService.sendOtp(email, tempOtpCode);
-                    this.sendToClient(new Message("SHOW_OTP-_DIALOG",null));
+                    // 3. Gọi hàm gửi mail và ĐỢI KẾT QUẢ (thenAccept)
+                    emailService.sendOtp(email, this.tempOtpCode).thenAccept(isSuccess -> {
+                        if (isSuccess) {
+                            // Gửi mail CÓ THẬT và THÀNH CÔNG -> Ra lệnh cho Client mở màn hình 6 ô OTP
+                            this.sendToClient(new Message("SHOW_OTP_DIALOG", "Đã gửi mã OTP."));
+                        } else {
+                            // Gửi mail THẤT BẠI (Email ảo, sai định dạng, Google chặn...)
+                            // Xóa cache rác
+                            this.tempOtpCode = null;
+                            this.tempRegisterData = null;
+                            this.otpCreationTime = null; // Dọn dẹp nếu lỗi
+                            // Báo lỗi, Client sẽ vẫn đứng ở màn hình đăng ký ban đầu
+                            this.sendToClient(new Message("REGISTER_FAIL", "Không thể gửi email. Hãy kiểm tra lại địa chỉ Email!"));
+                        }
+                    });
                     break;
                 case "VERIFY_REGISTER_OTP":
                     String clientOtp = (String) msg.getData();
-                    if (this.tempOtpCode != null && this.tempOtpCode.equals(clientOtp)){
-                        String regEmail = (String) temRegisterData[0];
-                        String regPass = (String) temRegisterData[1];
-                        String regName = (String) temRegisterData[2];
+                    // 1. Kiểm tra xem mã đã quá hạn 5 phút chưa
+                    if (this.otpCreationTime == null ||
+                            Duration.between(this.otpCreationTime,LocalDateTime.now()).toMinutes() > 5) {
 
-                        boolean success = true;
+                        this.sendToClient(new Message("REGISTER_FAIL", "Mã xác thực OTP đã hết hạn (Quá 5 phút). Vui lòng gửi lại mã mới!"));
+                        // Xóa toàn bộ dữ liệu tạm cũ để bảo mật
+                        this.tempOtpCode = null;
+                        this.tempRegisterData = null;
+                        this.otpCreationTime = null;
+                        break;
+                    }
+                    if (this.tempOtpCode != null && this.tempOtpCode.equals(clientOtp)){
+                        String regEmail = (String) tempRegisterData[0];
+                        String regPass = (String) tempRegisterData[1];
+                        String regName = (String) tempRegisterData[2];
+                        RegularUser newUser = new RegularUser(
+                                UUID.randomUUID().toString(), regEmail, regPass, regName, 0L);
+                        newUser.addRole(Role.BIDDER);
+                        newUser.addRole(Role.SELLER);
+
+                        boolean success = userRepository.register(newUser);
                         if(success){
                             this.sendToClient(new Message("REGISTER_SUCCESS","Đăng ký tài khoản"));
                         }else{
                             this.sendToClient(new Message("REGISTER_FAIL","Lỗi hệ thống khi "));
                         }
+                        // Dọn dẹp bộ nhớ đệm
                         this.tempOtpCode = null;
-                        this.temRegisterData = null;
+                        this.tempRegisterData = null;
+                        this.otpCreationTime = null;
                     }else{
                         this.sendToClient(new Message("REGISTER_FAIL","Mã xác thực OTP không chính xác"));
+                    }
+                    break;
+                case "RESEND_OTP":
+                    // 1. Kiểm tra xem người dùng này có đang trong phiên chờ OTP không
+                    if (this.tempRegisterData != null) {
+                        String regEmail = (String) this.tempRegisterData[0]; // Lấy lại email cũ ra
+
+                        // 2. Tạo mã OTP hoàn toàn mới
+                        int newRandomPin = (int) (Math.random() * 900000) + 100000;
+                        this.tempOtpCode = String.valueOf(newRandomPin);
+
+                        // 3. Reset lại mốc thời gian 5 phút cho mã mới này
+                        this.otpCreationTime = LocalDateTime.now();
+
+                        System.out.println("SERVER: Đang tiến hành gửi LẠI mã OTP " + this.tempOtpCode + " tới " + regEmail);
+
+                        // 4. Giao cho GmailService gửi đi
+                        EmailService resendService = new GmailServiceImpl();
+                        resendService.sendOtp(regEmail, this.tempOtpCode).thenAccept(isSuccess -> {
+                            if (isSuccess) {
+                                // Gửi thành công, báo cho Client biết (Mặc dù Client không cần chuyển cảnh nữa)
+                                System.out.println("SERVER: Đã gửi lại thư thành công!");
+                            } else {
+                                this.sendToClient(new Message("REGISTER_FAIL", "Lỗi đường truyền, không thể gửi lại email!"));
+                            }
+                        });
+                    } else {
+                        // Nếu user treo máy quá lâu bị xóa cache, bắt họ quay lại đăng ký từ đầu
+                        this.sendToClient(new Message("REGISTER_FAIL", "Phiên đăng ký đã hết hạn. Vui lòng quay lại màn hình ban đầu!"));
                     }
                     break;
                 default:
@@ -191,23 +254,6 @@ public class ClientHandler implements Runnable {
         } else {
             sendToClient(Message.loginFail("Sai tên đăng nhập hoặc mật khẩu!"));
         }
-    }
-    private void handleRegister(Message msg) {
-        Object[] data    = (Object[]) msg.getData();
-        String   username = (String) data[0];
-        String   password = (String) data[1];
-        String   fullName = (String) data[2];
-        long     balance  = (Long)   data[3];
-
-        RegularUser newUser = new RegularUser(
-                UUID.randomUUID().toString(), username, password, fullName, balance);
-        newUser.addRole(Role.BIDDER);
-        newUser.addRole(Role.SELLER);
-
-        boolean isSuccess = userRepository.register(newUser);
-        sendToClient(isSuccess
-                ? Message.registerSuccess()
-                : Message.registerFail("Tên đăng nhập đã tồn tại!"));
     }
     private void handleGetAllAuctions() {
         List<Auction> auctions = auctionRepository.findAllActiveAuctions();
