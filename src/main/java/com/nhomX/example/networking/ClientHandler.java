@@ -99,8 +99,8 @@ public class ClientHandler implements Runnable {
                     System.out.println("SERVER: Đang truy vấn danh sách đấu giá cho User:" + userIdForMyAuctions);
 
                     try{
-                        List<MyAuctionDTO> myAuctionList = (List<MyAuctionDTO>) auctionRepository;
-                        Message responseMyAuctions = new Message("My_AUCTIONS_RESULT", auctionRepository);
+                        List<MyAuctionDTO> myAuctionList =  auctionRepository.getMyAuctions(userIdForMyAuctions);
+                        Message responseMyAuctions = new Message("MY_AUCTIONS_RESULT", myAuctionList);
                         this.sendToClient(responseMyAuctions);
                         System.out.println("SERVER: Đã gửi " + myAuctionList.size());
                     } catch (Exception e){

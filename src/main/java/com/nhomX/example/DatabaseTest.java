@@ -24,8 +24,8 @@ public class DatabaseTest {
                         String pass = SecurityUtils.hashPassword("123456789");
                         String insertUsers =
                                         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES "
-                                                        + "('U001', 'seller1','"+pass+"'  , 'Nguyen Van Ban', 5000000000000000, 'USER'), "
-                                                        + "('U002', 'buyer1', '123', 'Tran Thi Mua', 500000000, 'USER')";
+                                                        + "('U001', '25021715@vnu.vn','"+pass+"'  , 'Nguyen Van Ban', 5000000000000000, 'USER'), "
+                                                        + "('U002', 'phung@gmail.com', '123', 'Tran Thi Mua', 500000000, 'USER')";
                         stmt.executeUpdate(insertUsers);
 
                         // --- ITEMS (30 món hoành tráng) ---

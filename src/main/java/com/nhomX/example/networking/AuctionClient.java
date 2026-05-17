@@ -257,7 +257,7 @@ public class AuctionClient {
                 });
                 break;
 
-            case "MY_AUCTION_RESULT":
+            case "MY_AUCTIONS_RESULT":
                 List<com.nhomX.example.model.MyAuctionDTO> myAuctionsList =
                         (List<MyAuctionDTO>) msg.getData();
 
