@@ -48,6 +48,8 @@ public class AuctionServer {
                 ClientHandler handler = new ClientHandler(socket, this, itemRepository, userRepository, bidRepository, auctionRepository);
                 clients.add(handler);
                 serverExecutor.execute(handler);
+                // [THÊM MỚI] Báo cho tất cả client biết có người mới vào
+                broadcastOnlineCount();
             }
         } catch (IOException e) {
             System.err.println("SERVER ERROR: " + e.getMessage());
@@ -123,14 +125,30 @@ public class AuctionServer {
         for (Set<ClientHandler> viewers : auctionViewers.values()) {
             viewers.remove(client);
         }
+        // [THÊM MỚI] Báo cho client biết có người vừa thoát
+        broadcastOnlineCount();
     }
     public AuctionRepository getAuctionRepository() {
         return auctionRepository;
+    }
+    /**
+     * Trả về số lượng Client (User) đang kết nối trực tiếp tới Server
+     */
+    public int getOnlineUserCount() {
+        return clients.size();
     }
 
     public static void main(String[] args) {
         new AuctionServer().start();
         System.out.println("Đang khởi động Server...");
 
+    }
+    /**
+     * THÊM MỚI: Bắn gói tin cập nhật số người online tới tất cả Client
+     */
+    public void broadcastOnlineCount() {
+        int currentOnline = clients.size();
+        Message msg = new Message("UPDATE_ONLINE_COUNT", currentOnline);
+        broadcastToAll(msg); // Hàm này em đã viết sẵn rất chuẩn rồi
     }
 }

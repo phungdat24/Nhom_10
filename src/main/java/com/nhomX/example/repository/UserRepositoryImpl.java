@@ -163,10 +163,8 @@ public class UserRepositoryImpl implements UserRepository {
   public int getTotalUserCount() {
     int count = 0;
     String sql = "SELECT COUNT(*) FROM users";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection(); // Tự động lấy kết nối
-                                                                             // chuẩn
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
 
       if (rs.next()) {

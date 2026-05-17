@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
+import java.util.Map;
 
 public class AuctionClient {
 
@@ -240,11 +241,20 @@ public class AuctionClient {
 
             case "DASHBOARD_DATA_RESULT":
                 Object[] payload = (Object[]) msg.getData();
-                List<Auction> endingSoon = (List<Auction>) payload[0];
-                List<Auction> trending = (List<Auction>) payload[1];
+                Map<String, Integer> stats = (Map<String, Integer>) payload[0];
+                List<Auction> endingSoon = (List<Auction>) payload[1];
+                List<Auction> trending = (List<Auction>) payload[2];
                 if (listener != null){
-                    listener.onDashboardDataReceived(endingSoon, trending);
+                    listener.onDashboardDataReceived(stats, endingSoon, trending);
                 }
+                break;
+            case "UPDATE_ONLINE_COUNT":
+                int onlineCount = (Integer) msg.getData();
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onOnlineCountUpdated(onlineCount);
+                    }
+                });
                 break;
 
             case "MY_AUCTION_RESULT":
