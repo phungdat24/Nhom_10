@@ -209,6 +209,18 @@ public class ClientHandler implements Runnable {
                         this.sendToClient(new Message("REGISTER_FAIL", "Phiên đăng ký đã hết hạn. Vui lòng quay lại màn hình ban đầu!"));
                     }
                     break;
+                case "APPROVE_AUCTION":
+                    String[] approvalData = (String[]) msg.getData();
+                    String auctionToApprove = approvalData[0];
+                    String adminId = approvalData[1];
+
+                    Auction a = auctionRepository.findById(auctionToApprove);
+                    if (a != null && a.getStatus() == AuctionStatus.PENDING){
+                        a.setApprovedBy(adminId);
+                        auctionRepository.updateAuctionStatus(a);
+                        sendToClient(new Message("APPOVE_SUCCESS","Đã duyệt thành công"));
+                    }
+                    break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
