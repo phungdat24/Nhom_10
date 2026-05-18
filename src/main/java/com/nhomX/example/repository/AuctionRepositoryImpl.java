@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.Items;
@@ -50,8 +51,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       pstmt.setString(7, auction.getItem() != null ? auction.getItem().getId() : null);
       pstmt.setString(8, auction.getWinner() != null ? auction.getWinner().getId() : null);
 
-      // Truyền null vì Model không có approvedBy
-      pstmt.setString(9, null);
+      // Lưu thông tin người duyệt (approved_by)
+      pstmt.setString(9, auction.getApprovedBy());
 
       pstmt.executeUpdate();
       System.out.println("✅ Đã lưu phiên đấu giá: " + auction.getId());
@@ -273,7 +274,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
 
     // Bỏ qua approvedBy vì Model không hỗ trợ
-
+    // Đọc dữ liệu cột approved_by
+    auction.setApprovedBy(rs.getString("approved_by"));
     return auction;
   }
 
@@ -376,13 +378,46 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     return count;
   }
 
+
   @Override
   public List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus) {
-    return List.of();
+    List<Auction> list = new ArrayList<>();
+    String sql = "SELECT * FROM auctions WHERE status = ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, auctionStatus.name());
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi tìm Auction theo status: " + e.getMessage());
+    }
+    return list;
   }
 
   @Override
   public boolean updateAuctionStatus(Auction auction) {
-    return false;
+    // Cập nhật cả status và end_time (phòng trường hợp gia hạn do Anti-sniping)
+    String sql = "UPDATE auctions SET status = ?, end_time = ? WHERE id = ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, auction.getStatus().name());
+      pstmt.setString(2,
+          auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
+      pstmt.setString(3, auction.getId());
+
+      int affectedRows = pstmt.executeUpdate();
+      return affectedRows > 0;
+
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi cập nhật trạng thái phiên: " + e.getMessage());
+      return false;
+    }
   }
 }
