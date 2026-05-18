@@ -383,9 +383,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus) {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * FROM auctions WHERE status = ?";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionStatus.name());
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -403,9 +402,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public boolean updateAuctionStatus(Auction auction) {
     // Cập nhật cả status và end_time (phòng trường hợp gia hạn do Anti-sniping)
     String sql = "UPDATE auctions SET status = ?, end_time = ? WHERE id = ?";
-
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auction.getStatus().name());
       pstmt.setString(2,

@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.nhomX.example.exception.AuctionClosedException;
+import com.nhomX.example.exception.InvalidBidException;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.RegularUser;
@@ -135,23 +137,18 @@ public class BidRepositoryImpl implements BidRepository {
 
             // Kiểm tra 1: Có đang mở bán không?
             if (!"RUNNING".equals(status) && !"OPEN".equals(status)) {
-              System.err.println("❌ Phiên đấu giá đã đóng hoặc chưa bắt đầu!");
-              conn.rollback();
-              return false;
+              // Java Database Transaction mặc định chỉ tự động Rollback khi gặp RuntimeException
+              throw new AuctionClosedException("Phiên đấu giá đã đóng hoặc chưa bắt đầu!");
             }
 
             // Kiểm tra 2: Còn hạn không?
             if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
-              System.err.println("❌ Phiên đấu giá đã kết thúc thời gian!");
-              conn.rollback();
-              return false;
+              throw new AuctionClosedException("Phiên đấu giá đã kết thúc thời gian!");
             }
 
             // Kiểm tra 3: Giá đấm búa có thực sự lớn hơn giá DB hiện tại không?
             if (bidAmount <= currentHighestBid) {
-              System.err.println("❌ Giá đặt " + bidAmount + " không lớn hơn giá trần hiện tại " + currentHighestBid);
-              conn.rollback();
-              return false;
+              throw new InvalidBidException("Giá đặt " + bidAmount + " không lớn hơn giá trần hiện tại " + currentHighestBid);
             }
           } else {
             System.err.println("❌ Không tìm thấy mã phiên đấu giá!");
@@ -171,9 +168,7 @@ public class BidRepositoryImpl implements BidRepository {
           if (rs.next()) {
             long currentBalance = rs.getLong("balance");
             if (currentBalance < bidAmount) {
-              System.err.println("❌ Số dư không đủ để đặt giá!");
-              conn.rollback();
-              return false;
+              throw new InvalidBidException("Số dư không đủ để đặt giá!");
             }
           } else {
             System.err.println("❌ Không tìm thấy user ID!");
