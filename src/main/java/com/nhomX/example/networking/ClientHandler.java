@@ -126,7 +126,7 @@ public class ClientHandler implements Runnable {
                     int randomPin = (int) (Math.random() * 900000) + 100000;
                     this.tempOtpCode = String.valueOf(randomPin);
                     this.tempRegisterData = data;
-                    this.otpCreationTime = java.time.LocalDateTime.now();
+                    this.otpCreationTime = LocalDateTime.now();
                     EmailService emailService = new GmailServiceImpl();
                     // 3. Gọi hàm gửi mail và ĐỢI KẾT QUẢ (thenAccept)
                     emailService.sendOtp(email, this.tempOtpCode).thenAccept(isSuccess -> {
@@ -168,7 +168,7 @@ public class ClientHandler implements Runnable {
 
                         boolean success = userRepository.register(newUser);
                         if(success){
-                            this.sendToClient(new Message("REGISTER_SUCCESS","Đăng ký tài khoản"));
+                            this.sendToClient(new Message("REGISTER_SUCCESS","Đăng ký tài khoản thành công"));
                         }else{
                             this.sendToClient(new Message("REGISTER_FAIL","Lỗi hệ thống khi "));
                         }
@@ -294,9 +294,11 @@ public class ClientHandler implements Runnable {
             synchronized (out) {
                 out.writeObject(msg);
                 out.flush();
+                out.reset(); // Ngăn chặn Java cache lại dữ liệu cũ (Lost Update bề mặt)
             }
         } catch (IOException e) {
             System.err.println("SERVER: Không thể gửi message tới client – " + e.getMessage());
+            // Nếu gửi xịt (Client rút dây mạng), lập tức dọn dẹp
             cleanup();
         }
     }

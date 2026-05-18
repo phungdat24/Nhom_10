@@ -3,7 +3,7 @@ package com.nhomX.example.utils;
 import javafx.scene.control.Alert;
 
 public class AlertUtils {
-    // Hiện thng baos lỗi:
+    // Hiện thông báo lỗi:
     public static void showError(String title, String content){
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

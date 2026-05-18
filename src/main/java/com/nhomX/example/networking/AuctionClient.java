@@ -110,6 +110,8 @@ public class AuctionClient {
             synchronized (out) {
                 out.writeObject(msg);
                 out.flush();
+                // [QUAN TRỌNG] Chống rò rỉ bộ nhớ (Memory Leak) khi gửi Object liên tục
+                out.reset();
             }
         } catch (IOException e) {
             System.err.println("CLIENT: Lỗi gửi message – " + e.getMessage());
@@ -129,7 +131,7 @@ public class AuctionClient {
         System.out.println("CLIENT: Đã hủy theo dõi phiên " + auctionId);
     }
     public void getBidHistory(String auctionId) {
-        sendToServer(new Message("GET_BID_HISTORY", auctionId));
+        sendToServer(new Message("GET_BID_HISTORY",this.username, auctionId, 0, null));
     }
     /**
      * [FIX] Tách xử lý từng loại message ra hàm riêng thay vì một khối if-else khổng lồ.

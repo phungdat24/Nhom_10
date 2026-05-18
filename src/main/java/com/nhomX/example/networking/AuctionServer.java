@@ -21,6 +21,7 @@ public class AuctionServer {
 
     // THÊM MỚI: Map quản lý người xem theo từng itemId
     // Key: itemId, Value: Tập hợp (Set) các ClientHandler đang xem món đó
+    // Dùng newKeySet() để tạo ra một Set an toàn (Thread-safe Set) dựa trên ConcurrentHashMap
     private final ConcurrentHashMap<String, Set<ClientHandler>> auctionViewers = new ConcurrentHashMap<>();
 
     //Khởi tạo Repository dùng chung tại cấp độ Server
@@ -77,6 +78,7 @@ public class AuctionServer {
             System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
             return;
         }
+        // Đảm bảo thao tác thêm người xem không bị đụng độ luồng
         // Nếu itemId chưa ai xem thì tạo danh sách mới, sau đó thêm client vào
         auctionViewers.computeIfAbsent(auctionId, k -> ConcurrentHashMap.newKeySet()).add(client);
         System.out.println("SERVER: Một client vừa tham gia xem món " + auctionId);
@@ -104,6 +106,8 @@ public class AuctionServer {
         Set<ClientHandler> viewers = auctionViewers.get(auctionId);
         if (viewers != null) {
             for (ClientHandler client : viewers) {
+                // Nếu 1 client bị lỗi ngắt kết nối, lỗi sẽ bị bắt gọn bên trong hàm sendToClient
+                // Vòng lặp vẫn an toàn chạy tiếp cho những người dùng khác.
                 client.sendToClient(msg);
             }
         }
