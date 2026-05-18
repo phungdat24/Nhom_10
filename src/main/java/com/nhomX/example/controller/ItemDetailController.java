@@ -4,10 +4,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
-import com.nhomX.example.model.*;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.BidTransaction;
+import com.nhomX.example.model.ItemImage;
+import com.nhomX.example.model.Items;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
@@ -91,7 +93,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
         this.currentAuctionId = initialAuction.getId();
         // Luôn lấy bản mới nhất từ Cache ngay khi vừa mở giao diện
         Auction freshAuction = AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
-        if (freshAuction == null) freshAuction = initialAuction; // Đề phòng bất trắc
+        if (freshAuction == null)
+            freshAuction = initialAuction; // Đề phòng bất trắc
 
         // Rút thông tin vật lý ra từ phiên đấu giá
         Items item = freshAuction.getItem();
@@ -199,14 +202,16 @@ public class ItemDetailController extends BaseController implements ServerEventL
             Platform.runLater(() -> {
                 // [REFACTOR 3]: Không dùng hàm setHighestBid tự chế nữa.
                 // Kéo giá mới từ AuctionManager (nơi đã được Socket nạp dữ liệu an toàn)
-                Auction freshAuction = AuctionManager.getInstance().getAuctionById(currentAuctionId);
-                if(freshAuction !=null) {
-                    lblCurrentPrice.setText(CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
+                Auction freshAuction =
+                        AuctionManager.getInstance().getAuctionById(currentAuctionId);
+                if (freshAuction != null) {
+                    lblCurrentPrice
+                            .setText(CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
                 }
                 String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
                 String maskedName = maskName(bidderName);
-                lblLeader.setText("\uD83C\uDFC6 Người dẫn đầu: "+ maskedName);
+                lblLeader.setText("\uD83C\uDFC6 Người dẫn đầu: " + maskedName);
                 // TẠO DÒNG LỊCH SỬ MỚI
                 Node newRow = createBidRow(maskedName, newPrice, timeNow);
 
@@ -242,7 +247,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             long bidAmount = Long.parseLong(rawValue);
 
             // [REFACTOR 2]: Lấy giá tươi mới nhất từ Nguồn Sự Thật để kiểm duyệt trước khi bắn lệnh
-            Auction freshAuction = AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
+            Auction freshAuction =
+                    AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
             if (freshAuction != null && bidAmount <= freshAuction.getHighestBid()) {
                 AlertUtils.showWarning("Lỗi đặt giá", "Giá đấu phải CAO HƠN giá hiện tại!");
                 return;
@@ -281,16 +287,17 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
             // [REFACTOR 1]: Gọi Nguồn Sự Thật Duy Nhất ra
             Auction freshAuction = AuctionManager.getInstance().getAuctionById(currentAuctionId);
-            if (freshAuction == null) return; // Bảo vệ an toàn
+            if (freshAuction == null)
+                return; // Bảo vệ an toàn
 
             // Lấy giá khởi điểm gốc từ Item
             long startingPrice = freshAuction.getItem().getStartingPrice();
 
             // Lấy thời gian bắt đầu phiên làm mốc X (Nếu null thì lấy giờ hiện tại làm mốc tạm)
             LocalDateTime startTime = freshAuction.getStartTime();
-            String startTimeStr = (startTime != null)
-                    ? startTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                    : LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            String startTimeStr =
+                    (startTime != null) ? startTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                            : LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
             // LUÔN LUÔN nạp điểm gốc này vào biểu đồ đầu tiên
             priceSeries.getData().add(new XYChart.Data<>(startTimeStr, startingPrice));
@@ -299,7 +306,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 lblLeader.setText("🏆 Người dẫn đầu: Chưa có");
                 // Biểu đồ neo tạm bằng giá trần hiện tại nếu rỗng
                 String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                priceSeries.getData().add(new XYChart.Data<>(timeNow, freshAuction.getHighestBid()));
+                priceSeries.getData()
+                        .add(new XYChart.Data<>(timeNow, freshAuction.getHighestBid()));
                 priceChart.setAnimated(true);
                 return;
             }
@@ -313,7 +321,9 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 // Thêm vào biểu đồ
                 priceSeries.getData().add(new XYChart.Data<>(timeStr, bid.getAmount()));
 
-                String fullName = bid.getBidder().getFullName() != null ? bid.getBidder().getFullName() : bid.getBidder().getUserName();
+                String fullName =
+                        bid.getBidder().getFullName() != null ? bid.getBidder().getFullName()
+                                : bid.getBidder().getUserName();
                 String maskedName = maskName(fullName);
                 Node row = createBidRow(maskedName, bid.getAmount(), timeStr);
 
@@ -331,8 +341,11 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
             lblCurrentPrice.setText(CurrencyFormatter.formatVND(latestPrice));
             // [REFACTOR 3]: ĐÃ XÓA dòng currentAuction.setHighestBid(latestPrice)
-            // Lý do: Việc cập nhật giá trị cao nhất vào RAM là nhiệm vụ của Manager, Giao diện (Controller) chỉ lo hiển thị.
-            String leaderFullName = winningBid.getBidder().getFullName() != null ? winningBid.getBidder().getFullName() : winningBid.getBidder().getUserName();
+            // Lý do: Việc cập nhật giá trị cao nhất vào RAM là nhiệm vụ của Manager, Giao diện
+            // (Controller) chỉ lo hiển thị.
+            String leaderFullName = winningBid.getBidder().getFullName() != null
+                    ? winningBid.getBidder().getFullName()
+                    : winningBid.getBidder().getUserName();
             String maskedLeader = maskName(leaderFullName);
             lblLeader.setText("🏆 Người dẫn đầu: " + maskedLeader);
 
@@ -340,6 +353,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             priceChart.setAnimated(true);
         });
     }
+
     @Override
     public void onAuctionClosed(String auctionId, String winnerId) {
         // Chỉ xử lý nếu gói tin đúng là của món hàng đang xem
@@ -390,11 +404,13 @@ public class ItemDetailController extends BaseController implements ServerEventL
         row.getChildren().addAll(lblUser, spacer, lblAmount, lblTime);
         return row;
     }
+
     /**
      * Hàm xử lý che giấu danh tính người dùng (Data Masking / Anonymization)
      */
     private String maskName(String fullName) {
-        if (fullName == null || fullName.trim().isEmpty()) return "Ẩn danh";
+        if (fullName == null || fullName.trim().isEmpty())
+            return "Ẩn danh";
         fullName = fullName.trim();
 
         // 1. Trường hợp là Email (Ví dụ: 25021715@vnu.edu.vn)
@@ -404,7 +420,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             String domain = parts.length > 1 ? parts[1] : "";
 
             // Che tên email, chỉ để lại 3 chữ cái đầu (VD: 250***@vnu.edu.vn)
-            if (emailName.length() <= 3) return emailName + "***@" + domain;
+            if (emailName.length() <= 3)
+                return emailName + "***@" + domain;
             return emailName.substring(0, 3) + "***@" + domain;
         }
 
@@ -412,7 +429,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
         String[] parts = fullName.split("\\s+");
         if (parts.length == 1) {
             // Tên chỉ có 1 chữ (Ví dụ: Dat -> D***t)
-            if (fullName.length() <= 2) return fullName + "***";
+            if (fullName.length() <= 2)
+                return fullName + "***";
             return fullName.charAt(0) + "***" + fullName.charAt(fullName.length() - 1);
         } else {
             // Tên có nhiều chữ: Lấy chữ đầu + *** + chữ cuối
