@@ -1,0 +1,26 @@
+name: Java CI with Maven (Auto Build & Test)
+
+# Kích hoạt robot khi có lệnh push hoặc tạo Pull Request
+on:
+    push:
+        branches: ["main", "feature/*"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Tải code từ kho chứa
+              uses: actions/checkout@v4
+
+            - name: Cài đặt môi trường Java (JDK)
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "25"
+                  distribution: "temurin"
+                  cache: maven
+
+            - name: Chạy tự động Build, Checkstyle và Test
+              run: ./mvnw -B clean verify
