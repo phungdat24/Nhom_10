@@ -1,5 +1,7 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.manager.AuctionManager;
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.networking.AuctionClient;
@@ -15,6 +17,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Duration;
@@ -25,76 +28,90 @@ import java.util.List;
 import java.util.Map;
 
 public class DashboardContentController extends BaseController implements ServerEventListener {
-    @FXML private Label lblFeaturedName;
-    @FXML private Label lblFeaturedPrice;
-    @FXML private Label lblFeaturedTime;
-    @FXML private ImageView imgFeatured;
-    @FXML private Label lblOnlineUsers;
-    /* Các Label thống kê trên cùng
-     Số Đang diễn ra: */
+    @FXML
+    private Label lblFeaturedName;
+    @FXML
+    private Label lblFeaturedPrice;
+    @FXML
+    private Label lblFeaturedTime;
+    @FXML
+    private ImageView imgFeatured;
+    @FXML
+    private Label lblOnlineUsers;
     @FXML
     private Label lblActiveAuctions;
-    // Số Sắp kết thúc
     @FXML
     private Label lblEndingSoon;
-    // Số Người tham gia
     @FXML
     private Label lblTotalUsers;
     @FXML
     private FlowPane contentArea;
+
     private Timeline countdownTimeline;
 
-    private Auction featuredAuction; // Đối tượng lưu trữ sản phẩm nổi bật đang hiển thị
+    // Chỉ lưu ID của sản phẩm nổi bật thay vì lưu nguyên Object để tránh dữ liệu bị cũ
+    private String featuredAuctionId;
 
     @FXML
     public void initialize() {
-        // 1. Cập nhật thông tin Header (Số dư, tên user)
         updateHeaderUI();
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        // 2. Đăng ký lắng nghe sự kiện từ Server
         if (client != null) {
             client.setServerEventListener(this);
+            // Yêu cầu dữ liệu thống kê từ Server
             client.sendToServer(new Message("GET_DASHBOARD_DATA", null));
-        }else {
+        } else {
             System.err.println("Cảnh báo: Không tìm thấy kết nối mạng Socket!");
         }
     }
 
     private void loadFeaturedData() {
-        if (featuredAuction == null)  return;
-        lblFeaturedName.setText(featuredAuction.getItem().getTitle());
-        lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(featuredAuction.getHighestBid()));
-            // 2. Load Hình ảnh (Giả định entity Items của em có hàm getImagePath() lưu đường dẫn ảnh)
-            // Nếu em chưa có, tạm thời để comment đoạn này lại nhé.
+        if (featuredAuctionId == null) return;
+
+        // [REFACTOR 1]: Lấy dữ liệu CHUẨN từ Single Source of Truth (AuctionManager)
+        Auction freshAuction = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
+        if (freshAuction == null) return;
+
+        lblFeaturedName.setText(freshAuction.getItem().getTitle());
+        lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
+
         try {
-            List<ItemImage> images = featuredAuction.getItem().getImages();
+            List<ItemImage> images = freshAuction.getItem().getImages();
             if (images != null && !images.isEmpty()) {
                 String imagePath = images.get(0).getImagePath();
                 if (imagePath != null && !imagePath.isEmpty()) {
-                    // Nạp đường dẫn String vào JavaFX Image
-                    javafx.scene.image.Image img = new javafx.scene.image.Image(getClass().getResourceAsStream(imagePath));
-                    imgFeatured.setImage(img);
+                    imgFeatured.setImage(new Image(getClass().getResourceAsStream(imagePath)));
                 } else {
-                    // (Tùy chọn) Nếu item không có ảnh nào, set một ảnh mặc định (Placeholder)
-                    imgFeatured.setImage(new javafx.scene.image.Image(getClass().getResourceAsStream("/images/default_item.png")));
+                    imgFeatured.setImage(new Image(getClass().getResourceAsStream("/images/default_item.png")));
                 }
             }
         } catch (Exception e) {
-                System.err.println("Không load được ảnh sản phẩm nổi bật: " + e.getMessage());
+            System.err.println("Không load được ảnh sản phẩm nổi bật: " + e.getMessage());
         }
 
-            // 3. Logic Đếm ngược thời gian (Đồng hồ cát)
         if (countdownTimeline != null) {
-            countdownTimeline.stop(); // Dừng đồng hồ cũ nếu có
+            countdownTimeline.stop();
         }
 
-        countdownTimeline = new javafx.animation.Timeline(new KeyFrame(Duration.seconds(1), event -> {
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             LocalDateTime now = LocalDateTime.now();
-            LocalDateTime endTime = featuredAuction.getEndTime();
+            LocalDateTime endTime = freshAuction.getEndTime();
 
             if (now.isAfter(endTime)) {
                 lblFeaturedTime.setText("⏱ Đã kết thúc!");
                 countdownTimeline.stop();
+                // Khi phát hiện món Hero đã hết giờ
+                Platform.runLater(() -> {
+                    // 1. Tạm thời đổi màu chữ để cảnh báo
+                    lblFeaturedTime.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+
+                    // 2. Tự động gửi lệnh xin Server một danh sách Hero mới để thay thế
+                    AuctionClient client = SessionManager.getInstance().getAuctionClient();
+                    if (client != null) {
+                        System.out.println("CLIENT: Món Hero đã hết hạn, đang xin Server dữ liệu Dashboard mới...");
+                        client.sendToServer(new Message("GET_DASHBOARD_DATA", null));
+                    }
+                });
             } else {
                 java.time.Duration duration = java.time.Duration.between(now, endTime);
                 long days = duration.toDays();
@@ -106,14 +123,10 @@ public class DashboardContentController extends BaseController implements Server
                 lblFeaturedTime.setText(timeLeft);
             }
         }));
-            countdownTimeline.setCycleCount(javafx.animation.Animation.INDEFINITE); // Chạy vô hạn
-            countdownTimeline.play();
+        countdownTimeline.setCycleCount(Timeline.INDEFINITE);
+        countdownTimeline.play();
     }
 
-
-    /**
-     * Xử lý khi nhấn nút "Đấu giá ngay" hoặc "Xem chi tiết"
-     */
     @FXML
     void handleFeaturedBid(ActionEvent event) {
         navigateToDetail();
@@ -124,96 +137,92 @@ public class DashboardContentController extends BaseController implements Server
         navigateToDetail();
     }
 
-    /**
-     * Logic chuyển hướng sang trang chi tiết sản phẩm
-     */
     private void navigateToDetail() {
-        if (featuredAuction == null) return;
+        if (featuredAuctionId == null) return;
 
         try {
-            // 1. Nạp giao diện chi tiết (ItemDetailContent.fxml)
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemDetailContent.fxml"));
             Parent root = loader.load();
 
-            // 2. Lấy Controller của trang chi tiết và truyền dữ liệu sản phẩm qua
             ItemDetailController detailController = loader.getController();
-            detailController.setAuctionData(featuredAuction);
 
-            // 3. Gọi "Quản gia" MainDashBoardController để thay đổi nội dung trung tâm
+            // [REFACTOR 2]: Truyền đối tượng tươi mới nhất từ Cache sang trang chi tiết
+            Auction freshAuction = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
+            detailController.setAuctionData(freshAuction);
+
             if (MainDashBoardController.instance != null) {
                 MainDashBoardController.instance.setCenterContent(root);
             }
-
         } catch (IOException e) {
-            e.printStackTrace();
             System.err.println("Lỗi chuyển hướng trang chi tiết: " + e.getMessage());
         }
     }
 
-    // ===== LẮNG NGHE REAL-TIME CHO SẢN PHẨM NỔI BẬT =====
+    // ===== LẮNG NGHE REAL-TIME ĐỒNG BỘ QUA MANAGER =====
     @Override
     public void onHighestBidUpdated(String itemId, long newPrice, String bidderName) {
-        // Nếu món hàng vừa nhảy giá chính là món đang hiện ở Dashboard, ta cập nhật ngay
-        if (featuredAuction != null && featuredAuction.getId().equals(itemId)) {
+        // AuctionManager (ở AuctionClient) đã tự cập nhật dữ liệu.
+        // Dashboard chỉ việc kiểm tra xem có phải món mình đang khoe không, nếu phải thì vẽ lại UI.
+        if (featuredAuctionId != null && featuredAuctionId.equals(itemId)) {
             Platform.runLater(() -> {
-                featuredAuction.setHighestBid(newPrice);
-                lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(newPrice));
-                System.out.println("Dashboard: Đã cập nhật giá mới cho sản phẩm Hero!");
+                // Kéo giá mới từ Manager (đã được cập nhật)
+                Auction freshAuction = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
+                if (freshAuction != null) {
+                    lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
+                    System.out.println("Dashboard: Đã đồng bộ giá mới từ AuctionManager cho sản phẩm Hero!");
+                }
             });
         }
     }
+
     @Override
     public void onDashboardDataReceived(Map<String, Integer> stats, List<Auction> endingSoon, List<Auction> trending) {
         Platform.runLater(() -> {
-            // Kiểm tra an toàn trước khi set dữ liệu
             if (stats != null) {
                 lblActiveAuctions.setText(String.valueOf(stats.getOrDefault("active", 0)));
                 lblEndingSoon.setText(String.valueOf(stats.getOrDefault("ending", 0)));
-                // [CẬP NHẬT] Lấy cả tổng số user và số online để nối chuỗi
+
                 int totalUsers = stats.getOrDefault("users", 0);
                 int onlineUsers = stats.getOrDefault("online", 0);
-
-                // Set text đúng chuẩn format:
                 lblTotalUsers.setText(String.valueOf(totalUsers));
                 lblOnlineUsers.setText("(" + onlineUsers + " đang online)");
             }
+
             if (trending != null && !trending.isEmpty()) {
-                this.featuredAuction = trending.get(0);
-                // Gọi hàm đổ dữ liệu lên UI tại đây!
+                // [REFACTOR 3]: Nạp trending vào Cache của Manager để nó quản lý tập trung
+                AuctionManager.getInstance().setAllAuctions(trending);
+
+                // Lưu ID sản phẩm top 1 thay vì lưu Object
+                this.featuredAuctionId = trending.get(0).getId();
                 loadFeaturedData();
-            }
-            // 3. [THÊM MỚI] Đổ dữ liệu các sản phẩm còn lại vào vùng trống bên dưới
-            if (contentArea != null && trending != null) {
-                contentArea.getChildren().clear(); // Dọn dẹp đồ cũ trước khi bày đồ mới
 
-                // Bắt đầu vòng lặp từ i = 1 (Vì phần tử số 0 đã lấy làm Hero Banner ở trên rồi)
-                for (int i = 1; i < trending.size(); i++) {
-                    Auction auction = trending.get(i);
-                    try {
-                        // Tải bản thiết kế của 1 cái thẻ sản phẩm (Card)
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
-                        Node cardNode = loader.load();
+                // Đổ các sản phẩm còn lại vào vùng trống bên dưới
+                if (contentArea != null && trending.size() > 1) { // [FIX BUG 3]: Kiểm tra size an toàn
+                    contentArea.getChildren().clear();
 
-                        // Truyền dữ liệu (Tên, giá, ảnh) vào cái thẻ đó
-                        ItemCardController cardController = loader.getController();
-                        //Gọi hàm setAuctionData bên class ItemCardController
-                        cardController.setAuctionData(auction);
+                    for (int i = 1; i < trending.size(); i++) {
+                        Auction auction = trending.get(i);
+                        try {
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
+                            Node cardNode = loader.load();
 
-                        // Nhét thẻ đã có dữ liệu vào vùng chứa trên màn hình
-                        contentArea.getChildren().add(cardNode);
+                            ItemCardController cardController = loader.getController();
+                            // Truyền ID hoặc Object từ Manager qua
+                            cardController.setAuctionData(AuctionManager.getInstance().getAuctionById(auction.getId()));
 
-                    } catch (Exception e) {
-                        System.err.println("❌ Lỗi khi render ItemCard: " + e.getMessage());
+                            contentArea.getChildren().add(cardNode);
+                        } catch (Exception e) {
+                            System.err.println("❌ Lỗi khi render ItemCard: " + e.getMessage());
+                        }
                     }
                 }
             }
         });
     }
-    // ===== LẮNG NGHE REAL-TIME SỐ NGƯỜI ONLINE =====
+
     @Override
     public void onOnlineCountUpdated(int onlineCount) {
         Platform.runLater(() -> {
-            // Nhớ kiểm tra null đề phòng UI chưa kịp render
             if (lblOnlineUsers != null) {
                 lblOnlineUsers.setText("(" + onlineCount + " đang online)");
             }

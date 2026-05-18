@@ -25,7 +25,7 @@ public class DatabaseTest {
                         String insertUsers =
                                         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES "
                                                         + "('U001', '25021715@vnu.vn','"+pass+"'  , 'Nguyen Van Ban', 5000000000000000, 'USER'), "
-                                                        + "('U002', 'phung@gmail.com', '123', 'Tran Thi Mua', 500000000, 'USER')";
+                                                        + "('U002', 'phung@gmail.com', '"+pass+"', 'Tran Thi Mua', 500000000, 'USER')";
                         stmt.executeUpdate(insertUsers);
 
                         // --- ITEMS (30 món hoành tráng) ---
@@ -86,7 +86,7 @@ public class DatabaseTest {
                         // --- AUCTIONS (Kết thúc năm 2027) ---
                         String insertAuctions =
                                         "INSERT INTO auctions (id, starting_price, highest_bid, start_time, end_time, status, item_id) VALUES "
-                                                        + "('AUC001', 15000, 150000, '2026-05-10 08:00:00', '2027-12-31 23:59:00', 'OPEN', 'ITM001'), "
+                                                        + "('AUC001', 15000, 150000, '2026-05-10 08:00:00', '2026-05-18 15:10:00', 'OPEN', 'ITM001'), "
                                                         + "('AUC002', 80000, 800000, '2026-05-10 08:00:00', '2027-12-31 23:59:00', 'OPEN', 'ITM002'), "
                                                         + "('AUC003', 25000, 250000, '2026-05-10 08:00:00', '2027-12-31 23:59:00', 'OPEN', 'ITM003'), "
                                                         + "('AUC004', 30000, 300000, '2026-05-10 08:00:00', '2027-12-31 23:59:00', 'OPEN', 'ITM004'), "

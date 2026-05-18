@@ -2,7 +2,7 @@ package com.nhomX.example;
 
 import java.io.IOException;
 
-import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
 import javafx.application.Application;

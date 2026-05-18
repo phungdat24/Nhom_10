@@ -1,10 +1,7 @@
 package com.nhomX.example.controller;
 
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.Items;
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
-import com.nhomX.example.networking.Message;
-import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.SceneSwitcher;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -16,22 +13,16 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class MainDashBoardController extends BaseController implements Initializable, ServerEventListener {
+public class MainDashBoardController extends BaseController implements Initializable {
 
     // ===== Sidebar =====
     @FXML
@@ -139,7 +130,7 @@ public class MainDashBoardController extends BaseController implements Initializ
     protected void handleMyAuctions(ActionEvent event) {
         if (!SessionManager.getInstance().isLoggedIn()) {
             clearServerListener();
-            com.nhomX.example.utils.SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
             return;
         }
         loadView("/com/nhomX/example/fxml/MyAuctionsContent.fxml");
@@ -150,7 +141,7 @@ public class MainDashBoardController extends BaseController implements Initializ
     protected void handleSeller(ActionEvent event) {
         if (!SessionManager.getInstance().isLoggedIn()) {
             clearServerListener();
-            com.nhomX.example.utils.SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
             return;
         }
         loadView("/com/nhomX/example/fxml/SellerContent.fxml");
@@ -158,8 +149,8 @@ public class MainDashBoardController extends BaseController implements Initializ
     }
     public void loadView(String fxmlPath){
         try{
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(fxmlPath));
-            javafx.scene.Node newNode = loader.load();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Node newNode = loader.load();
             mainContentArea.getChildren().clear();
             mainContentArea.getChildren().add(newNode);
         }catch (java.io.IOException e){

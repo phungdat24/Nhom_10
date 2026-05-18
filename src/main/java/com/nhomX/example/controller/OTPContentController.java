@@ -1,5 +1,6 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
@@ -59,6 +60,16 @@ public class OTPContentController implements Initializable , ServerEventListener
             client.setServerEventListener(this);
         }
         startResendCountdown();
+    }
+    // Thêm hàm dọn dẹp chuyên nghiệp (Garbage Collection Helper)
+    private void cleanup() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop(); // Tắt đồng hồ ngầm
+        }
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.setServerEventListener(null); // Trả lại micro
+        }
     }
     /**
      * Kích hoạt đồng hồ đếm ngược khóa nút gửi lại mã
@@ -203,6 +214,7 @@ public class OTPContentController implements Initializable , ServerEventListener
     }
     @FXML
     private void handleBack(ActionEvent event) {
+        cleanup(); // [REFACTOR 2]: Chống tràn RAM khi bấm nút Back
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/RegisterView.fxml");
     }
     // Lắng nghe kết quả từ Server trả về
@@ -213,6 +225,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             btnConfirm.setDisable(false); // Mở khóa nút bấm
 
             if (isSuccess) {
+                cleanup(); //Chống tràn RAM khi đky thành công
                 AlertUtils.showSuccess("Thành công", message);
                 // Chuyển thẳng về trang Đăng nhập sau khi OTP đúng
                 SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
@@ -221,4 +234,5 @@ public class OTPContentController implements Initializable , ServerEventListener
             }
         });
     }
+
 }

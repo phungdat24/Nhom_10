@@ -1,5 +1,7 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.manager.AuctionManager;
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.User;
@@ -55,18 +57,9 @@ public class LiveAuctionController extends BaseController implements Initializab
         Platform.runLater(() -> {
             liveAuctionContainer.getChildren().clear();
             activeAuctionCards.clear();
+            List<Auction> activeAuctions = AuctionManager.getInstance().getActiveAuctions();
 
-            LocalDateTime now = LocalDateTime.now();
-
-            for (Auction auction : auctions) {
-                // LỌC LOGIC: Chỉ lấy những phiên đang diễn ra
-                boolean isRunning = false;
-                if (auction.getStartTime() != null && auction.getEndTime() != null) {
-                    isRunning = !now.isBefore(auction.getStartTime()) && now.isBefore(auction.getEndTime());
-                }
-
-                // Nếu đang chạy, nhồi vào màn hình
-                if (isRunning || AuctionStatus.RUNNING==auction.getStatus()) {
+            for (Auction auction : activeAuctions) {
                     try {
                         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
                         VBox cardItem = loader.load();
@@ -75,7 +68,6 @@ public class LiveAuctionController extends BaseController implements Initializab
                         cardController.setAuctionData(auction);
 
                         // Lưu CardController vào Map với Key là ID của phiên/sản phẩm
-                        // Dùng để update giá Realtime khi Server gọi hàm onHighestBidUpdated
                         activeAuctionCards.put(auction.getId(), cardController);
 
                         liveAuctionContainer.getChildren().add(cardItem);
@@ -84,8 +76,7 @@ public class LiveAuctionController extends BaseController implements Initializab
                         System.err.println("Không thể load giao diện thẻ sản phẩm.");
                     }
                 }
-            }
-        });
+            });
     }
 
     @Override

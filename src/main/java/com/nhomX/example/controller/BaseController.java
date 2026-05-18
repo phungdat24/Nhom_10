@@ -1,6 +1,7 @@
 
 package com.nhomX.example.controller;
 
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.CurrencyFormatter;
@@ -11,7 +12,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
 public abstract class BaseController {
 

@@ -9,4 +9,5 @@ module com.nhomX.example {
     opens com.nhomX.example.controller to javafx.fxml;
 
     exports com.nhomX.example;
+    exports com.nhomX.example.manager;
 }
