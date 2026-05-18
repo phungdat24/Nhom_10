@@ -1,7 +1,8 @@
 package com.nhomX.example.networking;
 
-import com.nhomX.example.controller.SessionManager;
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.*;
+import com.nhomX.example.manager.AuctionManager;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -142,6 +143,13 @@ public class AuctionClient {
         switch (type) {
 
             case "UPDATE_PRICE":
+                //Cập nhật Nguồn Sự Thật trên RAM ngay lập tức
+                AuctionManager.getInstance().updateAuctionPrice(
+                        msg.getAuctionId(),
+                        msg.getAmount(),
+                        null,
+                        msg.getUsername()
+                );
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(), msg.getUsername());
@@ -152,6 +160,8 @@ public class AuctionClient {
             case "AUCTION_CLOSED":
                 // [THÊM MỚI] Xử lý sự kiện phiên đóng
                 String winnerId = msg.getData() != null ? (String) msg.getData() : null;
+                // [REFACTOR]: Đóng băng dữ liệu trong Bể chứa RAM
+                AuctionManager.getInstance().closeAuctionInCache(msg.getAuctionId(), winnerId);
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onAuctionClosed(msg.getAuctionId(), winnerId);
@@ -227,6 +237,8 @@ public class AuctionClient {
             case "RETURN_ALL_AUCTIONS":
                 @SuppressWarnings("unchecked")
                 List<Auction> auctions = (List<Auction>) msg.getData();
+                // [REFACTOR]: Nạp toàn bộ kho dữ liệu vào Manager
+                AuctionManager.getInstance().setAllAuctions(auctions);
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onAuctionsReceived(auctions);
@@ -253,6 +265,11 @@ public class AuctionClient {
                 Map<String, Integer> stats = (Map<String, Integer>) payload[0];
                 List<Auction> endingSoon = (List<Auction>) payload[1];
                 List<Auction> trending = (List<Auction>) payload[2];
+                // [REFACTOR]: Sử dụng hàm Merge.
+                    // Gộp cả 2 danh sách Trending và Ending Soon vào Cache để các món này luôn có giá tươi nhất,
+                    // MÀ KHÔNG XÓA mất các món hàng khác đang có sẵn trên màn hình Live Auction.
+                AuctionManager.getInstance().updateOrAddAuctions(trending);
+                AuctionManager.getInstance().updateOrAddAuctions(endingSoon);
                 if (listener != null){
                     listener.onDashboardDataReceived(stats, endingSoon, trending);
                 }

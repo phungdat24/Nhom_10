@@ -1,10 +1,9 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
-import com.nhomX.example.service.EmailService;
-import com.nhomX.example.service.GmailServiceImpl;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.SceneSwitcher;
 import com.nhomX.example.utils.SecurityUtils;
@@ -12,15 +11,9 @@ import com.nhomX.example.utils.ValidatorUtils;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 
 public class RegisterController implements ServerEventListener {
 
@@ -34,6 +27,7 @@ public class RegisterController implements ServerEventListener {
     private PasswordField password1;  // Xác nhận mật khẩu
     @FXML
     private Button btnSignUp; // Dùng Node này làm điểm tựa lấy Stage
+    private AuctionClient auctionClient;
 
     //   Khi bấm nút đăng nhập:
     @FXML
@@ -67,7 +61,6 @@ public class RegisterController implements ServerEventListener {
         // Mã hóa mật khẩu:
         String securedPass = SecurityUtils.hashPassword(pass);
 
-        AuctionClient auctionClient;
         auctionClient = SessionManager.getInstance().getAuctionClient();
 
         if (auctionClient == null) {
@@ -89,38 +82,41 @@ public class RegisterController implements ServerEventListener {
     // Hyperlink "Đã có tài khoản? Đăng nhập ngay" → quay về Login
     @FXML
     void handleBackToLogin(ActionEvent event) {
+        if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
     }
 
     @Override
     public void onRegisterResult(boolean isSuccess, String message) {
         btnSignUp.setDisable(false);
-        if (isSuccess) {
-            // Đăng ký thành công: Báo xanh và tự động chuyển về trang Login
-            AlertUtils.showSuccess("Đăng ký thành công", message);
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
-        } else {
-            AlertUtils.showError("Đăng ký thất bại", message);
-        }
+        Platform.runLater(()->{
+            if (isSuccess) {
+                if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
+                // Đăng ký thành công: Báo xanh và tự động chuyển về trang Login
+                AlertUtils.showSuccess("Đăng ký thành công", message);
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+            } else {
+                AlertUtils.showError("Đăng ký thất bại", message);
+            }
+        });
     }
 
     // [BỔ SUNG]: Hàm tự động chạy khi nhận lệnh "SHOW_OTP_DIALOG" từ Server
     @Override
     public void onShowOtpDialog() {
-        Platform.runLater(() -> {
             // Bắt buộc chạy trong Platform.runLater vì cuộc gọi đến từ luồng mạng
-            Platform.runLater(() -> {
-                btnSignUp.setDisable(false);
-                System.out.println("CLIENT: Server báo đã gửi email OTP thành công. Tiến hành chuyển cảnh nội tuyến...");
+        Platform.runLater(() -> {
+            btnSignUp.setDisable(false);
+            System.out.println("CLIENT: Server báo đã gửi email OTP thành công. Tiến hành chuyển cảnh nội tuyến...");
 
-                // Thực hiện chuyển cảnh ngay trên cửa sổ này sang giao diện 6 ô OTP
-                SceneSwitcher.switchSceneInline(btnSignUp, "/com/nhomX/example/fxml/OTPContent.fxml");
-            });
+            // Thực hiện chuyển cảnh ngay trên cửa sổ này sang giao diện 6 ô OTP
+            SceneSwitcher.switchSceneInline(btnSignUp, "/com/nhomX/example/fxml/OTPContent.fxml");
         });
     }
 
     @FXML
     public void handleBackToHome() {
+        if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
     }
 }

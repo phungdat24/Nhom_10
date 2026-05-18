@@ -107,6 +107,22 @@ public class AuctionManager {
         }
         return activeList;
     }
+    /**
+     * Cập nhật hoặc thêm mới một danh sách các phiên đấu giá vào Cache
+     * MÀ KHÔNG XÓA đi các phiên đang có sẵn trong RAM.
+     * (Thao tác: Upsert = Update or Insert)
+     */
+    public void updateOrAddAuctions(List<Auction> auctions) {
+        if (auctions == null || auctions.isEmpty()) return;
+
+        for (Auction auction : auctions) {
+            // Hàm put của ConcurrentHashMap cực kỳ thông minh:
+            // - Nếu ID đã tồn tại: Nó ghi đè Object cũ bằng Object mới này.
+            // - Nếu ID chưa tồn tại: Nó thêm Object này vào thành một mục mới.
+            auctionCache.put(auction.getId(), auction);
+        }
+        System.out.println("CACHE: Đã cập nhật (Merge) " + auctions.size() + " phiên đấu giá vào bộ nhớ an toàn.");
+    }
 
     /**
      * Lấy chi tiết 1 phiên cụ thể (Dùng cho màn hình Chi tiết sản phẩm).

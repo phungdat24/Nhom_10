@@ -5,6 +5,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.nhomX.example.manager.AuctionManager;
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.*;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
@@ -50,7 +52,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
     @FXML
     private Label lblLeader;
 
-    private Auction currentAuction;
+    private String currentAuctionId;
 
     private AuctionClient auctionClient;
 
@@ -84,16 +86,20 @@ public class ItemDetailController extends BaseController implements ServerEventL
         }
     }
 
-    public void setAuctionData(Auction auction) {
-        this.currentAuction = auction;
+    public void setAuctionData(Auction initialAuction) {
+        // Chỉ lưu ID để làm "chìa khóa"
+        this.currentAuctionId = initialAuction.getId();
+        // Luôn lấy bản mới nhất từ Cache ngay khi vừa mở giao diện
+        Auction freshAuction = AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
+        if (freshAuction == null) freshAuction = initialAuction; // Đề phòng bất trắc
 
         // Rút thông tin vật lý ra từ phiên đấu giá
-        Items item = auction.getItem();
+        Items item = freshAuction.getItem();
 
         lblItemName.setText(item.getTitle());
 
         // ✅ LẤY GIÁ CAO NHẤT TỪ CLASS AUCTION (Như em đã đề xuất!)
-        lblCurrentPrice.setText(CurrencyFormatter.formatVND(auction.getHighestBid()));
+        lblCurrentPrice.setText(CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
 
         priceSeries = new XYChart.Series<>();
         priceSeries.setName("Biến động giá");
@@ -102,7 +108,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
         // Lấy giờ hiện tại (Format thành String cho đẹp) làm trục X, giá khởi điểm làm trục Y
         String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        priceSeries.getData().add(new XYChart.Data<>(currentTime, auction.getHighestBid()));
+        priceSeries.getData().add(new XYChart.Data<>(currentTime, freshAuction.getHighestBid()));
         // Mô tả sản phẩm
         if (item.getDescription() != null && !item.getDescription().isEmpty()) {
             lblDescription.setText(item.getDescription());
@@ -110,7 +116,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             lblDescription.setText("Sản phẩm này chưa có mô tả chi tiết.");
         }
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime start = auction.getStartTime();
+        LocalDateTime start = freshAuction.getStartTime();
 
         if (start != null && now.isBefore(start)) {
             // 1. CHƯA ĐẾN GIỜ: Khóa mõm các nút bấm
@@ -162,18 +168,18 @@ public class ItemDetailController extends BaseController implements ServerEventL
         if (auctionClient != null) {
             auctionClient.setServerEventListener(this);
             // Báo cho Server bắt đầu zem:
-            auctionClient.watchAuction(currentAuction.getId());
+            auctionClient.watchAuction(this.currentAuctionId);
             // GỬI YÊU CẦU LẤY DỮ LIỆU CŨ
-            auctionClient.getBidHistory(currentAuction.getId());
+            auctionClient.getBidHistory(this.currentAuctionId);
         }
     }
 
     @FXML
     void handleBackAction(ActionEvent event) {
-        if (auctionClient != null && currentAuction != null) {
+        if (auctionClient != null && currentAuctionId != null) {
             clearServerListener();
             // Báo cho Server: "Tôi thoát đây, đừng gửi giá món này cho tôi nữa"
-            auctionClient.unwatchAuction(currentAuction.getId());
+            auctionClient.unwatchAuction(currentAuctionId);
         }
         if (MainDashBoardController.instance != null) {
             MainDashBoardController.instance
@@ -187,12 +193,16 @@ public class ItemDetailController extends BaseController implements ServerEventL
     public void onHighestBidUpdated(String updatedItemId, long newPrice, String bidderName) {
         // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem
         // không?
-        if (currentAuction != null && currentAuction.getId().equals(updatedItemId)) {
+        if (currentAuctionId != null && currentAuctionId.equals(updatedItemId)) {
 
             // Bọc trong Platform.runLater để giao cho luồng UI (Tránh Crash)
             Platform.runLater(() -> {
-                currentAuction.setHighestBid(newPrice);
-                lblCurrentPrice.setText(CurrencyFormatter.formatVND(newPrice));
+                // [REFACTOR 3]: Không dùng hàm setHighestBid tự chế nữa.
+                // Kéo giá mới từ AuctionManager (nơi đã được Socket nạp dữ liệu an toàn)
+                Auction freshAuction = AuctionManager.getInstance().getAuctionById(currentAuctionId);
+                if(freshAuction !=null) {
+                    lblCurrentPrice.setText(CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
+                }
                 String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
                 String maskedName = maskName(bidderName);
@@ -231,8 +241,9 @@ public class ItemDetailController extends BaseController implements ServerEventL
         try {
             long bidAmount = Long.parseLong(rawValue);
 
-            // 3. Kiểm tra xem giá đặt có lớn hơn giá hiện tại không
-            if (bidAmount <= currentAuction.getHighestBid()) {
+            // [REFACTOR 2]: Lấy giá tươi mới nhất từ Nguồn Sự Thật để kiểm duyệt trước khi bắn lệnh
+            Auction freshAuction = AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
+            if (freshAuction != null && bidAmount <= freshAuction.getHighestBid()) {
                 AlertUtils.showWarning("Lỗi đặt giá", "Giá đấu phải CAO HƠN giá hiện tại!");
                 return;
             }
@@ -241,10 +252,9 @@ public class ItemDetailController extends BaseController implements ServerEventL
             if (auctionClient != null) {
                 // ✅ FIX LỖI: Truyền đủ 3 tham số (userId, auctionId, bidAmount)
                 String currentUserId = SessionManager.getInstance().getCurrentUser().getId();
-                String auctionId = currentAuction.getId(); // Tạm thời dùng ItemID làm AuctionID
-                auctionClient.placeBid(currentUserId, auctionId, bidAmount);
+                auctionClient.placeBid(currentUserId, this.currentAuctionId, bidAmount);
                 System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món "
-                        + currentAuction.getId());
+                        + this.currentAuctionId);
 
                 // Xóa trắng ô nhập để chuẩn bị cho lần gõ tiếp theo
                 txtBidAmount.clear();
@@ -269,11 +279,27 @@ public class ItemDetailController extends BaseController implements ServerEventL
             vboxBidHistory.getChildren().clear();
             priceSeries.getData().clear();
 
+            // [REFACTOR 1]: Gọi Nguồn Sự Thật Duy Nhất ra
+            Auction freshAuction = AuctionManager.getInstance().getAuctionById(currentAuctionId);
+            if (freshAuction == null) return; // Bảo vệ an toàn
+
+            // Lấy giá khởi điểm gốc từ Item
+            long startingPrice = freshAuction.getItem().getStartingPrice();
+
+            // Lấy thời gian bắt đầu phiên làm mốc X (Nếu null thì lấy giờ hiện tại làm mốc tạm)
+            LocalDateTime startTime = freshAuction.getStartTime();
+            String startTimeStr = (startTime != null)
+                    ? startTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                    : LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+            // LUÔN LUÔN nạp điểm gốc này vào biểu đồ đầu tiên
+            priceSeries.getData().add(new XYChart.Data<>(startTimeStr, startingPrice));
+
             if (history == null || history.isEmpty()) {
                 lblLeader.setText("🏆 Người dẫn đầu: Chưa có");
                 // Biểu đồ neo tạm bằng giá trần hiện tại nếu rỗng
                 String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                priceSeries.getData().add(new XYChart.Data<>(timeNow, currentAuction.getHighestBid()));
+                priceSeries.getData().add(new XYChart.Data<>(timeNow, freshAuction.getHighestBid()));
                 priceChart.setAnimated(true);
                 return;
             }
@@ -304,8 +330,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             long latestPrice = winningBid.getAmount();
 
             lblCurrentPrice.setText(CurrencyFormatter.formatVND(latestPrice));
-            currentAuction.setHighestBid(latestPrice);
-
+            // [REFACTOR 3]: ĐÃ XÓA dòng currentAuction.setHighestBid(latestPrice)
+            // Lý do: Việc cập nhật giá trị cao nhất vào RAM là nhiệm vụ của Manager, Giao diện (Controller) chỉ lo hiển thị.
             String leaderFullName = winningBid.getBidder().getFullName() != null ? winningBid.getBidder().getFullName() : winningBid.getBidder().getUserName();
             String maskedLeader = maskName(leaderFullName);
             lblLeader.setText("🏆 Người dẫn đầu: " + maskedLeader);
@@ -317,7 +343,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
     @Override
     public void onAuctionClosed(String auctionId, String winnerId) {
         // Chỉ xử lý nếu gói tin đúng là của món hàng đang xem
-        if (currentAuction != null && currentAuction.getId().equals(auctionId)) {
+        if (currentAuctionId != null && currentAuctionId.equals(auctionId)) {
             Platform.runLater(() -> {
                 // Khóa ngay lập tức mọi tương tác
                 txtBidAmount.setDisable(true);
@@ -325,10 +351,6 @@ public class ItemDetailController extends BaseController implements ServerEventL
                     btnBid.setDisable(true);
                     btnBid.setText("ĐÃ KẾT THÚC");
                 }
-
-                // Cập nhật trạng thái
-                currentAuction.setStatus(AuctionStatus.FINISHED);
-
                 // Hiển thị người chiến thắng
                 if (winnerId != null && !winnerId.isEmpty()) {
                     // Cần map winnerId ra tên hoặc dùng luôn nếu đã là tên

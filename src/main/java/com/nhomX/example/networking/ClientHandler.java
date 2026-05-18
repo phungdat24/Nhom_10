@@ -1,12 +1,21 @@
 package com.nhomX.example.networking;
 
+import com.nhomX.example.exception.AuctionClosedException;
+import com.nhomX.example.exception.AuthenticationException;
+import com.nhomX.example.exception.InvalidBidException;
 import com.nhomX.example.model.*;
-import com.nhomX.example.repository.*;
+import com.nhomX.example.repository.AuctionRepository;
+import com.nhomX.example.repository.BidRepository;
+import com.nhomX.example.repository.ItemRepository;
+import com.nhomX.example.repository.UserRepository;
 import com.nhomX.example.service.EmailService;
 import com.nhomX.example.service.GmailServiceImpl;
 import com.nhomX.example.utils.ValidatorUtils;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -236,14 +245,25 @@ public class ClientHandler implements Runnable {
         String   auctionId = msg.getAuctionId();    // BUG FIX: dùng getAuctionId() thay vì bidData[1]
         long     bidAmount = msg.getAmount();
         String   newBidId  = UUID.randomUUID().toString();
-
-        boolean isSuccess = bidRepository.executeBidTransaction(userId, auctionId, bidAmount, newBidId);
-        if (isSuccess) {
-            server.broadcastToAuction(auctionId,
-                    Message.updatePrice(msg.getUsername(), auctionId, bidAmount));
-            sendToClient(Message.bidSuccess());
-        } else {
-            sendToClient(Message.bidFail("Đặt giá thất bại! Kiểm tra lại số dư hoặc giá đặt."));
+        try {
+            // Ném Exception ngay tại cổng nếu chưa đăng nhập
+            if (this.currentUser == null) {
+                throw new AuthenticationException("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn trên máy chủ!");
+            }
+            boolean isSuccess = bidRepository.executeBidTransaction(userId, auctionId, bidAmount, newBidId);
+            if (isSuccess) {
+                String bidderFullName = (this.currentUser.getFullName() != null) ? this.currentUser.getFullName() : msg.getUsername();
+                server.broadcastToAuction(auctionId,
+                        Message.updatePrice(bidderFullName, auctionId, bidAmount));
+                sendToClient(Message.bidSuccess());
+            }
+        }catch (InvalidBidException| AuthenticationException | AuctionClosedException e){
+            // BẮT LỖI NGHIỆP VỤ: Gửi chính xác thông báo lỗi về cho người dùng
+            sendToClient(Message.bidFail(e.getMessage()));
+        }catch (Exception e) {
+            // BẮT LỖI HỆ THỐNG (Lỗi Database, NullPointer, v.v.): Tránh làm sập Server
+            System.err.println("SERVER: Lỗi hệ thống khi xử lý BID - " + e.getMessage());
+            sendToClient(Message.error("Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!"));
         }
     }
     private void handleWatchItem(Message msg) {

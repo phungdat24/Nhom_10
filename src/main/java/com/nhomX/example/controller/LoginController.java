@@ -1,5 +1,6 @@
 package com.nhomX.example.controller;
 
+import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -41,15 +42,21 @@ public class LoginController implements ServerEventListener {
         String[] loginData = {email, securedPass};
         Message loginMsg= new Message("LOGIN", loginData);
 
-        auctionClient=SessionManager.getInstance().getAuctionClient();
-        //Dành quyền kết nối
-        auctionClient.setServerEventListener(this);
+        auctionClient= SessionManager.getInstance().getAuctionClient();
+        if(auctionClient != null) {
+            //Dành quyền kết nối
+            auctionClient.setServerEventListener(this);
 
-        auctionClient.sendToServer(loginMsg);
+            auctionClient.sendToServer(loginMsg);
+        }else {
+            AlertUtils.showError("Lỗi kết nối", "Hệ thống chưa kết nối đến Server!");
+        }
 
     }
     @FXML
     void handleRegister(ActionEvent event){
+        // [REFACTOR 1]: Hủy đăng ký lắng nghe trước khi rời đi để chống Memory Leak
+        if (auctionClient != null) auctionClient.setServerEventListener(null);
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/RegisterView.fxml");
     }
 
@@ -62,6 +69,8 @@ public class LoginController implements ServerEventListener {
             AuctionClient client = SessionManager.getInstance().getAuctionClient();
             if (client != null) {
                 client.setUsername(userData.getUserName());
+                // [REFACTOR 2]: Trả lại micro cho hệ thống trước khi vào màn hình chính
+                auctionClient.setServerEventListener(null);
             }
             SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
         } else {
@@ -70,10 +79,16 @@ public class LoginController implements ServerEventListener {
     }
     @FXML
     private void handleForgotPassword(ActionEvent event) {
+        if (auctionClient != null) {
+            auctionClient.setServerEventListener(null);
+        }
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPassword.fxml");
     }
     @FXML
     public void handleBackToHome() {
+        if (auctionClient != null){
+            auctionClient.setServerEventListener(null);
+        }
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
     }
 }
