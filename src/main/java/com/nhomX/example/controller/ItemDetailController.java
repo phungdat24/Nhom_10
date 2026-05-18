@@ -4,14 +4,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.BidTransaction;
-import com.nhomX.example.model.ItemImage;
-import com.nhomX.example.model.Items;
+
+import com.nhomX.example.model.*;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -22,6 +21,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class ItemDetailController extends BaseController implements ServerEventListener {
@@ -45,6 +47,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
     private XYChart.Series<String, Number> priceSeries;
     @FXML
     private VBox vboxBidHistory;
+    @FXML
+    private Label lblLeader;
 
     private Auction currentAuction;
 
@@ -186,18 +190,25 @@ public class ItemDetailController extends BaseController implements ServerEventL
         if (currentAuction != null && currentAuction.getId().equals(updatedItemId)) {
 
             // Bọc trong Platform.runLater để giao cho luồng UI (Tránh Crash)
-            javafx.application.Platform.runLater(() -> {
+            Platform.runLater(() -> {
                 currentAuction.setHighestBid(newPrice);
                 lblCurrentPrice.setText(CurrencyFormatter.formatVND(newPrice));
                 String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+                String maskedName = maskName(bidderName);
+                lblLeader.setText("\uD83C\uDFC6 Người dẫn đầu: "+ maskedName);
                 // TẠO DÒNG LỊCH SỬ MỚI
-                javafx.scene.Node newRow = createBidRow(bidderName, newPrice, timeNow);
+                Node newRow = createBidRow(maskedName, newPrice, timeNow);
 
                 // THÊM VÀO VBOX (Chèn vào vị trí 0 để người mới nhất luôn nằm trên cùng)
                 vboxBidHistory.getChildren().add(0, newRow);
                 // THÊM ĐIỂM ẢNH MỚI VÀO BIỂU ĐỒ ĐƯỜNG
 
                 priceSeries.getData().add(new XYChart.Data<>(timeNow, newPrice));
+                // [ÁP DỤNG THUẬT TOÁN]: Xóa điểm CŨ NHẤT nếu vượt quá 7
+                if (priceSeries.getData().size() > 7) {
+                    priceSeries.getData().remove(0);
+                }
 
                 // Có thể làm hiệu ứng đổi màu nhấp nháy ở đây sau...
             });
@@ -251,26 +262,90 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
     @Override
     public void onBidHistoryReceived(List<BidTransaction> history) {
-        javafx.application.Platform.runLater(() -> {
+        // [TỐI ƯU 1]: TẮT hiệu ứng chuyển động tạm thời để nạp dữ liệu cái rụp, không bị giật lag
+        priceChart.setAnimated(false);
+        Platform.runLater(() -> {
             // 1. Dọn dẹp giao diện trước khi đổ dữ liệu mới
             vboxBidHistory.getChildren().clear();
             priceSeries.getData().clear();
 
+            if (history == null || history.isEmpty()) {
+                lblLeader.setText("🏆 Người dẫn đầu: Chưa có");
+                // Biểu đồ neo tạm bằng giá trần hiện tại nếu rỗng
+                String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                priceSeries.getData().add(new XYChart.Data<>(timeNow, currentAuction.getHighestBid()));
+                priceChart.setAnimated(true);
+                return;
+            }
+
+            // 1. Sort Cũ -> Mới
+            history.sort((b1, b2) -> b1.getBidTime().compareTo(b2.getBidTime()));
+
             for (BidTransaction bid : history) {
-                // 2. Nạp vào Biểu đồ đường (LineChart)
                 String timeStr = bid.getBidTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+                // Thêm vào biểu đồ
                 priceSeries.getData().add(new XYChart.Data<>(timeStr, bid.getAmount()));
 
-                // Sử dụng hàm createBidRow mà mình đã hướng dẫn ở bước trước
-                Node row = createBidRow(bid.getBidder().getUserName(), bid.getAmount(), timeStr);
-                vboxBidHistory.getChildren().add(0, row); // Cái mới nhất vẫn nằm trên cùng
+                String fullName = bid.getBidder().getFullName() != null ? bid.getBidder().getFullName() : bid.getBidder().getUserName();
+                String maskedName = maskName(fullName);
+                Node row = createBidRow(maskedName, bid.getAmount(), timeStr);
+
+                vboxBidHistory.getChildren().add(0, row);
             }
+
+            // [TỐI ƯU 2] THUẬT TOÁN CỬA SỔ TRƯỢT: Chặt bỏ các điểm cũ để giữ đúng 7 điểm
+            // Vòng lặp này sẽ xóa liên tục các điểm ở vị trí 0 cho đến khi size <= 7
+            while (priceSeries.getData().size() > 7) {
+                priceSeries.getData().remove(0);
+            }
+
+            BidTransaction winningBid = history.get(history.size() - 1);
+            long latestPrice = winningBid.getAmount();
+
+            lblCurrentPrice.setText(CurrencyFormatter.formatVND(latestPrice));
+            currentAuction.setHighestBid(latestPrice);
+
+            String leaderFullName = winningBid.getBidder().getFullName() != null ? winningBid.getBidder().getFullName() : winningBid.getBidder().getUserName();
+            String maskedLeader = maskName(leaderFullName);
+            lblLeader.setText("🏆 Người dẫn đầu: " + maskedLeader);
+
+            // [TỐI ƯU 3]: BẬT LẠI hiệu ứng chuyển động để sẵn sàng đón các lệnh đặt giá Realtime
+            priceChart.setAnimated(true);
         });
     }
+    @Override
+    public void onAuctionClosed(String auctionId, String winnerId) {
+        // Chỉ xử lý nếu gói tin đúng là của món hàng đang xem
+        if (currentAuction != null && currentAuction.getId().equals(auctionId)) {
+            Platform.runLater(() -> {
+                // Khóa ngay lập tức mọi tương tác
+                txtBidAmount.setDisable(true);
+                if (btnBid != null) {
+                    btnBid.setDisable(true);
+                    btnBid.setText("ĐÃ KẾT THÚC");
+                }
 
-    private javafx.scene.Node createBidRow(String bidderName, long amount, String timeStr) {
+                // Cập nhật trạng thái
+                currentAuction.setStatus(AuctionStatus.FINISHED);
+
+                // Hiển thị người chiến thắng
+                if (winnerId != null && !winnerId.isEmpty()) {
+                    // Cần map winnerId ra tên hoặc dùng luôn nếu đã là tên
+                    lblLeader.setText("🏆 PHIÊN ĐÃ ĐÓNG! Người thắng: " + winnerId);
+                    lblLeader.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                } else {
+                    lblLeader.setText("🏆 PHIÊN ĐÃ ĐÓNG! Không có người mua.");
+                }
+
+                AlertUtils.showSuccess("Kết thúc", "Phiên đấu giá đã chính thức khép lại!");
+            });
+        }
+    }
+
+    private Node createBidRow(String bidderName, long amount, String timeStr) {
         // 1. Tạo hộp ngang chứa các thành phần
-        javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(15);
+        HBox row = new HBox(15);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         row.setStyle("-fx-padding: 10; -fx-border-color: #f1f2f6; -fx-border-width: 0 0 1 0;");
 
@@ -279,8 +354,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
         lblUser.setStyle("-fx-font-weight: bold; -fx-text-fill: #2f3542;");
 
         // 3. Spacer để đẩy giá và thời gian sang bên phải
-        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
         // 4. Số tiền (Sử dụng CurrencyFormatter đã có của bạn)
         Label lblAmount = new Label(CurrencyFormatter.formatVND(amount));
@@ -293,6 +368,38 @@ public class ItemDetailController extends BaseController implements ServerEventL
         row.getChildren().addAll(lblUser, spacer, lblAmount, lblTime);
         return row;
     }
+    /**
+     * Hàm xử lý che giấu danh tính người dùng (Data Masking / Anonymization)
+     */
+    private String maskName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) return "Ẩn danh";
+        fullName = fullName.trim();
+
+        // 1. Trường hợp là Email (Ví dụ: 25021715@vnu.edu.vn)
+        if (fullName.contains("@")) {
+            String[] parts = fullName.split("@");
+            String emailName = parts[0];
+            String domain = parts.length > 1 ? parts[1] : "";
+
+            // Che tên email, chỉ để lại 3 chữ cái đầu (VD: 250***@vnu.edu.vn)
+            if (emailName.length() <= 3) return emailName + "***@" + domain;
+            return emailName.substring(0, 3) + "***@" + domain;
+        }
+
+        // 2. Trường hợp là Tên đầy đủ (Ví dụ: Nguyễn Văn Bản)
+        String[] parts = fullName.split("\\s+");
+        if (parts.length == 1) {
+            // Tên chỉ có 1 chữ (Ví dụ: Dat -> D***t)
+            if (fullName.length() <= 2) return fullName + "***";
+            return fullName.charAt(0) + "***" + fullName.charAt(fullName.length() - 1);
+        } else {
+            // Tên có nhiều chữ: Lấy chữ đầu + *** + chữ cuối
+            String firstWord = parts[0];
+            String lastWord = parts[parts.length - 1];
+            return firstWord + " *** " + lastWord;
+        }
+    }
+
 }
 
 

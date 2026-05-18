@@ -20,18 +20,19 @@ public class Auction extends Entity {
 
     // Mức giá cao nhất hiện tại của phiên
     private long highestBid;
+    private String approvedBy;
     // [THÊM MỚI] Danh sách observers để hỗ trợ Observer Pattern (realtime update)
     private transient List<AuctionObserver> observers = new ArrayList<>();
 
     // [THÊM MỚI] Anti-sniping: ngưỡng thời gian và thời lượng gia hạn
-    private static final int ANTI_SNIPE_THRESHOLD_SECONDS = 30;
-    private static final int ANTI_SNIPE_EXTENSION_SECONDS = 60;
+    private static final int ANTI_SNIPE_THRESHOLD_SECONDS = 5;
+    private static final int ANTI_SNIPE_EXTENSION_SECONDS = 5;
 
     // 1. Hàm tạo rỗng (Phục vụ cho việc load dữ liệu từ Database)
     public Auction() {
         super();
         // Mặc định khi mới tạo
-        this.status = AuctionStatus.OPEN;
+        this.status = AuctionStatus.PENDING;
         this.observers= new ArrayList<>();
     }
 
@@ -41,7 +42,7 @@ public class Auction extends Entity {
         this.item = item;
         this.endTime = endTime;
         this.highestBid = startingPrice;
-        this.status = AuctionStatus.OPEN;
+        this.status = AuctionStatus.PENDING;
         this.observers= new ArrayList<>();
     }
 
@@ -122,7 +123,7 @@ public class Auction extends Entity {
     }
     // Kiểm tra điều kiện để chốt:
     public void determineWinner() {
-        if (isExpired() && this.status == AuctionStatus.RUNNING) {
+        if (isExpired() && (this.status == AuctionStatus.RUNNING || this.status == AuctionStatus.OPEN)) {
             // winner đã được set qua các lần placeBid — chỉ cần chốt
             closeAuction();
         }
@@ -150,6 +151,14 @@ public class Auction extends Entity {
         return winner; }
     public void setWinner(RegularUser winner) {
         this.winner = winner; }
+
+    public void setApprovedBy(String approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public String getApprovedBy() {
+        return approvedBy;
+    }
 
     public long getHighestBid() {
         return this.highestBid;
