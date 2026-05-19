@@ -37,4 +37,6 @@ public interface ServerEventListener {
 
     // Lắng nghe sự kiện thay đổi số người Online
     default void onOnlineCountUpdated(int onlineCount) {}
+
+    default void onForgotPasswordResult(boolean isSuccess, String responseMsg){}
 }
