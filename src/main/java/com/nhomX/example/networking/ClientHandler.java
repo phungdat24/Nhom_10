@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.nhomX.example.exception.AuctionClosedException;
 import com.nhomX.example.exception.AuthenticationException;
 import com.nhomX.example.exception.InvalidBidException;
@@ -46,6 +48,7 @@ public class ClientHandler implements Runnable {
     private LocalDateTime otpCreationTime;
 
     private volatile boolean cleaned = false;
+    public static final java.util.concurrent.ConcurrentHashMap<String,String> otpStorage = new ConcurrentHashMap<>();
 
     public ClientHandler(Socket socket, AuctionServer server, ItemRepository itemRepo,
             UserRepository userRepo, BidRepository bidRepo, AuctionRepository auctionRepo) {
@@ -263,6 +266,10 @@ public class ClientHandler implements Runnable {
                         sendToClient(new Message("APPOVE_SUCCESS", "Đã duyệt thành công"));
                     }
                     break;
+
+                case "FORGOT_PASS_WORD":
+                    handleForgotPasswordRequest(msg);
+                    break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
@@ -270,6 +277,30 @@ public class ClientHandler implements Runnable {
             System.err
                     .println("SERVER: Dữ liệu không đúng định dạng từ client – " + e.getMessage());
             sendToClient(Message.error("Dữ liệu gửi lên không hợp lệ!"));
+        }
+    }
+
+    private void handleForgotPasswordRequest(Message msg) {
+        try{
+            String[] data = (String[]) msg.getData();
+            String email = data[0];
+            boolean isEmailExist = userRepository.findByUsername(email) != null;
+
+            Message response;
+            if (isEmailExist){
+                String otpCode = String.format("%06d", new java.util.Random().nextInt(999999));
+                otpStorage.put(email, otpCode);
+                System.out.println("SERVER LÉN LÚT LOG: Đã tạo OTP [" + otpCode + "]");
+                String[] responseData = {"true", "Mã OTP đã được gửi đến email của bạn"};
+                response = new Message("FORGOT_PASSWORD_RESULT",responseData);
+            }else{
+                String[] responseData = {"false", "Email này không tồn tại"};
+                response = new Message("FORGOT_PASSWORD_RESULT",responseData);
+            }
+            out.writeObject(response);
+            out.flush();
+        }catch (Exception e){
+            System.out.println("Lỗi xử lý Forgot Password: "+ e.getMessage());
         }
     }
 

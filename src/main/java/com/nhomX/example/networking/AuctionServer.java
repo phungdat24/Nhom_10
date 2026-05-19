@@ -37,6 +37,7 @@ public class AuctionServer {
     private final BidRepository bidRepository = new BidRepositoryImpl();
     private final AuctionRepository auctionRepository = new AuctionRepositoryImpl();
 
+
     private AuctionScheduler auctionScheduler;
 
     public void start() {

@@ -298,6 +298,18 @@ public class AuctionClient {
                 }
                 break;
 
+            case "FORGIT_PASSWORD_RESULT":
+                if (listener != null){
+                    String[] resultData = (String[]) msg.getData();
+                    boolean isSuccess = Boolean.parseBoolean(resultData[0]);
+                    String responseMsg = resultData[1];
+
+                    javafx.application.Platform.runLater(() ->{
+                        listener.onForgotPasswordResult(isSuccess, responseMsg);
+                    });
+                    }
+                break;
+
             default:
                 System.err.println("CLIENT: Loại message không xác định – " + type);
         }
