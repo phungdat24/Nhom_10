@@ -31,11 +31,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auction.getId());
-
-      // [FIX] Lưu startingPrice (giá khởi điểm gốc) lấy từ item, không dùng highestBid
-      long startingPrice = (auction.getItem() != null) ? auction.getItem().getStartingPrice()
-          : auction.getHighestBid();
-      pstmt.setLong(2, startingPrice);
+      pstmt.setLong(2, auction.getStartingPrice());
       pstmt.setLong(3, auction.getHighestBid());
 
       // Lưu start_time đúng định dạng:
@@ -241,8 +237,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   private Auction mapRowToAuction(ResultSet rs) throws SQLException {
     Auction auction = new Auction();
     auction.setId(rs.getString("id"));
-
-    // Bỏ qua startingPrice, chỉ map highestBid
+    auction.setStartingPrice(rs.getLong("starting_price"));
     auction.setHighestBid(rs.getLong("highest_bid"));
 
     // Map Enum an toàn
@@ -272,9 +267,6 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       winner.setId(winnerId);
       auction.setWinner(winner);
     }
-
-    // Bỏ qua approvedBy vì Model không hỗ trợ
-    // Đọc dữ liệu cột approved_by
     auction.setApprovedBy(rs.getString("approved_by"));
     return auction;
   }

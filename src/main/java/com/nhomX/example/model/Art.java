@@ -10,9 +10,8 @@ public class Art extends Items {
         super();
     }
 
-    public Art(String id, String title, String description, long startingPrice,
-             RegularUser seller, String artistName, int yearCreated) {
-        super(id, title, description, startingPrice, seller);
+    public Art(String id, String title, String description, RegularUser seller, String artistName, int yearCreated) {
+        super(id, title, description, seller);
         this.artistName = artistName;
         this.yearCreated = yearCreated;
     }
@@ -34,7 +33,6 @@ public class Art extends Items {
     @Override
     public boolean validate() {
         if (getTitle()  == null || getTitle().trim().isEmpty()) return false;
-        if (getStartingPrice() < 0) return false;
         // Năm sáng tác không được lớn hơn năm hiện tại
         if (this.yearCreated > Year.now().getValue()) return false;
         return true;

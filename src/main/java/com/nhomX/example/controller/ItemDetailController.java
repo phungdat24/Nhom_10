@@ -19,6 +19,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -86,6 +87,15 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 }
             });
         }
+        if (priceChart != null && priceChart.getYAxis() instanceof javafx.scene.chart.NumberAxis) {
+            NumberAxis yAxis = (NumberAxis) priceChart.getYAxis();
+
+            // Tắt chế độ ép buộc trục Y phải bắt đầu từ số 0
+            yAxis.setForceZeroInRange(false);
+
+            // Bật tự động căn chỉnh khoảng cách để đồ thị luôn đẹp
+            yAxis.setAutoRanging(true);
+        }
     }
 
     public void setAuctionData(Auction initialAuction) {
@@ -109,9 +119,6 @@ public class ItemDetailController extends BaseController implements ServerEventL
         priceChart.getData().clear();
         priceChart.getData().add(priceSeries);
 
-        // Lấy giờ hiện tại (Format thành String cho đẹp) làm trục X, giá khởi điểm làm trục Y
-        String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        priceSeries.getData().add(new XYChart.Data<>(currentTime, freshAuction.getHighestBid()));
         // Mô tả sản phẩm
         if (item.getDescription() != null && !item.getDescription().isEmpty()) {
             lblDescription.setText(item.getDescription());
@@ -291,7 +298,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 return; // Bảo vệ an toàn
 
             // Lấy giá khởi điểm gốc từ Item
-            long startingPrice = freshAuction.getItem().getStartingPrice();
+            long startingPrice = freshAuction.getStartingPrice();
 
             // Lấy thời gian bắt đầu phiên làm mốc X (Nếu null thì lấy giờ hiện tại làm mốc tạm)
             LocalDateTime startTime = freshAuction.getStartTime();
@@ -304,10 +311,6 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
             if (history == null || history.isEmpty()) {
                 lblLeader.setText("🏆 Người dẫn đầu: Chưa có");
-                // Biểu đồ neo tạm bằng giá trần hiện tại nếu rỗng
-                String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                priceSeries.getData()
-                        .add(new XYChart.Data<>(timeNow, freshAuction.getHighestBid()));
                 priceChart.setAnimated(true);
                 return;
             }

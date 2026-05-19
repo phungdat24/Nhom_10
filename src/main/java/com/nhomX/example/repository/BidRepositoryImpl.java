@@ -21,7 +21,7 @@ import com.nhomX.example.utils.DatabaseConnection;
 public class BidRepositoryImpl implements BidRepository {
   // Kho chứa ổ khóa: Mỗi ID sản phẩm sẽ tương ứng với 1 ổ khóa riêng biệt
   private static final ConcurrentHashMap<String, ReentrantLock> auctionLocks =
-      new ConcurrentHashMap<>();
+          new ConcurrentHashMap<>();
   private static final DateTimeFormatter DB_FORMATTER =
           DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -29,19 +29,19 @@ public class BidRepositoryImpl implements BidRepository {
   public void addBid(BidTransaction bidTransaction) { // Đã đổi save -> addBid
     // 1. Lấy ổ khóa ĐỘC QUYỀN cho riêng sản phẩm này (dựa vào itemId)
     ReentrantLock lock =
-        auctionLocks.computeIfAbsent(bidTransaction.getAuction().getId(), k -> new ReentrantLock());
+            auctionLocks.computeIfAbsent(bidTransaction.getAuction().getId(), k -> new ReentrantLock());
 
     // 2. Bấm chốt khóa! Các luồng khác mua cùng sản phẩm sẽ phải đứng chờ ở đây
     lock.lock();
     // SỬ DỤNG TRY-WITH-RESOURCES ĐỂ TỰ ĐỘNG ĐÓNG KẾT NỐI
     String sql =
-        "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, bidTransaction.getId());
       pstmt.setLong(2, bidTransaction.getAmount());
       pstmt.setString(3,
-          bidTransaction.getBidTime() != null ? bidTransaction.getBidTime().toString() : null);
+              bidTransaction.getBidTime() != null ? bidTransaction.getBidTime().toString() : null);
       pstmt.setString(4, bidTransaction.getBidder().getId());
       pstmt.setString(5, bidTransaction.getAuction().getId());
 
@@ -110,160 +110,159 @@ public class BidRepositoryImpl implements BidRepository {
     lock.lock();
     // Bắt lỗi rollback:
     try {
+      synchronized (conn) {
+        // BƯỚC 2: Tắt chế độ tự động lưu (Bắt đầu gom các lệnh vào 1 Giao dịch)
+        conn.setAutoCommit(false);
+        try {
+          // =========================================================
+          // TRẠM 1: KIỂM DUYỆT TỪ SERVER (Zero-Trust Validation)
+          // =========================================================
+          String sqlCheckAuction = "SELECT highest_bid, winner_id, status, end_time FROM auctions WHERE id = ?";
+          // Gía cao nhất hiện tại
+          long currentHighestBid = 0;
+          // Người dẫn đầu cũ
+          String oldWinnerId = null;
+          //Thời gian kết thúc
+          LocalDateTime endTime = null;
 
-      // BƯỚC 2: Tắt chế độ tự động lưu (Bắt đầu gom các lệnh vào 1 Giao dịch)
-      conn.setAutoCommit(false);
-      // =========================================================
-      // TRẠM 1: KIỂM DUYỆT TỪ SERVER (Zero-Trust Validation)
-      // =========================================================
-      String sqlCheckAuction = "SELECT highest_bid, winner_id, status, end_time FROM auctions WHERE id = ?";
-      // Gía cao nhất hiện tại
-      long currentHighestBid = 0;
-      // Người dẫn đầu cũ
-      String oldWinnerId = null;
-      //Thời gian kết thúc
-      LocalDateTime endTime = null;
+          try (PreparedStatement pstmtAuction = conn.prepareStatement(sqlCheckAuction)) {
+            pstmtAuction.setString(1, auctionId);
+            try (ResultSet rs = pstmtAuction.executeQuery()) {
+              if (rs.next()) {
+                String status = rs.getString("status");
+                currentHighestBid = rs.getLong("highest_bid");
+                oldWinnerId = rs.getString("winner_id");
 
-      try (PreparedStatement pstmtAuction = conn.prepareStatement(sqlCheckAuction)) {
-        pstmtAuction.setString(1, auctionId);
-        try (ResultSet rs = pstmtAuction.executeQuery()) {
-          if (rs.next()) {
-            String status = rs.getString("status");
-            currentHighestBid = rs.getLong("highest_bid");
-            oldWinnerId = rs.getString("winner_id");
+                String endTimeStr = rs.getString("end_time");
+                endTime = (endTimeStr != null) ? LocalDateTime.parse(endTimeStr, DB_FORMATTER) : null;
 
-            String endTimeStr = rs.getString("end_time");
-            endTime = (endTimeStr != null) ? LocalDateTime.parse(endTimeStr,DB_FORMATTER) : null;
+                // Kiểm tra 1: Có đang mở bán không?
+                if (!"RUNNING".equals(status) && !"OPEN".equals(status)) {
+                  // Java Database Transaction mặc định chỉ tự động Rollback khi gặp RuntimeException
+                  throw new AuctionClosedException("Phiên đấu giá đã đóng hoặc chưa bắt đầu!");
+                }
 
-            // Kiểm tra 1: Có đang mở bán không?
-            if (!"RUNNING".equals(status) && !"OPEN".equals(status)) {
-              // Java Database Transaction mặc định chỉ tự động Rollback khi gặp RuntimeException
-              throw new AuctionClosedException("Phiên đấu giá đã đóng hoặc chưa bắt đầu!");
+                // Kiểm tra 2: Còn hạn không?
+                if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
+                  throw new AuctionClosedException("Phiên đấu giá đã kết thúc thời gian!");
+                }
+
+                // Kiểm tra 3: Giá đấm búa có thực sự lớn hơn giá DB hiện tại không?
+                if (bidAmount <= currentHighestBid) {
+                  throw new InvalidBidException("Giá đặt " + bidAmount + " không lớn hơn giá trần hiện tại " + currentHighestBid);
+                }
+              } else {
+                throw new InvalidBidException("Không tìm thấy mã phiên đấu giá!");
+              }
             }
-
-            // Kiểm tra 2: Còn hạn không?
-            if (endTime != null && LocalDateTime.now().isAfter(endTime)) {
-              throw new AuctionClosedException("Phiên đấu giá đã kết thúc thời gian!");
-            }
-
-            // Kiểm tra 3: Giá đấm búa có thực sự lớn hơn giá DB hiện tại không?
-            if (bidAmount <= currentHighestBid) {
-              throw new InvalidBidException("Giá đặt " + bidAmount + " không lớn hơn giá trần hiện tại " + currentHighestBid);
-            }
-          } else {
-            System.err.println("❌ Không tìm thấy mã phiên đấu giá!");
-            conn.rollback();
-            return false;
           }
-        }
-      }
 
-      // =========================================================
-      // TRẠM 2: KIỂM TRA SỐ DƯ TÀI KHOẢN NGƯỜI MUA MỚI
-      // =========================================================
-      String sqlCheckBalance = "SELECT balance FROM users WHERE id = ?";
-      try (PreparedStatement pstmtCheck = conn.prepareStatement(sqlCheckBalance)) {
-        pstmtCheck.setString(1, userId);
-        try (ResultSet rs = pstmtCheck.executeQuery()) {
-          if (rs.next()) {
-            long currentBalance = rs.getLong("balance");
-            if (currentBalance < bidAmount) {
-              throw new InvalidBidException("Số dư không đủ để đặt giá!");
+          // =========================================================
+          // TRẠM 2: KIỂM TRA SỐ DƯ TÀI KHOẢN NGƯỜI MUA MỚI
+          // =========================================================
+          String sqlCheckBalance = "SELECT balance FROM users WHERE id = ?";
+          try (PreparedStatement pstmtCheck = conn.prepareStatement(sqlCheckBalance)) {
+            pstmtCheck.setString(1, userId);
+            try (ResultSet rs = pstmtCheck.executeQuery()) {
+              if (rs.next()) {
+                long currentBalance = rs.getLong("balance");
+                if (currentBalance < bidAmount) {
+                  throw new InvalidBidException("Số dư không đủ để đặt giá!");
+                }
+              } else {
+                throw new InvalidBidException("Không tìm thấy user ID!");
+              }
             }
-          } else {
-            System.err.println("❌ Không tìm thấy user ID!");
-            conn.rollback();
-            return false;
           }
-        }
-      }
 
-      // =========================================================
-      // TRẠM 3: HOÀN TIỀN CHO NGƯỜI DẪN ĐẦU CŨ (Refund Logic)
-      // =========================================================
-      if (oldWinnerId != null && !oldWinnerId.trim().isEmpty() && currentHighestBid > 0) {
-        String sqlRefund = "UPDATE users SET balance = balance + ? WHERE id = ?";
-        try (PreparedStatement pstmtRefund = conn.prepareStatement(sqlRefund)) {
-          pstmtRefund.setLong(1, currentHighestBid);
-          pstmtRefund.setString(2, oldWinnerId);
-          int rows = pstmtRefund.executeUpdate();
-          if (rows > 0) {
-            System.out.println("💸 Đã hoàn trả " + currentHighestBid + " cho user cũ: " + oldWinnerId);
+          // =========================================================
+          // TRẠM 3: HOÀN TIỀN CHO NGƯỜI DẪN ĐẦU CŨ (Refund Logic)
+          // =========================================================
+          if (oldWinnerId != null && !oldWinnerId.trim().isEmpty() && currentHighestBid > 0) {
+            String sqlRefund = "UPDATE users SET balance = balance + ? WHERE id = ?";
+            try (PreparedStatement pstmtRefund = conn.prepareStatement(sqlRefund)) {
+              pstmtRefund.setLong(1, currentHighestBid);
+              pstmtRefund.setString(2, oldWinnerId);
+              int rows = pstmtRefund.executeUpdate();
+              if (rows > 0) {
+                System.out.println("💸 Đã hoàn trả " + currentHighestBid + " cho user cũ: " + oldWinnerId);
+              }
+            }
           }
+
+          // =========================================================
+          // TRẠM 4: TRỪ TIỀN NGƯỜI DẪN ĐẦU MỚI
+          // =========================================================
+          String sqlDeduct = "UPDATE users SET balance = balance - ? WHERE id = ?";
+          try (PreparedStatement pstmtDeduct = conn.prepareStatement(sqlDeduct)) {
+            pstmtDeduct.setLong(1, bidAmount);
+            pstmtDeduct.setString(2, userId);
+            pstmtDeduct.executeUpdate();
+          }
+
+          // =========================================================
+          // TRẠM 5: ĐẠO LUẬT CHỐNG BẮN TỈA (Anti-Sniping)
+          // =========================================================
+          LocalDateTime now = LocalDateTime.now();
+          LocalDateTime newEndTime = endTime; // Mặc định giữ nguyên giờ cũ
+
+          if (endTime != null) {
+            long minutesLeft = java.time.Duration.between(now, endTime).toMinutes();
+            if (minutesLeft < 5) {
+              newEndTime = now.plusMinutes(5); // Cộng thêm 5 phút từ thời điểm hiện tại
+              System.out.println("⏳ Kích hoạt Anti-Sniping: Gia hạn phiên đấu giá tới " + newEndTime);
+            }
+          }
+          String formattedEndTime = (newEndTime != null) ? newEndTime.format(DB_FORMATTER) : null;
+
+          // =========================================================
+          // TRẠM 6: LƯU LỊCH SỬ VÀ CẬP NHẬT PHIÊN ĐẤU GIÁ
+          // =========================================================
+          // 6.1 Thêm lịch sử (Bids)
+          String sqlBid = "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
+          try (PreparedStatement pstmtBid = conn.prepareStatement(sqlBid)) {
+            pstmtBid.setString(1, bidId);
+            pstmtBid.setLong(2, bidAmount);
+            pstmtBid.setString(3, now.format(DB_FORMATTER));
+            pstmtBid.setString(4, userId);
+            pstmtBid.setString(5, auctionId);
+            pstmtBid.executeUpdate();
+          }
+
+          // 6.2 Cập nhật trạng thái phiên (Auctions)
+          String sqlAuctionUpdate = "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING', end_time = ? WHERE id = ?";
+          try (PreparedStatement pstmtAuctionUpdate = conn.prepareStatement(sqlAuctionUpdate)) {
+            pstmtAuctionUpdate.setLong(1, bidAmount);
+            pstmtAuctionUpdate.setString(2, userId);
+            pstmtAuctionUpdate.setString(3, formattedEndTime);
+            pstmtAuctionUpdate.setString(4, auctionId);
+            pstmtAuctionUpdate.executeUpdate();
+          }
+
+          // TẤT CẢ ĐỀU TRƠN TRU -> CHỐT GIAO DỊCH
+          conn.commit();
+          System.out.println("✅ Giao dịch thành công! Người dùng " + userId + " đang dẫn đầu với " + bidAmount);
+          return true;
+
+        } catch (AuctionClosedException | InvalidBidException e) {
+          // [FIX LỖI TREO GIAO DỊCH]: Phải Rollback khi vướng Exception Nghiệp vụ
+          conn.rollback();
+          throw e; // Ném tiếp lên cho Service bắt để báo lỗi cho người dùng
+        } catch (SQLException e) {
+          // Phải Rollback khi vướng Exception Hệ thống
+          conn.rollback();
+          System.err.println("❌ Lỗi SQL! Đã Rollback: " + e.getMessage());
+          return false;
+        } finally {
+          // MỞ KHÓA VÀ TRẢ LẠI CHẾ ĐỘ AUTO-COMMIT CHO HỆ THỐNG
+          conn.setAutoCommit(true);
         }
       }
-
-      // =========================================================
-      // TRẠM 4: TRỪ TIỀN NGƯỜI DẪN ĐẦU MỚI
-      // =========================================================
-      String sqlDeduct = "UPDATE users SET balance = balance - ? WHERE id = ?";
-      try (PreparedStatement pstmtDeduct = conn.prepareStatement(sqlDeduct)) {
-        pstmtDeduct.setLong(1, bidAmount);
-        pstmtDeduct.setString(2, userId);
-        pstmtDeduct.executeUpdate();
-      }
-
-      // =========================================================
-      // TRẠM 5: ĐẠO LUẬT CHỐNG BẮN TỈA (Anti-Sniping)
-      // =========================================================
-      LocalDateTime now = LocalDateTime.now();
-      LocalDateTime newEndTime = endTime; // Mặc định giữ nguyên giờ cũ
-
-      if (endTime != null) {
-        long minutesLeft = java.time.Duration.between(now, endTime).toMinutes();
-        if (minutesLeft < 5) {
-          newEndTime = now.plusMinutes(5); // Cộng thêm 5 phút từ thời điểm hiện tại
-          System.out.println("⏳ Kích hoạt Anti-Sniping: Gia hạn phiên đấu giá tới " + newEndTime);
-        }
-      }
-      String formattedEndTime = (newEndTime != null) ? newEndTime.format(DB_FORMATTER) : null;
-
-      // =========================================================
-      // TRẠM 6: LƯU LỊCH SỬ VÀ CẬP NHẬT PHIÊN ĐẤU GIÁ
-      // =========================================================
-      // 6.1 Thêm lịch sử (Bids)
-      String sqlBid = "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
-      try (PreparedStatement pstmtBid = conn.prepareStatement(sqlBid)) {
-        pstmtBid.setString(1, bidId);
-        pstmtBid.setLong(2, bidAmount);
-        pstmtBid.setString(3, now.format(DB_FORMATTER));
-        pstmtBid.setString(4, userId);
-        pstmtBid.setString(5, auctionId);
-        pstmtBid.executeUpdate();
-      }
-
-      // 6.2 Cập nhật trạng thái phiên (Auctions)
-      String sqlAuctionUpdate = "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING', end_time = ? WHERE id = ?";
-      try (PreparedStatement pstmtAuctionUpdate = conn.prepareStatement(sqlAuctionUpdate)) {
-        pstmtAuctionUpdate.setLong(1, bidAmount);
-        pstmtAuctionUpdate.setString(2, userId);
-        pstmtAuctionUpdate.setString(3, formattedEndTime);
-        pstmtAuctionUpdate.setString(4, auctionId);
-        pstmtAuctionUpdate.executeUpdate();
-      }
-
-      // TẤT CẢ ĐỀU TRƠN TRU -> CHỐT GIAO DỊCH
-      conn.commit();
-      System.out.println("✅ Giao dịch thành công! Người dùng " + userId + " đang dẫn đầu với " + bidAmount);
-      return true;
-
-    } catch (SQLException e) {
-      // CÓ LỖI XẢY RA -> QUAY XE TOÀN BỘ
-      System.err.println("❌ Lỗi SQL nghiêm trọng! Đang hoàn tác (Rollback)... Lý do: " + e.getMessage());
-      try {
-        conn.rollback();
-        System.out.println("🔄 Đã hoàn tác an toàn.");
-      } catch (SQLException ex) {
-        System.err.println("❌ Lỗi Rollback: " + ex.getMessage());
-      }
+    } catch (Exception e) {
+      // Bắt lỗi tổng (nếu throws từ khối trong ra)
+      if (e instanceof RuntimeException) throw (RuntimeException) e;
       return false;
     } finally {
-      // MỞ KHÓA VÀ TRẢ LẠI CHẾ ĐỘ AUTO-COMMIT CHO HỆ THỐNG
-      try {
-        conn.setAutoCommit(true);
-      } catch (SQLException ex) {
-        System.err.println("❌ Lỗi khi khôi phục AutoCommit: " + ex.getMessage());
-      }
       lock.unlock();
     }
   }

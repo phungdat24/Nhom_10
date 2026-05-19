@@ -18,6 +18,8 @@ public class Auction extends Entity {
     // Người đang giữ mức giá cao nhất hoặc người thắng cuộc cuối cùng
     private RegularUser winner;
 
+    private long startingPrice;
+
     // Mức giá cao nhất hiện tại của phiên
     private long highestBid;
     private String approvedBy;
@@ -41,6 +43,7 @@ public class Auction extends Entity {
         super(id);
         this.item = item;
         this.endTime = endTime;
+        this.setStartingPrice(startingPrice);
         this.highestBid = startingPrice;
         this.status = AuctionStatus.PENDING;
         this.observers= new ArrayList<>();
@@ -179,5 +182,16 @@ public class Auction extends Entity {
 
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
+    }
+
+    public long getStartingPrice() {
+        return startingPrice;
+    }
+
+    public void setStartingPrice(long startingPrice) {
+        if (startingPrice < 0) {
+            throw new IllegalArgumentException("Giá khởi điểm không được phép âm!");
+        }
+        this.startingPrice = startingPrice;
     }
 }

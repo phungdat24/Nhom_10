@@ -7,8 +7,8 @@ public class Jewelry extends Items {
         super();
     }
 
-    public Jewelry(String id, String title, String description, long startingPrice, RegularUser seller, String gemstoneType) {
-        super(id, title, description, startingPrice, seller);
+    public Jewelry(String id, String title, String description, RegularUser seller, String gemstoneType) {
+        super(id, title, description, seller);
         this.gemstoneType = gemstoneType;
     }
 
@@ -22,13 +22,11 @@ public class Jewelry extends Items {
         System.out.println("--- CHI TIẾT TRANG SỨC ---");
         System.out.println("Tên SP: " + getTitle());
         System.out.println("Loại đá quý đính kèm: " + this.gemstoneType);
-        System.out.println("Giá khởi điểm: " + getStartingPrice());
     }
 
     @Override
     public boolean validate() {
         if (getTitle() == null || getTitle().trim().isEmpty()) return false;
-        if (getStartingPrice() < 0) return false;
         return true;
     }
 

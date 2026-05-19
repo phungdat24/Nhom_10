@@ -8,8 +8,8 @@ public class Electronics extends Items {
         super();
     }
 
-    public Electronics(String id, String title,String description, long startingPrice, RegularUser seller, String brand,int warrantyPeriod) {
-        super(id, title,description,startingPrice, seller);
+    public Electronics(String id, String title,String description, RegularUser seller, String brand,int warrantyPeriod) {
+        super(id, title,description, seller);
         this.brand = brand;
         this.warrantyPeriod = warrantyPeriod;
     }
@@ -24,14 +24,12 @@ public class Electronics extends Items {
         System.out.println("Tên SP: " + getTitle());
         System.out.println("Thương hiệu: " + this.brand);
         System.out.println("Bảo hành: " + this.warrantyPeriod + " tháng");
-        System.out.println("Giá khởi điểm: " + getStartingPrice());
     }
 
     @Override
     public boolean validate() {
         // Kiểm tra hợp lệ: Tên không được rỗng, giá >= 0 và bảo hành không được âm
         if (getTitle() == null || getTitle().trim().isEmpty()) return false;
-        if (getStartingPrice() < 0) return false;
         if (this.warrantyPeriod < 0) return false;
         return true;
     }
