@@ -1,9 +1,14 @@
 package com.nhomX.example.controller;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -16,16 +21,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
-import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-
-public class LiveAuctionController extends BaseController implements Initializable, ServerEventListener {
-    // Nơi chứa các thẻ sản phẩm. Hãy đảm bảo trong file LiveAuction.fxml bạn có một FlowPane với fx:id này
+public class LiveAuctionController extends BaseController
+        implements Initializable, ServerEventListener {
+    // Nơi chứa các thẻ sản phẩm. Hãy đảm bảo trong file LiveAuction.fxml bạn có một FlowPane với
+    // fx:id này
     @FXML
     private FlowPane liveAuctionContainer;
 
@@ -60,23 +59,24 @@ public class LiveAuctionController extends BaseController implements Initializab
             List<Auction> activeAuctions = AuctionManager.getInstance().getActiveAuctions();
 
             for (Auction auction : activeAuctions) {
-                    try {
-                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
-                        VBox cardItem = loader.load();
+                try {
+                    FXMLLoader loader = new FXMLLoader(
+                            getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
+                    VBox cardItem = loader.load();
 
-                        ItemCardController cardController = loader.getController();
-                        cardController.setAuctionData(auction);
+                    ItemCardController cardController = loader.getController();
+                    cardController.setAuctionData(auction);
 
-                        // Lưu CardController vào Map với Key là ID của phiên/sản phẩm
-                        activeAuctionCards.put(auction.getId(), cardController);
+                    // Lưu CardController vào Map với Key là ID của phiên/sản phẩm
+                    activeAuctionCards.put(auction.getId(), cardController);
 
-                        liveAuctionContainer.getChildren().add(cardItem);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.err.println("Không thể load giao diện thẻ sản phẩm.");
-                    }
+                    liveAuctionContainer.getChildren().add(cardItem);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.err.println("Không thể load giao diện thẻ sản phẩm.");
                 }
-            });
+            }
+        });
     }
 
     @Override
@@ -87,7 +87,8 @@ public class LiveAuctionController extends BaseController implements Initializab
             if (card != null) {
                 // Gọi hàm cập nhật giá đơn lẻ trên thẻ đó
                 card.updateRealtimePrice(newPrice);
-                System.out.println("LIVE AUCTION: Đã nháy giá mới " + newPrice + " cho món " + itemId);
+                System.out.println(
+                        "LIVE AUCTION: Đã nháy giá mới " + newPrice + " cho món " + itemId);
             }
         });
     }
@@ -98,12 +99,14 @@ public class LiveAuctionController extends BaseController implements Initializab
 
     @Override
     public void onRegisterResult(boolean isSuccess, String message) {}
+
     @FXML
-    public void handleCategory(ActionEvent event){
+    public void handleCategory(ActionEvent event) {
 
     }
+
     @FXML
-    public void handleFilter(ActionEvent event){
+    public void handleFilter(ActionEvent event) {
 
     }
 }

@@ -1,17 +1,5 @@
 package com.nhomX.example.networking;
 
-import com.nhomX.example.exception.AuctionClosedException;
-import com.nhomX.example.exception.AuthenticationException;
-import com.nhomX.example.exception.InvalidBidException;
-import com.nhomX.example.model.*;
-import com.nhomX.example.repository.AuctionRepository;
-import com.nhomX.example.repository.BidRepository;
-import com.nhomX.example.repository.ItemRepository;
-import com.nhomX.example.repository.UserRepository;
-import com.nhomX.example.service.EmailService;
-import com.nhomX.example.service.GmailServiceImpl;
-import com.nhomX.example.utils.ValidatorUtils;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -23,6 +11,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.nhomX.example.exception.AuctionClosedException;
+import com.nhomX.example.exception.AuthenticationException;
+import com.nhomX.example.exception.InvalidBidException;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.BidTransaction;
+import com.nhomX.example.model.MyAuctionDTO;
+import com.nhomX.example.model.RegularUser;
+import com.nhomX.example.model.Role;
+import com.nhomX.example.model.User;
+import com.nhomX.example.repository.AuctionRepository;
+import com.nhomX.example.repository.BidRepository;
+import com.nhomX.example.repository.ItemRepository;
+import com.nhomX.example.repository.UserRepository;
+import com.nhomX.example.service.EmailService;
+import com.nhomX.example.service.GmailServiceImpl;
+import com.nhomX.example.utils.ValidatorUtils;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
@@ -30,8 +35,8 @@ public class ClientHandler implements Runnable {
     private ObjectOutputStream out;
     private ObjectInputStream in;
     // Gọi kho chứa dữ liệu ra để sẵn sàng làm việc
-    private final ItemRepository itemRepository ;
-    private final UserRepository userRepository ;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     // Lưu thông tin user dùng trong logging
@@ -42,9 +47,8 @@ public class ClientHandler implements Runnable {
 
     private volatile boolean cleaned = false;
 
-    public ClientHandler(Socket socket, AuctionServer server,
-                         ItemRepository itemRepo, UserRepository userRepo,
-                         BidRepository bidRepo, AuctionRepository auctionRepo) {
+    public ClientHandler(Socket socket, AuctionServer server, ItemRepository itemRepo,
+            UserRepository userRepo, BidRepository bidRepo, AuctionRepository auctionRepo) {
         this.socket = socket;
         this.server = server;
         this.itemRepository = itemRepo;
@@ -65,7 +69,7 @@ public class ClientHandler implements Runnable {
                 dispatch(msgFromClient);
             }
 
-        }  catch (EOFException | java.net.SocketException e) {
+        } catch (EOFException | java.net.SocketException e) {
             // Client ngắt kết nối bình thường — không cần log stack trace
             System.out.println("SERVER: Client ngắt kết nối ("
                     + (currentUser != null ? currentUser.getUserName() : "chưa đăng nhập") + ")");
@@ -76,7 +80,8 @@ public class ClientHandler implements Runnable {
         } catch (ClassNotFoundException e) {
             // BUG FIX: Tách riêng ClassNotFoundException thay vì bắt Exception rộng
             // để không vô tình che giấu NullPointerException hay ClassCastException
-            System.err.println("SERVER: Nhận được class không xác định từ client – " + e.getMessage());
+            System.err.println(
+                    "SERVER: Nhận được class không xác định từ client – " + e.getMessage());
 
         } finally {
             cleanup();
@@ -87,13 +92,27 @@ public class ClientHandler implements Runnable {
         System.out.println("SERVER NHẬN: " + msg);
         try {
             switch (msg.getType()) {
-                case "BID":           handleBid(msg);          break;
-                case "WATCH_ITEM":    handleWatchItem(msg);     break;
-                case "UNWATCH_ITEM":  handleUnwatchItem(msg);   break;
-                case "LOGIN":         handleLogin(msg);         break;
-                case "GET_ALL_AUCTIONS": handleGetAllAuctions(); break;
-                case "GET_BID_HISTORY":  handleGetBidHistory(msg); break;
-                case "SETUP_AUTO_BID":   handleSetupAutoBid(msg);  break;  // BUG FIX: thiếu handler này
+                case "BID":
+                    handleBid(msg);
+                    break;
+                case "WATCH_ITEM":
+                    handleWatchItem(msg);
+                    break;
+                case "UNWATCH_ITEM":
+                    handleUnwatchItem(msg);
+                    break;
+                case "LOGIN":
+                    handleLogin(msg);
+                    break;
+                case "GET_ALL_AUCTIONS":
+                    handleGetAllAuctions();
+                    break;
+                case "GET_BID_HISTORY":
+                    handleGetBidHistory(msg);
+                    break;
+                case "SETUP_AUTO_BID":
+                    handleSetupAutoBid(msg);
+                    break; // BUG FIX: thiếu handler này
                 case "GET_DASHBOARD_DATA":
                     List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
                     List<Auction> trendingList = auctionRepository.getTrendingAuctions(10);
@@ -108,14 +127,17 @@ public class ClientHandler implements Runnable {
                     break;
                 case "GET_MY_AUCTIONS":
                     String userIdForMyAuctions = (String) msg.getData();
-                    System.out.println("SERVER: Đang truy vấn danh sách đấu giá cho User:" + userIdForMyAuctions);
+                    System.out.println("SERVER: Đang truy vấn danh sách đấu giá cho User:"
+                            + userIdForMyAuctions);
 
-                    try{
-                        List<MyAuctionDTO> myAuctionList =  auctionRepository.getMyAuctions(userIdForMyAuctions);
-                        Message responseMyAuctions = new Message("MY_AUCTIONS_RESULT", myAuctionList);
+                    try {
+                        List<MyAuctionDTO> myAuctionList =
+                                auctionRepository.getMyAuctions(userIdForMyAuctions);
+                        Message responseMyAuctions =
+                                new Message("MY_AUCTIONS_RESULT", myAuctionList);
                         this.sendToClient(responseMyAuctions);
                         System.out.println("SERVER: Đã gửi " + myAuctionList.size());
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         System.err.println("Lỗi khi xử lý GET_MY_AUCTIONS: " + e.getMessage());
                         this.sendToClient(new Message("ERROR", "Không thể lấy danh sách đấu giá"));
                     }
@@ -124,12 +146,14 @@ public class ClientHandler implements Runnable {
                     Object[] data = (Object[]) msg.getData();
                     String email = (String) data[0];
 
-                    if (email == null || !ValidatorUtils.isValidEmail(email)){
-                        this.sendToClient(new Message("REGISTER_FAIL","Email không đúng định dạng"));
+                    if (email == null || !ValidatorUtils.isValidEmail(email)) {
+                        this.sendToClient(
+                                new Message("REGISTER_FAIL", "Email không đúng định dạng"));
                         break;
                     }
-                    if (userRepository.findByUsername(email) != null){
-                        this.sendToClient(new Message("REGISTER_FAIL","Email này đã được sử dụng"));
+                    if (userRepository.findByUsername(email) != null) {
+                        this.sendToClient(
+                                new Message("REGISTER_FAIL", "Email này đã được sử dụng"));
                         break;
                     }
                     int randomPin = (int) (Math.random() * 900000) + 100000;
@@ -140,7 +164,8 @@ public class ClientHandler implements Runnable {
                     // 3. Gọi hàm gửi mail và ĐỢI KẾT QUẢ (thenAccept)
                     emailService.sendOtp(email, this.tempOtpCode).thenAccept(isSuccess -> {
                         if (isSuccess) {
-                            // Gửi mail CÓ THẬT và THÀNH CÔNG -> Ra lệnh cho Client mở màn hình 6 ô OTP
+                            // Gửi mail CÓ THẬT và THÀNH CÔNG -> Ra lệnh cho Client mở màn hình 6 ô
+                            // OTP
                             this.sendToClient(new Message("SHOW_OTP_DIALOG", "Đã gửi mã OTP."));
                         } else {
                             // Gửi mail THẤT BẠI (Email ảo, sai định dạng, Google chặn...)
@@ -149,44 +174,48 @@ public class ClientHandler implements Runnable {
                             this.tempRegisterData = null;
                             this.otpCreationTime = null; // Dọn dẹp nếu lỗi
                             // Báo lỗi, Client sẽ vẫn đứng ở màn hình đăng ký ban đầu
-                            this.sendToClient(new Message("REGISTER_FAIL", "Không thể gửi email. Hãy kiểm tra lại địa chỉ Email!"));
+                            this.sendToClient(new Message("REGISTER_FAIL",
+                                    "Không thể gửi email. Hãy kiểm tra lại địa chỉ Email!"));
                         }
                     });
                     break;
                 case "VERIFY_REGISTER_OTP":
                     String clientOtp = (String) msg.getData();
                     // 1. Kiểm tra xem mã đã quá hạn 5 phút chưa
-                    if (this.otpCreationTime == null ||
-                            Duration.between(this.otpCreationTime,LocalDateTime.now()).toMinutes() > 5) {
+                    if (this.otpCreationTime == null || Duration
+                            .between(this.otpCreationTime, LocalDateTime.now()).toMinutes() > 5) {
 
-                        this.sendToClient(new Message("REGISTER_FAIL", "Mã xác thực OTP đã hết hạn (Quá 5 phút). Vui lòng gửi lại mã mới!"));
+                        this.sendToClient(new Message("REGISTER_FAIL",
+                                "Mã xác thực OTP đã hết hạn (Quá 5 phút). Vui lòng gửi lại mã mới!"));
                         // Xóa toàn bộ dữ liệu tạm cũ để bảo mật
                         this.tempOtpCode = null;
                         this.tempRegisterData = null;
                         this.otpCreationTime = null;
                         break;
                     }
-                    if (this.tempOtpCode != null && this.tempOtpCode.equals(clientOtp)){
+                    if (this.tempOtpCode != null && this.tempOtpCode.equals(clientOtp)) {
                         String regEmail = (String) tempRegisterData[0];
                         String regPass = (String) tempRegisterData[1];
                         String regName = (String) tempRegisterData[2];
-                        RegularUser newUser = new RegularUser(
-                                UUID.randomUUID().toString(), regEmail, regPass, regName, 0L);
+                        RegularUser newUser = new RegularUser(UUID.randomUUID().toString(),
+                                regEmail, regPass, regName, 0L);
                         newUser.addRole(Role.BIDDER);
                         newUser.addRole(Role.SELLER);
 
                         boolean success = userRepository.register(newUser);
-                        if(success){
-                            this.sendToClient(new Message("REGISTER_SUCCESS","Đăng ký tài khoản thành công"));
-                        }else{
-                            this.sendToClient(new Message("REGISTER_FAIL","Lỗi hệ thống khi "));
+                        if (success) {
+                            this.sendToClient(new Message("REGISTER_SUCCESS",
+                                    "Đăng ký tài khoản thành công"));
+                        } else {
+                            this.sendToClient(new Message("REGISTER_FAIL", "Lỗi hệ thống khi "));
                         }
                         // Dọn dẹp bộ nhớ đệm
                         this.tempOtpCode = null;
                         this.tempRegisterData = null;
                         this.otpCreationTime = null;
-                    }else{
-                        this.sendToClient(new Message("REGISTER_FAIL","Mã xác thực OTP không chính xác"));
+                    } else {
+                        this.sendToClient(
+                                new Message("REGISTER_FAIL", "Mã xác thực OTP không chính xác"));
                     }
                     break;
                 case "RESEND_OTP":
@@ -201,21 +230,25 @@ public class ClientHandler implements Runnable {
                         // 3. Reset lại mốc thời gian 5 phút cho mã mới này
                         this.otpCreationTime = LocalDateTime.now();
 
-                        System.out.println("SERVER: Đang tiến hành gửi LẠI mã OTP " + this.tempOtpCode + " tới " + regEmail);
+                        System.out.println("SERVER: Đang tiến hành gửi LẠI mã OTP "
+                                + this.tempOtpCode + " tới " + regEmail);
 
                         // 4. Giao cho GmailService gửi đi
                         EmailService resendService = new GmailServiceImpl();
                         resendService.sendOtp(regEmail, this.tempOtpCode).thenAccept(isSuccess -> {
                             if (isSuccess) {
-                                // Gửi thành công, báo cho Client biết (Mặc dù Client không cần chuyển cảnh nữa)
+                                // Gửi thành công, báo cho Client biết (Mặc dù Client không cần
+                                // chuyển cảnh nữa)
                                 System.out.println("SERVER: Đã gửi lại thư thành công!");
                             } else {
-                                this.sendToClient(new Message("REGISTER_FAIL", "Lỗi đường truyền, không thể gửi lại email!"));
+                                this.sendToClient(new Message("REGISTER_FAIL",
+                                        "Lỗi đường truyền, không thể gửi lại email!"));
                             }
                         });
                     } else {
                         // Nếu user treo máy quá lâu bị xóa cache, bắt họ quay lại đăng ký từ đầu
-                        this.sendToClient(new Message("REGISTER_FAIL", "Phiên đăng ký đã hết hạn. Vui lòng quay lại màn hình ban đầu!"));
+                        this.sendToClient(new Message("REGISTER_FAIL",
+                                "Phiên đăng ký đã hết hạn. Vui lòng quay lại màn hình ban đầu!"));
                     }
                     break;
                 case "APPROVE_AUCTION":
@@ -224,48 +257,54 @@ public class ClientHandler implements Runnable {
                     String adminId = approvalData[1];
 
                     Auction a = auctionRepository.findById(auctionToApprove);
-                    if (a != null && a.getStatus() == AuctionStatus.PENDING){
+                    if (a != null && a.getStatus() == AuctionStatus.PENDING) {
                         a.setApprovedBy(adminId);
                         auctionRepository.updateAuctionStatus(a);
-                        sendToClient(new Message("APPOVE_SUCCESS","Đã duyệt thành công"));
+                        sendToClient(new Message("APPOVE_SUCCESS", "Đã duyệt thành công"));
                     }
                     break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
         } catch (ClassCastException e) {
-            System.err.println("SERVER: Dữ liệu không đúng định dạng từ client – " + e.getMessage());
+            System.err
+                    .println("SERVER: Dữ liệu không đúng định dạng từ client – " + e.getMessage());
             sendToClient(Message.error("Dữ liệu gửi lên không hợp lệ!"));
         }
     }
 
     private void handleBid(Message msg) {
-        Object[] bidData  = (Object[]) msg.getData();
-        String   userId   = (String) bidData[0];
-        String   auctionId = msg.getAuctionId();    // BUG FIX: dùng getAuctionId() thay vì bidData[1]
-        long     bidAmount = msg.getAmount();
-        String   newBidId  = UUID.randomUUID().toString();
+        Object[] bidData = (Object[]) msg.getData();
+        String userId = (String) bidData[0];
+        String auctionId = msg.getAuctionId(); // BUG FIX: dùng getAuctionId() thay vì bidData[1]
+        long bidAmount = msg.getAmount();
+        String newBidId = UUID.randomUUID().toString();
         try {
             // Ném Exception ngay tại cổng nếu chưa đăng nhập
             if (this.currentUser == null) {
-                throw new AuthenticationException("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn trên máy chủ!");
+                throw new AuthenticationException(
+                        "Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn trên máy chủ!");
             }
-            boolean isSuccess = bidRepository.executeBidTransaction(userId, auctionId, bidAmount, newBidId);
+            boolean isSuccess =
+                    bidRepository.executeBidTransaction(userId, auctionId, bidAmount, newBidId);
             if (isSuccess) {
-                String bidderFullName = (this.currentUser.getFullName() != null) ? this.currentUser.getFullName() : msg.getUsername();
+                String bidderFullName =
+                        (this.currentUser.getFullName() != null) ? this.currentUser.getFullName()
+                                : msg.getUsername();
                 server.broadcastToAuction(auctionId,
                         Message.updatePrice(bidderFullName, auctionId, bidAmount));
                 sendToClient(Message.bidSuccess());
             }
-        }catch (InvalidBidException| AuthenticationException | AuctionClosedException e){
+        } catch (InvalidBidException | AuthenticationException | AuctionClosedException e) {
             // BẮT LỖI NGHIỆP VỤ: Gửi chính xác thông báo lỗi về cho người dùng
             sendToClient(Message.bidFail(e.getMessage()));
-        }catch (Exception e) {
+        } catch (Exception e) {
             // BẮT LỖI HỆ THỐNG (Lỗi Database, NullPointer, v.v.): Tránh làm sập Server
             System.err.println("SERVER: Lỗi hệ thống khi xử lý BID - " + e.getMessage());
             sendToClient(Message.error("Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!"));
         }
     }
+
     private void handleWatchItem(Message msg) {
         server.watchAuction(msg.getAuctionId(), this);
     }
@@ -273,6 +312,7 @@ public class ClientHandler implements Runnable {
     private void handleUnwatchItem(Message msg) {
         server.unwatchAuction(msg.getAuctionId(), this);
     }
+
     private void handleLogin(Message msg) {
         String[] data = (String[]) msg.getData();
         String username = data[0];
@@ -287,6 +327,7 @@ public class ClientHandler implements Runnable {
             sendToClient(Message.loginFail("Sai tên đăng nhập hoặc mật khẩu!"));
         }
     }
+
     private void handleGetAllAuctions() {
         List<Auction> auctions = auctionRepository.findAllActiveAuctions();
         sendToClient(Message.returnAllAuctions(auctions));
@@ -299,29 +340,30 @@ public class ClientHandler implements Runnable {
         List<BidTransaction> history = bidRepository.getBidsByAuctionId(auctionId);
         sendToClient(Message.returnBidHistory(history));
     }
+
     private void handleSetupAutoBid(Message msg) {
         if (currentUser == null) {
             sendToClient(Message.autoBidFail("Bạn cần đăng nhập trước!"));
             return;
         }
-        Object[] data      = (Object[]) msg.getData();
-        String   auctionId = (String) data[0];
-        long     maxLimit  = (Long)   data[1];
-        long     increment = (Long)   data[2];
-        String   userId    = currentUser.getId();
+        Object[] data = (Object[]) msg.getData();
+        String auctionId = (String) data[0];
+        long maxLimit = (Long) data[1];
+        long increment = (Long) data[2];
+        String userId = currentUser.getId();
 
         boolean isSuccess = bidRepository.saveAutoBidConfig(userId, auctionId, maxLimit, increment);
-        sendToClient(isSuccess
-                ? Message.autoBidSuccess()
+        sendToClient(isSuccess ? Message.autoBidSuccess()
                 : Message.autoBidFail("Không thể thiết lập Auto-Bid. Vui lòng thử lại!"));
     }
+
     /**
-     * Gửi message về client.
-     * [FIX] Thêm synchronized để thread-safe – nhiều thread có thể gọi đồng thời
-     * (ví dụ: Scheduler gọi khi phiên hết giờ, đồng thời Client đang nhận broadcast).
+     * Gửi message về client. [FIX] Thêm synchronized để thread-safe – nhiều thread có thể gọi đồng
+     * thời (ví dụ: Scheduler gọi khi phiên hết giờ, đồng thời Client đang nhận broadcast).
      */
     public void sendToClient(Message msg) {
-        if (out == null) return;
+        if (out == null)
+            return;
         try {
             synchronized (out) {
                 out.writeObject(msg);
@@ -338,7 +380,8 @@ public class ClientHandler implements Runnable {
     private void cleanup() {
         server.removeClient(this);
         try {
-            if (socket != null && !socket.isClosed()) socket.close();
+            if (socket != null && !socket.isClosed())
+                socket.close();
         } catch (IOException e) {
             System.err.println("SERVER: Lỗi đóng socket – " + e.getMessage());
         }

@@ -1,7 +1,5 @@
 package com.nhomX.example.networking;
 
-import com.nhomX.example.repository.*;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,6 +9,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.nhomX.example.repository.AuctionRepository;
+import com.nhomX.example.repository.AuctionRepositoryImpl;
+import com.nhomX.example.repository.BidRepository;
+import com.nhomX.example.repository.BidRepositoryImpl;
+import com.nhomX.example.repository.ItemRepository;
+import com.nhomX.example.repository.ItemRepositoryImpl;
+import com.nhomX.example.repository.UserRepository;
+import com.nhomX.example.repository.UserRepositoryImpl;
 
 public class AuctionServer {
     private static final int PORT = 8080;
@@ -22,9 +28,10 @@ public class AuctionServer {
     // THÊM MỚI: Map quản lý người xem theo từng itemId
     // Key: itemId, Value: Tập hợp (Set) các ClientHandler đang xem món đó
     // Dùng newKeySet() để tạo ra một Set an toàn (Thread-safe Set) dựa trên ConcurrentHashMap
-    private final ConcurrentHashMap<String, Set<ClientHandler>> auctionViewers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Set<ClientHandler>> auctionViewers =
+            new ConcurrentHashMap<>();
 
-    //Khởi tạo Repository dùng chung tại cấp độ Server
+    // Khởi tạo Repository dùng chung tại cấp độ Server
     private final ItemRepository itemRepository = new ItemRepositoryImpl();
     private final UserRepository userRepository = new UserRepositoryImpl();
     private final BidRepository bidRepository = new BidRepositoryImpl();
@@ -46,7 +53,8 @@ public class AuctionServer {
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("SERVER: Có kết nối mới từ " + socket.getInetAddress());
-                ClientHandler handler = new ClientHandler(socket, this, itemRepository, userRepository, bidRepository, auctionRepository);
+                ClientHandler handler = new ClientHandler(socket, this, itemRepository,
+                        userRepository, bidRepository, auctionRepository);
                 clients.add(handler);
                 serverExecutor.execute(handler);
                 // [THÊM MỚI] Báo cho tất cả client biết có người mới vào
@@ -54,13 +62,14 @@ public class AuctionServer {
             }
         } catch (IOException e) {
             System.err.println("SERVER ERROR: " + e.getMessage());
-        }finally {
+        } finally {
             // Đề phòng trường hợp vòng lặp văng lỗi, chặn luôn luồng ở đây
             if (!serverExecutor.isShutdown()) {
                 serverExecutor.shutdown();
             }
         }
     }
+
     /** Đăng ký hook dọn dẹp khi JVM tắt (Ctrl+C hoặc kill). */
     private void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -74,7 +83,7 @@ public class AuctionServer {
     // Client gọi hàm này khi bấm vào xem chi tiết một món hàng
     public void watchAuction(String auctionId, ClientHandler client) {
         // NẾU ITEM ID BỊ NULL, BỎ QUA LUÔN, KHÔNG ĐƯA VÀO HASHMAP
-        if (auctionId== null || auctionId.isEmpty()) {
+        if (auctionId == null || auctionId.isEmpty()) {
             System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
             return;
         }
@@ -97,8 +106,8 @@ public class AuctionServer {
     }
 
     /**
-     * Broadcast message tới tất cả Client đang xem một phiên cụ thể.
-     * Đây là trung tâm của Realtime Update.
+     * Broadcast message tới tất cả Client đang xem một phiên cụ thể. Đây là trung tâm của Realtime
+     * Update.
      *
      * [FIX] Đổi tên từ broadcastToItem → broadcastToAuction cho đúng ngữ nghĩa.
      */
@@ -112,9 +121,10 @@ public class AuctionServer {
             }
         }
     }
+
     /**
-     *  Broadcast tới toàn bộ client đang kết nối.
-     * Dùng cho thông báo hệ thống (VD: Server sắp tắt, phiên mới được duyệt...).
+     * Broadcast tới toàn bộ client đang kết nối. Dùng cho thông báo hệ thống (VD: Server sắp tắt,
+     * phiên mới được duyệt...).
      */
     public void broadcastToAll(Message msg) {
         for (ClientHandler client : clients) {
@@ -132,9 +142,11 @@ public class AuctionServer {
         // [THÊM MỚI] Báo cho client biết có người vừa thoát
         broadcastOnlineCount();
     }
+
     public AuctionRepository getAuctionRepository() {
         return auctionRepository;
     }
+
     /**
      * Trả về số lượng Client (User) đang kết nối trực tiếp tới Server
      */
@@ -147,6 +159,7 @@ public class AuctionServer {
         System.out.println("Đang khởi động Server...");
 
     }
+
     /**
      * THÊM MỚI: Bắn gói tin cập nhật số người online tới tất cả Client
      */

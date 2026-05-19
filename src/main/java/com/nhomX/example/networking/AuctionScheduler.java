@@ -1,16 +1,12 @@
 package com.nhomX.example.networking;
 
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.BidTransaction;
-import com.nhomX.example.repository.AuctionRepository;
-import com.nhomX.example.repository.BidRepository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
 
 public class AuctionScheduler {
     private static final int CHECK_INTERVAL_SECONDS = 5;
@@ -18,7 +14,7 @@ public class AuctionScheduler {
     private final ScheduledExecutorService scheduler =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "auction-scheduler");
-                t.setDaemon(true);  // Tự tắt khi Server tắt
+                t.setDaemon(true); // Tự tắt khi Server tắt
                 return t;
             });
     private final AuctionServer server;
@@ -28,8 +24,7 @@ public class AuctionScheduler {
     }
 
     public void start() {
-        System.out.println("SCHEDULER: Khởi động, kiểm tra "
-                + CHECK_INTERVAL_SECONDS + "s/lần...");
+        System.out.println("SCHEDULER: Khởi động, kiểm tra " + CHECK_INTERVAL_SECONDS + "s/lần...");
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 processAuctionStates();
@@ -40,27 +35,32 @@ public class AuctionScheduler {
             }
         }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
+
     private void processAuctionStates() {
         LocalDateTime now = LocalDateTime.now();
 
         // ====================================================================
         // LUỒNG 1: MỞ CỬA PHIÊN ĐẤU GIÁ (PENDING -> OPEN) CÓ KIỂM DUYỆT
         // ====================================================================
-        List<Auction> pendingAuctions = server.getAuctionRepository().findAuctionsByStatus(AuctionStatus.PENDING);
+        List<Auction> pendingAuctions =
+                server.getAuctionRepository().findAuctionsByStatus(AuctionStatus.PENDING);
 
         if (pendingAuctions != null) {
             for (Auction auction : pendingAuctions) {
                 // Điều kiện 1: Đã đến giờ mở cửa chưa?
-                boolean isTimeToStart = auction.getStartTime() != null && !now.isBefore(auction.getStartTime());
+                boolean isTimeToStart =
+                        auction.getStartTime() != null && !now.isBefore(auction.getStartTime());
 
                 // Điều kiện 2: ĐÃ ĐƯỢC ADMIN DUYỆT CHƯA? (Dựa vào cột approved_by dưới DB)
                 // Model Auction của em cần bổ sung thuộc tính String approvedBy;
-                boolean isAdminApproved = auction.getApprovedBy() != null && !auction.getApprovedBy().trim().isEmpty();
+                boolean isAdminApproved = auction.getApprovedBy() != null
+                        && !auction.getApprovedBy().trim().isEmpty();
 
                 if (isTimeToStart && isAdminApproved) {
                     auction.setStatus(AuctionStatus.OPEN);
                     server.getAuctionRepository().updateAuctionStatus(auction);
-                    System.out.println("SCHEDULER: 🟢 Đã mở cửa phiên " + auction.getId() + " (Người duyệt: " + auction.getApprovedBy() + ")");
+                    System.out.println("SCHEDULER: 🟢 Đã mở cửa phiên " + auction.getId()
+                            + " (Người duyệt: " + auction.getApprovedBy() + ")");
 
                     // (Tùy chọn) Bắn broadcast báo cho toàn Server: Có món hàng mới lên sàn!
                 }
@@ -83,17 +83,17 @@ public class AuctionScheduler {
                 // ĐÃ HẾT GIỜ -> Chuyển trạng thái
                 // Lưu ý: Trong Model Auction, hàm closeAuction() của em nên tự động xét:
                 // Nếu highestBid > 0 (có người mua) -> Trạng thái FINISHED
-                // Nếu highestBid == 0  -> Trạng thái CANCELED
+                // Nếu highestBid == 0 -> Trạng thái CANCELED
                 auction.closeAuction();
 
                 boolean saved = server.getAuctionRepository().updateAuctionStatus(auction);
 
                 if (saved) {
-                    String winnerId = (auction.getWinner() != null) ? auction.getWinner().getId() : null;
+                    String winnerId =
+                            (auction.getWinner() != null) ? auction.getWinner().getId() : null;
 
                     // Thông báo realtime tới mọi Client đang trong phòng
-                    server.broadcastToAuction(
-                            auction.getId(),
+                    server.broadcastToAuction(auction.getId(),
                             Message.auctionClosed(auction.getId(), winnerId));
 
                     System.out.println("SCHEDULER: 🔴 Đã đóng phiên " + auction.getId()

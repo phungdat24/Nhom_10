@@ -1,5 +1,9 @@
 package com.nhomX.example.controller;
 
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ResourceBundle;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
@@ -16,11 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
 
 public class MainDashBoardController extends BaseController implements Initializable {
 
@@ -67,39 +66,46 @@ public class MainDashBoardController extends BaseController implements Initializ
         // Load trang mặc định
         loadView("/com/nhomX/example/fxml/DashboardContent.fxml");
     }
+
     // ===== SIDEBAR LOGIC =====
     @FXML
     protected void toggleSidebar(ActionEvent event) {
-        if (sidebar == null) return;
+        if (sidebar == null)
+            return;
         sidebar.setMinWidth(0);
         Timeline timeline = new Timeline();
 
         if (isSidebarOpen) {
-            timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
-                    new KeyValue(sidebar.prefWidthProperty(), 0),
-                    new KeyValue(sidebar.opacityProperty(), 0)));
+            timeline.getKeyFrames()
+                    .add(new KeyFrame(Duration.millis(250),
+                            new KeyValue(sidebar.prefWidthProperty(), 0),
+                            new KeyValue(sidebar.opacityProperty(), 0)));
         } else {
-            timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
-                    new KeyValue(sidebar.prefWidthProperty(), SIDEBAR_WIDTH),
-                    new KeyValue(sidebar.opacityProperty(), 1)));
+            timeline.getKeyFrames()
+                    .add(new KeyFrame(Duration.millis(250),
+                            new KeyValue(sidebar.prefWidthProperty(), SIDEBAR_WIDTH),
+                            new KeyValue(sidebar.opacityProperty(), 1)));
         }
         timeline.play();
         isSidebarOpen = !isSidebarOpen;
     }
 
     public void closeSidebar() {
-        if (!isSidebarOpen || sidebar == null) return;
+        if (!isSidebarOpen || sidebar == null)
+            return;
         Timeline timeline = new Timeline();
-        timeline.getKeyFrames().add(new KeyFrame(Duration.millis(250),
-                new KeyValue(sidebar.prefWidthProperty(), 0),
-                new KeyValue(sidebar.opacityProperty(), 0)));
+        timeline.getKeyFrames()
+                .add(new KeyFrame(Duration.millis(250),
+                        new KeyValue(sidebar.prefWidthProperty(), 0),
+                        new KeyValue(sidebar.opacityProperty(), 0)));
         timeline.setOnFinished(e -> isSidebarOpen = false);
         timeline.play();
     }
 
     // Cập nhật các nu trang thái trên giao diện:
     private void setActiveButton(Button activeBtn) {
-        if(activeBtn == null) return;
+        if (activeBtn == null)
+            return;
         for (Button btn : navButtons) {
             // Xóa class active khỏi tất cả các nút
             btn.getStyleClass().remove("nav-btn-active");
@@ -113,6 +119,7 @@ public class MainDashBoardController extends BaseController implements Initializ
             activeBtn.getStyleClass().add("nav-btn-active");
         }
     }
+
     // ===== ĐIỀU HƯỚNG TỪ SIDEBAR =====
     @FXML
     protected void handleDashboard(ActionEvent event) {
@@ -147,18 +154,20 @@ public class MainDashBoardController extends BaseController implements Initializ
         loadView("/com/nhomX/example/fxml/SellerContent.fxml");
         setActiveButton(btnSeller);
     }
-    public void loadView(String fxmlPath){
-        try{
+
+    public void loadView(String fxmlPath) {
+        try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Node newNode = loader.load();
             mainContentArea.getChildren().clear();
             mainContentArea.getChildren().add(newNode);
-        }catch (java.io.IOException e){
+        } catch (java.io.IOException e) {
             e.printStackTrace();
             System.err.println("Lỗi không thể tải trang con: " + fxmlPath);
         }
     }
-    //5. Hàm nhận một Node đã có sẵn dữ liệu (Dùng cho ItemDetail)
+
+    // 5. Hàm nhận một Node đã có sẵn dữ liệu (Dùng cho ItemDetail)
     public void setCenterContent(Node node) {
         mainContentArea.getChildren().clear();
         mainContentArea.getChildren().add(node);

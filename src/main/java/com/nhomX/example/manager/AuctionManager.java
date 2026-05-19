@@ -1,22 +1,22 @@
 package com.nhomX.example.manager;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.RegularUser;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
- * Lớp Singleton quản lý bộ nhớ đệm (Cache) danh sách đấu giá tại Client.
- * Đóng vai trò là Nguồn Sự Thật Duy Nhất (Single Source of Truth) cho toàn bộ Giao diện UI.
+ * Lớp Singleton quản lý bộ nhớ đệm (Cache) danh sách đấu giá tại Client. Đóng vai trò là Nguồn Sự
+ * Thật Duy Nhất (Single Source of Truth) cho toàn bộ Giao diện UI.
  */
 public class AuctionManager {
     // 1. Khởi tạo Singleton an toàn đa luồng (Thread-safe) với từ khóa volatile
     private static volatile AuctionManager instance;
 
-    // 2. Bộ nhớ Cache lõi: Dùng ConcurrentHashMap để Thread Socket vừa ghi, Thread UI vừa đọc mà không Crash
+    // 2. Bộ nhớ Cache lõi: Dùng ConcurrentHashMap để Thread Socket vừa ghi, Thread UI vừa đọc mà
+    // không Crash
     private final ConcurrentHashMap<String, Auction> auctionCache;
 
     // Chặn khởi tạo bằng từ khóa new
@@ -41,22 +41,25 @@ public class AuctionManager {
     // ========================================================================
 
     /**
-     * Nạp toàn bộ danh sách từ Server tải về vào Cache.
-     * Thường gọi một lần khi Client vừa kết nối hoặc người dùng bấm nút "Làm mới".
+     * Nạp toàn bộ danh sách từ Server tải về vào Cache. Thường gọi một lần khi Client vừa kết nối
+     * hoặc người dùng bấm nút "Làm mới".
      */
     public void setAllAuctions(List<Auction> auctions) {
-        if (auctions == null) return;
+        if (auctions == null)
+            return;
         auctionCache.clear(); // Xóa rác cũ
         for (Auction auction : auctions) {
             auctionCache.put(auction.getId(), auction);
         }
-        System.out.println("CACHE: Đã nạp thành công " + auctions.size() + " phiên đấu giá vào bộ nhớ tạm.");
+        System.out.println(
+                "CACHE: Đã nạp thành công " + auctions.size() + " phiên đấu giá vào bộ nhớ tạm.");
     }
 
     /**
      * Cập nhật thời gian thực khi có người đấm búa (Real-time Price Update).
      */
-    public void updateAuctionPrice(String auctionId, long newPrice, String winnerId, String winnerName) {
+    public void updateAuctionPrice(String auctionId, long newPrice, String winnerId,
+            String winnerName) {
         Auction auction = auctionCache.get(auctionId);
         if (auction != null) {
             auction.setHighestBid(newPrice);
@@ -87,6 +90,7 @@ public class AuctionManager {
             }
         }
     }
+
     // CÁC HÀM CUNG CẤP DỮ LIỆU CHO GIAO DIỆN JAVAFX (Đọc dữ liệu)
     /**
      * Lấy toàn bộ danh sách để vẽ lên màn hình Dashboard.
@@ -107,13 +111,14 @@ public class AuctionManager {
         }
         return activeList;
     }
+
     /**
-     * Cập nhật hoặc thêm mới một danh sách các phiên đấu giá vào Cache
-     * MÀ KHÔNG XÓA đi các phiên đang có sẵn trong RAM.
-     * (Thao tác: Upsert = Update or Insert)
+     * Cập nhật hoặc thêm mới một danh sách các phiên đấu giá vào Cache MÀ KHÔNG XÓA đi các phiên
+     * đang có sẵn trong RAM. (Thao tác: Upsert = Update or Insert)
      */
     public void updateOrAddAuctions(List<Auction> auctions) {
-        if (auctions == null || auctions.isEmpty()) return;
+        if (auctions == null || auctions.isEmpty())
+            return;
 
         for (Auction auction : auctions) {
             // Hàm put của ConcurrentHashMap cực kỳ thông minh:
@@ -121,7 +126,8 @@ public class AuctionManager {
             // - Nếu ID chưa tồn tại: Nó thêm Object này vào thành một mục mới.
             auctionCache.put(auction.getId(), auction);
         }
-        System.out.println("CACHE: Đã cập nhật (Merge) " + auctions.size() + " phiên đấu giá vào bộ nhớ an toàn.");
+        System.out.println("CACHE: Đã cập nhật (Merge) " + auctions.size()
+                + " phiên đấu giá vào bộ nhớ an toàn.");
     }
 
     /**

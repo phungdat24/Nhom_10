@@ -1,22 +1,24 @@
 package com.nhomX.example.networking;
 
-import com.nhomX.example.manager.SessionManager;
-import com.nhomX.example.model.*;
-import com.nhomX.example.manager.AuctionManager;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
+import com.nhomX.example.manager.AuctionManager;
+import com.nhomX.example.manager.SessionManager;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.BidTransaction;
+import com.nhomX.example.model.MyAuctionDTO;
+import com.nhomX.example.model.User;
 
 public class AuctionClient {
 
     private String username;
-    //Đưa socket lên làm thuộc tính class để chống Leak
+    // Đưa socket lên làm thuộc tính class để chống Leak
     private Socket socket;
-    //Thêm volatile để chống Race Condition khi đọc/ghi đa luồng:
+    // Thêm volatile để chống Race Condition khi đọc/ghi đa luồng:
     private volatile ObjectOutputStream out;
     private volatile ObjectInputStream in;
 
@@ -39,7 +41,7 @@ public class AuctionClient {
             in = new ObjectInputStream(socket.getInputStream());
 
             // LUỒNG NGẦM: Luôn lắng nghe cập nhật từ Server để không làm treo UI
-            Thread listenerThread = new Thread(this::listenToServer,"client-listener" );
+            Thread listenerThread = new Thread(this::listenToServer, "client-listener");
             listenerThread.setDaemon(true); // Tự tắt khi ứng dụng chính tắt
             listenerThread.start();
             System.out.println("CLIENT: Đã kết nối tới " + host + ":" + port);
@@ -47,12 +49,16 @@ public class AuctionClient {
             System.err.println("CLIENT: Không thể kết nối tới Server.");
         }
     }
+
     // Dọn dẹp tài nguyên chống leak:
     public void disconnect() {
         try {
-            if (in != null) in.close();
-            if (out != null) out.close();
-            if (socket != null && !socket.isClosed()) socket.close();
+            if (in != null)
+                in.close();
+            if (out != null)
+                out.close();
+            if (socket != null && !socket.isClosed())
+                socket.close();
             System.out.println("CLIENT: Đã đóng kết nối an toàn.");
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,11 +66,12 @@ public class AuctionClient {
     }
 
     // Gửi yêu cầu đặt giá lên Server
-    public void placeBid(String userId,String auctionId , long bidAmount) {
+    public void placeBid(String userId, String auctionId, long bidAmount) {
         Object[] bidData = {userId, auctionId, bidAmount};
         Message bid = new Message("BID", username, auctionId, bidAmount, bidData);
         sendToServer(bid);
     }
+
     /** Yêu cầu Server trả về danh sách phiên đang mở. */
     public void requestAllAuctions() {
         sendToServer(new Message("GET_ALL_AUCTIONS"));
@@ -100,7 +107,8 @@ public class AuctionClient {
             System.err.println("CLIENT: Mất kết nối: " + e.getMessage());
         }
     }
-    //Thêm synchronized(out) để thread-safe khi nhiều luồng gửi cùng lúc.
+
+    // Thêm synchronized(out) để thread-safe khi nhiều luồng gửi cùng lúc.
     // Hàm mới: Gửi bất kỳ Message nào lên Server (dùng cho Login, Register...)
     public void sendToServer(Message msg) {
         if (out == null) {
@@ -119,40 +127,39 @@ public class AuctionClient {
         }
     }
 
-    //Gọi khi người dùng MỞ giao diện chi tiết món hàng
+    // Gọi khi người dùng MỞ giao diện chi tiết món hàng
     public void watchAuction(String auctionId) {
         sendToServer(new Message("WATCH_ITEM", username, auctionId, 0));
         System.out.println("CLIENT: Đang theo dõi phiên " + auctionId);
     }
 
-    //Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
+    // Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
     public void unwatchAuction(String auctionId) {
         // Gửi tin nhắn loại "UNWATCH" lên Server
         sendToServer(new Message("UNWATCH_ITEM", username, auctionId, 0));
         System.out.println("CLIENT: Đã hủy theo dõi phiên " + auctionId);
     }
+
     public void getBidHistory(String auctionId) {
-        sendToServer(new Message("GET_BID_HISTORY",this.username, auctionId, 0, null));
+        sendToServer(new Message("GET_BID_HISTORY", this.username, auctionId, 0, null));
     }
+
     /**
-     * [FIX] Tách xử lý từng loại message ra hàm riêng thay vì một khối if-else khổng lồ.
-     * Dễ đọc và dễ thêm loại message mới.
+     * [FIX] Tách xử lý từng loại message ra hàm riêng thay vì một khối if-else khổng lồ. Dễ đọc và
+     * dễ thêm loại message mới.
      */
     private void handleServerMessage(Message msg) {
         String type = msg.getType();
         switch (type) {
 
             case "UPDATE_PRICE":
-                //Cập nhật Nguồn Sự Thật trên RAM ngay lập tức
-                AuctionManager.getInstance().updateAuctionPrice(
-                        msg.getAuctionId(),
-                        msg.getAmount(),
-                        null,
-                        msg.getUsername()
-                );
+                // Cập nhật Nguồn Sự Thật trên RAM ngay lập tức
+                AuctionManager.getInstance().updateAuctionPrice(msg.getAuctionId(), msg.getAmount(),
+                        null, msg.getUsername());
                 runOnUiThread(() -> {
                     if (listener != null) {
-                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(), msg.getUsername());
+                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(),
+                                msg.getUsername());
                     }
                 });
                 break;
@@ -201,9 +208,8 @@ public class AuctionClient {
             case "LOGIN_FAIL":
                 runOnUiThread(() -> {
                     if (listener != null) {
-                        listener.onLoginResult(false,
-                                msg.getData() != null ? (String) msg.getData()
-                                        : "Sai tên đăng nhập hoặc mật khẩu!", null);
+                        listener.onLoginResult(false, msg.getData() != null ? (String) msg.getData()
+                                : "Sai tên đăng nhập hoặc mật khẩu!", null);
                     }
                 });
                 break;
@@ -218,15 +224,14 @@ public class AuctionClient {
             case "REGISTER_SUCCESS":
                 runOnUiThread(() -> {
                     if (listener != null) {
-                        listener.onRegisterResult(true,
-                                "Đăng ký thành công! Vui lòng đăng nhập.");
+                        listener.onRegisterResult(true, "Đăng ký thành công! Vui lòng đăng nhập.");
                     }
                 });
                 break;
 
             case "REGISTER_FAIL":
-                String errMsg = msg.getData() != null ? (String) msg.getData()
-                        : "Đăng ký thất bại!";
+                String errMsg =
+                        msg.getData() != null ? (String) msg.getData() : "Đăng ký thất bại!";
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onRegisterResult(false, errMsg);
@@ -266,11 +271,12 @@ public class AuctionClient {
                 List<Auction> endingSoon = (List<Auction>) payload[1];
                 List<Auction> trending = (List<Auction>) payload[2];
                 // [REFACTOR]: Sử dụng hàm Merge.
-                    // Gộp cả 2 danh sách Trending và Ending Soon vào Cache để các món này luôn có giá tươi nhất,
-                    // MÀ KHÔNG XÓA mất các món hàng khác đang có sẵn trên màn hình Live Auction.
+                // Gộp cả 2 danh sách Trending và Ending Soon vào Cache để các món này luôn có giá
+                // tươi nhất,
+                // MÀ KHÔNG XÓA mất các món hàng khác đang có sẵn trên màn hình Live Auction.
                 AuctionManager.getInstance().updateOrAddAuctions(trending);
                 AuctionManager.getInstance().updateOrAddAuctions(endingSoon);
-                if (listener != null){
+                if (listener != null) {
                     listener.onDashboardDataReceived(stats, endingSoon, trending);
                 }
                 break;
@@ -287,7 +293,7 @@ public class AuctionClient {
                 List<com.nhomX.example.model.MyAuctionDTO> myAuctionsList =
                         (List<MyAuctionDTO>) msg.getData();
 
-                if (listener != null){
+                if (listener != null) {
                     listener.onMyAuctionsReceived(myAuctionsList);
                 }
                 break;
@@ -296,10 +302,12 @@ public class AuctionClient {
                 System.err.println("CLIENT: Loại message không xác định – " + type);
         }
     }
+
     /** Wrapper cho Platform.runLater – giúp code ngắn gọn hơn. */
     private void runOnUiThread(Runnable action) {
         javafx.application.Platform.runLater(action);
     }
+
     /** Thông báo mất kết nối qua listener (trên UI thread). */
     private void notifyConnectionLost(String reason) {
         runOnUiThread(() -> {
@@ -308,12 +316,15 @@ public class AuctionClient {
             }
         });
     }
+
     public String getUsername() {
         return username;
     }
+
     public void setUsername(String username) {
         this.username = username;
     }
+
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
