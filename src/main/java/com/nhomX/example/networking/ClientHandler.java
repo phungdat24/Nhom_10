@@ -415,8 +415,7 @@ public class ClientHandler implements Runnable {
                 String bidderFullName =
                         (this.currentUser.getFullName() != null) ? this.currentUser.getFullName()
                                 : msg.getUsername();
-                server.broadcastToAuction(auctionId,
-                        Message.updatePrice(bidderFullName, auctionId, bidAmount));
+                server.broadcastToAll(Message.updatePrice(bidderFullName, auctionId, bidAmount));
                 sendToClient(Message.bidSuccess());
             }
         } catch (InvalidBidException | AuthenticationException | AuctionClosedException e) {

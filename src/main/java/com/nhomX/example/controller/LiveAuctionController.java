@@ -2,6 +2,7 @@ package com.nhomX.example.controller;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,8 +86,15 @@ public class LiveAuctionController extends BaseController
         Platform.runLater(() -> {
             ItemCardController card = activeAuctionCards.get(itemId);
             if (card != null) {
+                // TÌM KIẾM THỜI GIAN MỚI TỪ CACHE (AUCTION MANAGER)
+                // ========================================================
+                LocalDateTime newEndTime = null;
+                Auction cachedAuction = AuctionManager.getInstance().getAuctionById(itemId);
+                if (cachedAuction != null) {
+                    newEndTime = cachedAuction.getEndTime();
+                }
                 // Gọi hàm cập nhật giá đơn lẻ trên thẻ đó
-                card.updateRealtimePrice(newPrice);
+                card.updateRealtimePrice(newPrice, newEndTime);
                 System.out.println(
                         "LIVE AUCTION: Đã nháy giá mới " + newPrice + " cho món " + itemId);
             }
