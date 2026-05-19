@@ -44,14 +44,18 @@ public class ForgotPwNewController implements ServerEventListener {
     public void initialize() {
         lblError.setVisible(false);
         lblError.setManaged(false);
-
+        // [FIX BUG 1]: DÙNG ĐỒNG BỘ HAI CHIỀU THAY VÌ LẮNG NGHE LẶP VÒNG
+        // Khi gõ vào ô ẩn, ô hiện sẽ tự đổi và ngược lại. Không bị nhảy con trỏ!
+        // ========================================================
+        newPasswordVisible.textProperty().bindBidirectional(newPasswordField.textProperty());
         // 1. Lắng nghe sự thay đổi của mật khẩu mới để tính toán độ mạnh
         newPasswordField.textProperty().addListener((obs, oldVal, newVal) -> {
             newPasswordVisible.setText(newVal); // Đồng bộ với ô text ẩn
             updatePasswordStrength(newVal);
             checkPasswordsMatch();
         });
-
+        // Lắng nghe ô xác nhận mật khẩu để hiện dấu tích xanh/đỏ
+        confirmPasswordField.textProperty().addListener((obs, oldVal, newVal) -> checkPasswordsMatch());
         // 2. Lắng nghe sự thay đổi của ô text ẩn (khi đang hiện mật khẩu)
         newPasswordVisible.textProperty().addListener((obs, oldVal, newVal) -> {
             if (isPasswordVisible) {
@@ -79,12 +83,18 @@ public class ForgotPwNewController implements ServerEventListener {
             newPasswordVisible.setManaged(true);
             newPasswordField.setVisible(false);
             newPasswordField.setManaged(false);
+            // [TỐI ƯU UX]: Đưa con trỏ chuột về đúng vị trí cuối cùng sau khi chuyển đổi
+            newPasswordVisible.requestFocus();
+            newPasswordVisible.positionCaret(newPasswordVisible.getText().length());
         } else {
             toggleNewPassword.setText("👁");
             newPasswordVisible.setVisible(false);
             newPasswordVisible.setManaged(false);
             newPasswordField.setVisible(true);
             newPasswordField.setManaged(true);
+            // [TỐI ƯU UX]: Đưa con trỏ chuột về đúng vị trí cuối cùng sau khi chuyển đổi
+            newPasswordField.requestFocus();
+            newPasswordField.positionCaret(newPasswordField.getText().length());
         }
     }
 

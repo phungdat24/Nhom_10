@@ -78,12 +78,12 @@
                 <Label style="-fx-text-fill: rgba(255,220,160,0.65); -fx-font-size: 12px; -fx-font-weight: bold;" text="MẬT KHẨU MỚI" />
                 <HBox alignment="CENTER_LEFT" maxWidth="Infinity" spacing="10" style="-fx-background-color: #2b1f12; -fx-background-radius: 10; -fx-border-color: rgba(201,162,39,0.40); -fx-border-radius: 10; -fx-border-width: 1.5; -fx-padding: 0 12 0 12;">
                     <Label style="-fx-text-fill: #c9a227; -fx-font-size: 16px;" text="🔒" />
-                    <PasswordField fx:id="newPasswordField" maxWidth="Infinity" prefHeight="48" prefWidth="280.0" promptText="Nhập mật khẩu mới" style="-fx-background-color: transparent; -fx-text-fill: #f4e8c8; -fx-prompt-text-fill: rgba(255,220,160,0.35); -fx-font-size: 14px; -fx-border-width: 0;" />
-                    <!-- Toggle show/hide password -->
+
+                    <PasswordField fx:id="newPasswordField" maxWidth="Infinity" HBox.hgrow="ALWAYS" prefHeight="48" prefWidth="280.0" promptText="Nhập mật khẩu mới" style="-fx-background-color: transparent; -fx-text-fill: #f4e8c8; -fx-prompt-text-fill: rgba(255,220,160,0.35); -fx-font-size: 14px; -fx-border-width: 0;" />
+                    <TextField fx:id="newPasswordVisible" managed="false" visible="false" maxWidth="Infinity" HBox.hgrow="ALWAYS" prefHeight="48" prefWidth="280.0" promptText="Nhập mật khẩu mới" style="-fx-background-color: transparent; -fx-text-fill: #f4e8c8; -fx-prompt-text-fill: rgba(255,220,160,0.35); -fx-font-size: 14px; -fx-border-width: 0;" />
+
                     <Label fx:id="toggleNewPassword" onMouseClicked="#handleToggleNewPassword" style="-fx-text-fill: rgba(201,162,39,0.55); -fx-font-size: 14px; -fx-cursor: hand;" text="👁" />
                 </HBox>
-                <!-- Ô text ẩn dùng khi toggle hiện mật khẩu -->
-                <TextField fx:id="newPasswordVisible" managed="false" maxWidth="Infinity" prefHeight="48" promptText="Nhập mật khẩu mới" style="-fx-background-color: transparent; -fx-text-fill: #f4e8c8; -fx-border-width: 0;" visible="false" />
             </VBox>
 
             <!-- CONFIRM PASSWORD INPUT -->

@@ -368,21 +368,32 @@ public class ClientHandler implements Runnable {
             String email = data[0];
             boolean isEmailExist = userRepository.findByUsername(email) != null;
 
-            Message response;
-            if (isEmailExist){
+            if (isEmailExist) {
                 String otpCode = String.format("%06d", new java.util.Random().nextInt(999999));
                 otpStorage.put(email, new OtpData(otpCode));
-                System.out.println("SERVER LÉN LÚT LOG: Đã tạo OTP [" + otpCode + "]");
-                String[] responseData = {"true", "Mã OTP đã được gửi đến email của bạn"};
-                response = new Message("FORGOT_PASSWORD_RESULT",responseData);
-            }else{
-                String[] responseData = {"false", "Email này không tồn tại"};
-                response = new Message("FORGOT_PASSWORD_RESULT",responseData);
+                System.out.println("SERVER: Đã tạo OTP [" + otpCode + "] cho quên mật khẩu.");
+                EmailService emailService = new GmailServiceImpl();
+                emailService.sendOtp(email, otpCode).thenAccept(isSuccess -> {
+                    if (isSuccess) {
+                        String[] responseData = {"true", "Mã OTP đã được gửi đến email của bạn"};
+                        sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
+                    } else {
+                        // Lỗi mạng hoặc email rác -> Xóa OTP vừa tạo đi và báo lỗi
+                        otpStorage.remove(email);
+                        String[] responseData = {"false", "Hệ thống không thể gửi email lúc này. Vui lòng thử lại!"};
+                        sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
+                    }
+                });
+            } else {
+                // Email chưa đăng ký tài khoản bao giờ
+                String[] responseData = {"false", "Email này không tồn tại trong hệ thống"};
+                sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
             }
-            out.writeObject(response);
-            out.flush();
-        }catch (Exception e){
-            System.out.println("Lỗi xử lý Forgot Password: "+ e.getMessage());
+
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi xử lý Forgot Password: " + e.getMessage());
+            String[] responseData = {"false", "Lỗi máy chủ cục bộ!"};
+            sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
         }
     }
 
