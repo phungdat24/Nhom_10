@@ -8,8 +8,6 @@ public abstract class Items extends Entity {
     private String title;
     // Mô tả sản phẩm:
     private String description;
-    // Giá khởi tạo
-    private long startingPrice;
     // Link ảnh:
     private List<ItemImage> images = new ArrayList<>();
     // Người bán:
@@ -20,13 +18,12 @@ public abstract class Items extends Entity {
         this.images= new ArrayList<>();
     }
 
-    public Items(String id, String title, String description, long startingPrice, RegularUser seller) {
+    public Items(String id, String title, String description, RegularUser seller) {
         // Truền id cho lớp cha:
         super(id);
         this.title = title;
         this.images= new ArrayList<>();
         this.seller=seller;
-        this.setStartingPrice(startingPrice);
         this.description=description;
     }
 
@@ -42,10 +39,6 @@ public abstract class Items extends Entity {
 
     public String getDescription() {
         return this.description;
-    }
-
-    public long getStartingPrice() {
-        return this.startingPrice;
     }
 
     public List<ItemImage> getImages() {
@@ -64,13 +57,6 @@ public abstract class Items extends Entity {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setStartingPrice(long startingPrice) {
-        if (startingPrice < 0) {
-            throw new IllegalArgumentException("Giá khởi điểm không được phép nhỏ hơn 0!");
-        }
-        this.startingPrice = startingPrice;
     }
 
     public void setSeller(RegularUser seller){

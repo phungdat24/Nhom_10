@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.nhomX.example.factory.ItemFactory;
 import com.nhomX.example.model.Art;
 import com.nhomX.example.model.Electronics;
 import com.nhomX.example.model.GeneralItem;
@@ -273,38 +275,22 @@ public class ItemRepositoryImpl implements ItemRepository {
   }
 
   private Items mapRowToItem(ResultSet rs, Connection conn) throws SQLException {
+    // 1. Trích xuất toàn bộ dữ liệu thô từ Database
     String category = rs.getString("category");
-    Items item;
+    String id = rs.getString("id");
+    String title = rs.getString("title");
+    String description = rs.getString("description");
 
-    if (category != null) {
-      switch (category.toUpperCase()) {
-        case "ELECTRONICS":
-          item = new Electronics();
-          break;
-        case "JEWELRY":
-          item = new Jewelry();
-          break;
-        case "ART":
-          item = new Art();
-          break;
-        default:
-          item = new GeneralItem();
-          break;
-      }
-    } else {
-      item = new GeneralItem();
-    }
-
-    item.setId(rs.getString("id"));
-    item.setTitle(rs.getString("title"));
-    item.setDescription(rs.getString("description"));
-
-
+    // 2. Tạo vỏ rỗng chứa ID của người bán
     RegularUser seller = new RegularUser();
     seller.setId(rs.getString("seller_id"));
-    item.setSeller(seller);
 
+    // 3. Giao toàn quyền sinh sát cho Nhà máy (Khử hoàn toàn if-else/switch-case)
+    Items item = ItemFactory.createItem(category, id, title, description, seller);
+
+    // 4. Nhét thêm danh sách ảnh và trả về
     item.setImages(getImagesByItemId(item.getId(), conn));
+
     return item;
   }
 }
