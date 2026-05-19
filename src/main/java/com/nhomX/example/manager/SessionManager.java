@@ -13,6 +13,11 @@ public class SessionManager {
 
     private AuctionClient auctionClient;
 
+    private String tempEmail;
+    // [THÊM MỚI]: Biến lưu trữ luồng hiện tại đang chạy
+    // Gán giá trị mặc định là "REGISTER" để an toàn
+    private String currentFlow = "REGISTER";
+
     private User currentUser; // null = chưa đăng nhập
 
     private SessionManager() {}
@@ -55,5 +60,19 @@ public class SessionManager {
 
     public void setAuctionClient(AuctionClient auctionClient) {
         this.auctionClient = auctionClient;
+    }
+    public void setTempEmail(String tempEmail) {
+        this.tempEmail = tempEmail;
+    }
+
+    public String getTempEmail() {
+        return this.tempEmail;
+    }
+    public void setCurrentFlow(String flow) {
+        this.currentFlow = flow;
+    }
+
+    public String getCurrentFlow() {
+        return this.currentFlow;
     }
 }

@@ -298,7 +298,7 @@ public class AuctionClient {
                 }
                 break;
 
-            case "FORGIT_PASSWORD_RESULT":
+            case "FORGOT_PASSWORD_RESULT":
                 if (listener != null){
                     String[] resultData = (String[]) msg.getData();
                     boolean isSuccess = Boolean.parseBoolean(resultData[0]);

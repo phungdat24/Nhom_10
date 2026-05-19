@@ -24,4 +24,6 @@ public interface UserRepository {
     List<User> findAll();
 
     int getTotalUserCount();
+    // Update khi quên mật khẩu:
+     boolean updatePassword(String username, String newPasswordHash);
 }

@@ -82,7 +82,7 @@ public class LoginController implements ServerEventListener {
         if (auctionClient != null) {
             auctionClient.setServerEventListener(null);
         }
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPassword.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPwEmail.fxml");
     }
     @FXML
     public void handleBackToHome() {

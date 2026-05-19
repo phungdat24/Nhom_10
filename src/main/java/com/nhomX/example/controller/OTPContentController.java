@@ -43,6 +43,8 @@ public class OTPContentController implements Initializable , ServerEventListener
     private Hyperlink btnResend;
     @FXML
     private Button btnConfirm;
+    @FXML
+    private Label lblEmail;
 
     // Mảng chứa các ô OTP để dễ dàng dùng vòng lặp xử lý
     private TextField[] otpFields;
@@ -60,6 +62,15 @@ public class OTPContentController implements Initializable , ServerEventListener
             client.setServerEventListener(this);
         }
         startResendCountdown();
+        // [THÊM MỚI]: LẤY EMAIL TỪ SESSION VÀ HIỂN THỊ LÊN GIAO DIỆN
+        // =========================================================
+        String savedEmail = SessionManager.getInstance().getTempEmail();
+        if (savedEmail != null && !savedEmail.isEmpty()) {
+            if (lblEmail != null) {
+                // Che giấu một phần email cho chuyên nghiệp (Bảo mật thông tin)
+                lblEmail.setText(maskEmail(savedEmail));
+            }
+        }
     }
     // Thêm hàm dọn dẹp chuyên nghiệp (Garbage Collection Helper)
     private void cleanup() {
@@ -182,8 +193,23 @@ public class OTPContentController implements Initializable , ServerEventListener
         // Gửi OTP lên Server để kiểm tra (Khớp với case "VERIFY_REGISTER_OTP" trong ClientHandler)
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client != null) {
-            System.out.println("CLIENT: Đang gửi mã OTP [" + otpCode + "] lên Server xác thực...");
-            client.sendToServer(new Message("VERIFY_REGISTER_OTP", otpCode));
+            // Lấy lại email đang thao tác
+            String targetEmail = SessionManager.getInstance().getTempEmail();
+
+            // Đóng gói Email và OTP thành 1 mảng để gửi lên Server
+            String[] payload = {targetEmail, otpCode};
+            // LÔI BIỂN BÁO RA ĐỌC VÀ CHIA LUỒNG GỬI GÓI TIN LÊN SERVER
+            // =======================================================
+            String activeFlow = SessionManager.getInstance().getCurrentFlow();
+
+            // Phân luồng: Nếu em set cờ là FORGOT_PASSWORD thì bắn gói tin khác
+            if ("FORGOT_PASSWORD".equals(activeFlow)) {
+                System.out.println("CLIENT: Gửi xác thực OTP QUÊN MẬT KHẨU...");
+                client.sendToServer(new Message("VERIFY_FORGOT_PW_OTP", payload));
+            } else {
+                System.out.println("CLIENT: Gửi xác thực OTP ĐĂNG KÝ...");
+                client.sendToServer(new Message("VERIFY_REGISTER_OTP", payload));
+            }
         } else {
             AlertUtils.showError("Lỗi mạng", "Chưa kết nối đến Server!");
             btnConfirm.setDisable(false);
@@ -203,10 +229,14 @@ public class OTPContentController implements Initializable , ServerEventListener
 
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client != null) {
+            // Phải lấy Email và Luồng hiện tại để báo cáo cho Server
+            String targetEmail = SessionManager.getInstance().getTempEmail();
+            String activeFlow = SessionManager.getInstance().getCurrentFlow();
+            String[] payload = {targetEmail, activeFlow};
             System.out.println("CLIENT: Yêu cầu gửi lại mã OTP lên Server...");
 
             // [FIX BUG 1]: PHẢI CÓ LỆNH NÀY THÌ SERVER MỚI NHẬN ĐƯỢC YÊU CẦU!
-            client.sendToServer(new Message("RESEND_OTP", null));
+            client.sendToServer(new Message("RESEND_OTP", payload));
 
             // Khởi động lại đồng hồ đếm ngược
             startResendCountdown();
@@ -214,8 +244,18 @@ public class OTPContentController implements Initializable , ServerEventListener
     }
     @FXML
     private void handleBack(ActionEvent event) {
-        cleanup(); // [REFACTOR 2]: Chống tràn RAM khi bấm nút Back
-        SceneSwitcher.switchScene("/com/nhomX/example/fxml/RegisterView.fxml");
+        cleanup(); // Chống tràn RAM khi bấm nút Back
+
+        // Đọc "Biển báo" từ Nguồn sự thật duy nhất
+        String activeFlow = SessionManager.getInstance().getCurrentFlow();
+
+        if ("FORGOT_PASSWORD".equals(activeFlow)) {
+            // Đang quên pass thì phải lùi về màn hình nhập Email
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/ForgotPwEmail.fxml");
+        } else {
+            // Đang đăng ký thì lùi về màn hình Đăng ký
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/RegisterView.fxml");
+        }
     }
     // Lắng nghe kết quả từ Server trả về
     @Override
@@ -231,8 +271,41 @@ public class OTPContentController implements Initializable , ServerEventListener
                 SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
             } else {
                 AlertUtils.showError("Đăng ký thất bại", message);
+                clearOtpFieldsForRetry();
             }
         });
     }
+    // LUỒNG 2: XỬ LÝ KẾT QUẢ QUÊN MẬT KHẨU
+    @Override
+    public void onForgotPasswordResult(boolean isSuccess, String message) {
+        Platform.runLater(() -> {
+            btnConfirm.setDisable(false); // Mở khóa nút bấm
 
+            if (isSuccess) {
+                cleanup();
+                // Xác thực OTP thành công -> Chuyển sang Bước 3: Đặt mật khẩu mới
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/ForgotPwNew.fxml");
+            } else {
+                AlertUtils.showError("Xác thực thất bại", message);
+                // [FIX BUG]: Tiện tay xóa 6 ô OTP bắt nhập lại cho đẹp
+                clearOtpFieldsForRetry();
+            }
+        });
+    }
+    // Hàm phụ trợ che giấu Email (VD: nguyenvanban@gmail.com -> ngu***@gmail.com)
+    private String maskEmail(String email) {
+        if (!email.contains("@")) return email;
+        String[] parts = email.split("@");
+        String name = parts[0];
+        String domain = parts[1];
+        if (name.length() <= 3) return name + "***@" + domain;
+        return name.substring(0, 3) + "***@" + domain;
+    }
+    // Hàm phụ trợ chuyên dọn dẹp các ô OTP khi nhập sai (Clean Code)
+    private void clearOtpFieldsForRetry() {
+        for (TextField field : otpFields) {
+            field.clear();
+        }
+        otpFields[0].requestFocus(); // Đưa con trỏ nhấp nháy về ô đầu tiên
+    }
 }

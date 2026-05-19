@@ -132,6 +132,23 @@ public class UserRepositoryImpl implements UserRepository {
     }
     return users;
   }
+  @Override
+  public boolean updatePassword(String username, String newPasswordHash) {
+    String sql = "UPDATE users SET password = ? WHERE username = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, newPasswordHash);
+      pstmt.setString(2, username);
+
+      int rowsAffected = pstmt.executeUpdate();
+      return rowsAffected > 0; // Trả về true nếu cập nhật thành công ít nhất 1 dòng
+
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi khi cập nhật mật khẩu: " + e.getMessage());
+    }
+    return false;
+  }
 
   // Đọc User từ ResultSet:
   private User mapRowToUser(ResultSet rs) throws SQLException {

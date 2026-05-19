@@ -107,6 +107,8 @@ public class RegisterController implements ServerEventListener {
             // Bắt buộc chạy trong Platform.runLater vì cuộc gọi đến từ luồng mạng
         Platform.runLater(() -> {
             btnSignUp.setDisable(false);
+            // [QUAN TRỌNG]: BÁO CHO HỆ THỐNG BIẾT ĐÂY LÀ LUỒNG ĐĂNG KÝ
+            SessionManager.getInstance().setCurrentFlow("REGISTER");
             System.out.println("CLIENT: Server báo đã gửi email OTP thành công. Tiến hành chuyển cảnh nội tuyến...");
 
             // Thực hiện chuyển cảnh ngay trên cửa sổ này sang giao diện 6 ô OTP
