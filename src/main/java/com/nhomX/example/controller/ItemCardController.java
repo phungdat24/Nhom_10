@@ -3,10 +3,15 @@ package com.nhomX.example.controller;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
+import com.nhomX.example.utils.CurrencyFormatter;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -25,22 +30,38 @@ public class ItemCardController extends BaseController {
     // Tên vật phẩm
     @FXML
     private Label lblItemName;
+    @FXML
+    private Label lblStartingPrice;
+    @FXML
+    private Label lblStartTime;
+    @FXML
+    private Label lblEndTime;
     // Anhr mô tả
     @FXML
     private ImageView imgProduct;
 
     @FXML
     private ImageView itemImageView;
-
+    private Timeline countdownTimer; // Bộ đếm ngược thời gian thực
 
     private Auction currentAuction;
+    // Định dạng thời gian chuẩn để tái sử dụng
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
     // Hàm này sẽ được MainDashboardController gọi để nhồi dữ liệu vào
     public void setAuctionData(Auction auction) {
         this.currentAuction = auction;
         Items item = auction.getItem();
         lblItemName.setText(item.getTitle());
-        lblCurrentPrice.setText("Giá: " + auction.getHighestBid() + " VNĐ");
+        lblStartingPrice.setText(CurrencyFormatter.formatVND(auction.getStartingPrice()));
+        lblCurrentPrice.setText(CurrencyFormatter.formatVND(auction.getHighestBid()));
+
+        if (auction.getStartTime() != null) {
+            lblStartTime.setText(auction.getStartTime().format(formatter));
+        }
+        if (auction.getEndTime() != null) {
+            lblEndTime.setText(auction.getEndTime().format(formatter));
+        }
 
         String basePath = "/com/nhomX/example/images/";
         List<ItemImage> images = item.getImages();
@@ -104,6 +125,7 @@ public class ItemCardController extends BaseController {
             lblTimeLeft.setText("Đã kết thúc");
             lblTimeLeft.setStyle("-fx-text-fill: #c0392b;"); // Chữ màu đỏ
         }
+        startRealtimeCountdown();
     }
 
     @FXML
@@ -140,16 +162,77 @@ public class ItemCardController extends BaseController {
         System.out.println("Information: " + currentAuction.getItem().getDescription());
     }
 
-    public void updateRealtimePrice(long newPrice) {
-        if (currentAuction != null) {
-            currentAuction.setHighestBid(newPrice);
+    public void updateRealtimePrice(long newPrice, LocalDateTime newEndTime) {
+        Platform.runLater(() -> {
+            // 1. Cập nhật Model (Nguồn sự thật)
+            this.currentAuction.setHighestBid(newPrice);
+            if (newEndTime != null) {
+                this.currentAuction.setEndTime(newEndTime); // Cập nhật thời gian nếu có Anti-sniping
+            }
 
-            // Dùng hàm format tiền tệ mà bạn đã định nghĩa ở các file khác
-            String formattedPrice = com.nhomX.example.utils.CurrencyFormatter.formatVND(newPrice);
-            lblCurrentPrice.setText("Giá: " + formattedPrice);
+            // 2. Cập nhật UI
+            lblCurrentPrice.setText(CurrencyFormatter.formatVND(newPrice));
 
-            // Tùy chọn: Thêm hiệu ứng nháy màu đỏ/vàng cho Label giá để người xem chú ý
+            // 3. Hiệu ứng nháy màu đỏ để thu hút sự chú ý
             lblCurrentPrice.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-        }
+
+            // Tự động trả về màu cũ sau 1.5 giây
+            Timeline colorReset = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1.5), e -> {
+                lblCurrentPrice.setStyle("-fx-text-fill: #2b1f12; -fx-font-weight: bold;"); // Thay bằng mã màu mặc định của CSS em
+            }));
+            colorReset.play();
+        });
     }
+    // TASK 4: LOGIC ĐỒNG HỒ ĐẾM NGƯỢC (TỰ ĐỘNG CHẬP NHẬT ANTI-SNIPING)
+    // ==========================================
+    private void startRealtimeCountdown() {
+        // Dọn dẹp timer cũ nếu thẻ này được tái sử dụng (chống tràn RAM)
+        if (countdownTimer != null) countdownTimer.stop();
+
+        countdownTimer = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime start = currentAuction.getStartTime();
+
+            // LUÔN LẤY END TIME MỚI NHẤT (Giải quyết bài toán Anti-Sniping)
+            LocalDateTime end = currentAuction.getEndTime();
+
+            if (start != null && now.isBefore(start)) {
+                // Trạng thái 1: Chưa mở bán
+                lblTimeLeft.setText("Sắp mở: " + start.format(DateTimeFormatter.ofPattern("HH:mm dd/MM")));
+                lblTimeLeft.setStyle("-fx-text-fill: #d35400; -fx-font-weight: bold;");
+            } else if (end != null && now.isBefore(end)) {
+                // Trạng thái 2: Đang diễn ra -> Đếm ngược
+                Duration duration = Duration.between(now, end);
+                long days = duration.toDays();
+                long hours = duration.toHoursPart();
+                long minutes = duration.toMinutesPart();
+                long seconds = duration.toSecondsPart();
+
+                if (days > 0) {
+                    lblTimeLeft.setText(String.format("Còn: %d ngày %02d:%02d:%02d", days, hours, minutes, seconds));
+                } else {
+                    lblTimeLeft.setText(String.format("Còn: %02d:%02d:%02d", hours, minutes, seconds));
+                    // Đổi sang màu đỏ chớp tắt nếu dưới 5 phút (Tăng kịch tính)
+                    if (hours == 0 && minutes < 5) {
+                        lblTimeLeft.setStyle(seconds % 2 == 0 ? "-fx-text-fill: #c0392b; -fx-font-weight: bold;" : "-fx-text-fill: #e74c3c;");
+                    } else {
+                        lblTimeLeft.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
+                    }
+                }
+
+                // Cập nhật lại Label Thời gian kết thúc tĩnh (Phòng trường hợp Anti-sniping vừa cộng giờ)
+                lblEndTime.setText(end.format(formatter));
+
+            } else {
+                // Trạng thái 3: Đã kết thúc
+                lblTimeLeft.setText("Đã kết thúc");
+                lblTimeLeft.setStyle("-fx-text-fill: #7f8c8d; -fx-font-weight: bold;");
+                if (countdownTimer != null) countdownTimer.stop(); // Tiết kiệm CPU
+            }
+        }));
+
+        countdownTimer.setCycleCount(Timeline.INDEFINITE);
+        countdownTimer.play();
+    }
+
 }
