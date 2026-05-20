@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -10,9 +11,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.shape.SVGPath?>
 <BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MainDashBoardController">
 
    <!-- ===== TOP: Header ===== -->
@@ -23,16 +24,22 @@
             <children>
                <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar" styleClass="btn-hamburger">
                   <graphic>
-                     <SVGPath content="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" styleClass="svg-icon-hamburger"/>
+                     <SVGPath content="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" styleClass="svg-icon-hamburger" />
                   </graphic>
                </Button>
 
                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="brand-box">
                   <children>
-                     <SVGPath content="M17.5 2.5L21.5 6.5L13.5 14.5L12 13L13 12L7 6L8 5L6.5 3.5L10.5 0.5L12 2L11 3L17.5 2.5ZM2 22L10 14L12 16L4 24L2 22Z"
-                              styleClass="brand-gavel-icon" />
-
-                     <Label styleClass="brand-text" text="Vibo" />
+                     <FontAwesomeIcon fill="#00d4c8" glyphName="GAVEL" size="3em">
+                        <font>
+                           <Font size="42.0" />
+                        </font>
+                     </FontAwesomeIcon>
+                     <Label styleClass="vibo-logo-text" text="PeakBid" textFill="WHITE">
+                        <font>
+                           <Font name="Arial" size="4.0" />
+                        </font>
+                     </Label>
                   </children>
                </HBox>
             </children>
@@ -42,50 +49,25 @@
          <!-- Spacer -->
          <Region prefHeight="40.0" prefWidth="60.0" HBox.hgrow="ALWAYS" />
 
-         <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
+                     <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
          <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
 
          <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
-         <HBox fx:id="userInfoBox" alignment="CENTER" spacing="10"
-               managed="false" visible="false"
-               style="-fx-background-color: rgba(201,162,39,0.10);
-             -fx-background-radius: 20;
-             -fx-border-color: rgba(201,162,39,0.28);
-             -fx-border-radius: 20;
-             -fx-border-width: 1;
-             -fx-padding: 6 14 6 8;">
+         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" style="-fx-background-color: rgba(201,162,39,0.10);-fx-background-radius: 20;-fx-border-color: rgba(201,162,39,0.28);-fx-border-radius: 20;-fx-border-width: 1;-fx-padding: 6 14 6 8;" visible="false">
 
             <!-- Avatar circle -->
-            <StackPane minWidth="30" minHeight="30"
-                       style="-fx-background-color: #c9a227;
-                      -fx-background-radius: 15;">
-               <Label fx:id="lblAvatarInitial"
-                      text="U"
-                      style="-fx-text-fill: #2b1f12;
-                      -fx-font-size: 13px;
-                      -fx-font-weight: bold;" />
+            <StackPane minHeight="30" minWidth="30" style="-fx-background-color: #c9a227;                       -fx-background-radius: 15;">
+               <FontAwesomeIcon fill="#fafafa" glyphName="USER" size="2em" />
             </StackPane>
 
             <!-- Tên người dùng -->
-            <Label fx:id="lblUserName"
-                   text="Người dùng"
-                   style="-fx-text-fill: #c9a227;
-                  -fx-font-size: 13px;
-                  -fx-font-weight: bold;" />
+            <Label fx:id="lblUserName" style="-fx-text-fill: #ffffff; -fx-font-size: 13px; -fx-font-weight: bold;" text="" />
 
             <!-- Dropdown arrow + menu -->
-            <MenuButton fx:id="menuUser" mnemonicParsing="false" text="▾"
-                        style="-fx-background-color: transparent;
-                       -fx-text-fill: rgba(201,162,39,0.70);
-                       -fx-font-size: 13px;
-                       -fx-padding: 0 0 0 0;
-                       -fx-border-width: 0;
-                       -fx-cursor: hand;">
+            <MenuButton fx:id="menuUser" mnemonicParsing="false" style="-fx-background-color: transparent;                        -fx-text-fill: rgba(201,162,39,0.70);                        -fx-font-size: 13px;                        -fx-padding: 0 0 0 0;                        -fx-border-width: 0;                        -fx-cursor: hand;" text="▾">
                <items>
-                  <MenuItem fx:id="menuProfile" mnemonicParsing="false"
-                            onAction="#handleProfile" text="👤  Hồ sơ của tôi" />
-                  <MenuItem mnemonicParsing="false"
-                            onAction="#handleLogout" text="🚪  Đăng xuất" />
+                  <MenuItem fx:id="menuProfile" mnemonicParsing="false" onAction="#handleProfile" text="👤  Hồ sơ của tôi" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="🚪  Đăng xuất" />
                </items>
             </MenuButton>
          </HBox>
