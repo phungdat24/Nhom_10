@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
@@ -7,23 +8,29 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.shape.SVGPath?>
 <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" styleClass="main-root" stylesheets="@../css/login.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.LoginController">
    <children>
       <HBox alignment="TOP_LEFT" pickOnBounds="false" StackPane.alignment="TOP_LEFT">
          <children>
             <HBox alignment="CENTER" maxHeight="100.0" onMouseClicked="#handleBackToHome" styleClass="vibo-home-btn">
                <children>
-                  <SVGPath content="M17.5 2.5L21.5 6.5L13.5 14.5L12 13L13 12L7 6L8 5L6.5 3.5L10.5 0.5L12 2L11 3L17.5 2.5ZM2 22L10 14L12 16L4 24L2 22Z"
-                           styleClass="brand-gavel-svg" />
-                  <Label styleClass="vibo-logo-text" text="Vibo" />
+                  <FontAwesomeIcon fill="#00d4c8" glyphName="GAVEL" size="3em">
+                     <font>
+                        <Font size="42.0" />
+                     </font>
+                  </FontAwesomeIcon>
+                  <Label styleClass="vibo-logo-text" text="PeakBid">
+                     <font>
+                        <Font name="Arial" size="12.0" />
+                     </font></Label>
                </children>
                <HBox.margin>
                   <Insets right="30.0" top="30.0" />
@@ -33,37 +40,56 @@
       </HBox>
       <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" spacing="25.0" styleClass="login-card" StackPane.alignment="CENTER">
          <children>
-            <Label text="Đăng nhập" textAlignment="CENTER" textFill="#f4f4f4">
+            <FontAwesomeIcon fill="#1bece2" glyphName="USER" size="10em" text="">
+               <selectionFill>
+                  <LinearGradient endX="1.0" endY="1.0">
+                     <stops>
+                        <Stop>
+                           <color>
+                              <Color />
+                           </color>
+                        </Stop>
+                        <Stop offset="1.0">
+                           <color>
+                              <Color red="1.0" green="1.0" blue="1.0" />
+                           </color>
+                        </Stop>
+                     </stops>
+                  </LinearGradient>
+               </selectionFill>
+            </FontAwesomeIcon>
+            <Label text="Đăng nhập" textAlignment="CENTER" textFill="WHITE">
                <cursor>
                   <Cursor fx:constant="NONE" />
                </cursor>
                <font>
-                  <Font name="System Bold Italic" size="28.0" />
+                  <Font name="Arial Bold" size="28.0" />
                </font>
             </Label>
             <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="320.0" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.1);;" styleClass="input-field-container">
                <children>
-                  <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/email_icon.png" />
-                     </image></ImageView>
+                  <FontAwesomeIcon fill="#00d4c8" glyphName="ENVELOPE" size="2em" text="" />
                   <TextField fx:id="account" minHeight="-Infinity" prefHeight="45.0" prefWidth="250.0" promptText="Email" styleClass="text-field" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="320.0" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.1);;" styleClass="input-field-container">
                <children>
-                  <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/password.png" />
-                     </image></ImageView>
+                  <FontAwesomeIcon fill="#00d4c8" glyphName="LOCK" size="2em" />
                   <PasswordField fx:id="password" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="250.0" promptText="Mật khẩu" styleClass="text-field" />
+                  <Label prefHeight="18.0" prefWidth="30.0" text="👁" textAlignment="CENTER" textFill="#fafafa">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
 
-               </children>
+                                 </children>
             </HBox>
+            <HBox prefHeight="18.0" prefWidth="351.0" />
             <Button alignment="CENTER" mnemonicParsing="false" onAction="#login" prefHeight="40.0" prefWidth="300.0" styleClass="btn-login" text="Đăng nhập">
                <font>
                   <Font name="System Bold" size="14.0" />
-               </font></Button>
+               </font>
+            </Button>
             <Hyperlink onAction="#handleRegister" styleClass="hyperlink-register" text="Chưa có tài khoản? Đăng ký ngay">
                <font>
                   <Font name="System Bold" size="18.0" />
