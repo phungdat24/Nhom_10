@@ -1,6 +1,6 @@
 /*bo goc nut bam va to mau*/
 .btn-login {
-    -fx-background-color: #d1d9e6;         /* Màu xanh xám nhạt như mẫu */
+    -fx-background-color: #00D4C8;         /* Màu xanh xám nhạt như mẫu */
     -fx-text-fill: #1a3a5a;               /* Màu chữ xanh đậm */
     -fx-font-weight: bold;                /* Chữ đậm */
     -fx-font-size: 16px;
@@ -137,7 +137,7 @@
     -fx-text-fill: #ffffff;;
     -fx-font-size: 20px; /* Hạ cỡ chữ xuống một chút để giao diện trông tinh tế hơn */
     -fx-font-weight: bold;
-    -fx-font-family: "System";
+    -fx-font-family: "Arial";
 }
 
 /* Tinh chỉnh khoảng cách cho hộp nút Home */
