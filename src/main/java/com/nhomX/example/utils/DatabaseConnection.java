@@ -6,17 +6,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DatabaseConnection {
+  public static final String URL_PROPERTY = "auction.db.url";
+  private static final String DEFAULT_URL = "jdbc:sqlite:auction.db";
   // 1. Biến static lưu trữ instance duy nhất (Singleton)
   private static DatabaseConnection instance;
   private Connection connection;
 
   // Đường dẫn tới file database SQLite
-  private static final String URL = "jdbc:sqlite:auction.db";
+  private static String getConfiguredUrl() {
+    return System.getProperty(URL_PROPERTY, DEFAULT_URL);
+  }
 
   // 2. Constructor private để ngăn bên ngoài dùng từ khóa 'new'
   private DatabaseConnection() {
     try {
-      connection = DriverManager.getConnection(URL);
+      connection = DriverManager.getConnection(getConfiguredUrl());
       System.out.println("✅ Kết nối cơ sở dữ liệu SQLite thành công!");
       createTables();
     } catch (SQLException e) {
@@ -25,11 +29,22 @@ public class DatabaseConnection {
   }
 
   // 3. Phương thức public static để cung cấp instance duy nhất
-  public static DatabaseConnection getInstance() {
+  public static synchronized DatabaseConnection getInstance() {
     if (instance == null) {
       instance = new DatabaseConnection();
     }
     return instance;
+  }
+
+  public static synchronized void resetForTests() {
+    if (instance != null && instance.connection != null) {
+      try {
+        instance.connection.close();
+      } catch (SQLException e) {
+        System.err.println("Error closing test database: " + e.getMessage());
+      }
+    }
+    instance = null;
   }
 
   public Connection getConnection() {

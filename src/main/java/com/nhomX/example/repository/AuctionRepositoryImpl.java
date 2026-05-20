@@ -93,7 +93,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public List<Auction> findExpiredOpenAuctions() {
     List<Auction> list = new ArrayList<>();
-    String now = LocalDateTime.now().toString();
+    String now = LocalDateTime.now().format(DB_FORMATTER);
     String sql = "SELECT * FROM auctions WHERE status IN ('OPEN', 'RUNNING') AND end_time <= ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
