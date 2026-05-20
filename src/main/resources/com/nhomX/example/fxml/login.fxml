@@ -76,7 +76,7 @@
                <children>
                   <FontAwesomeIcon fill="#00d4c8" glyphName="LOCK" size="2em" />
                   <PasswordField fx:id="password" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="250.0" promptText="Mật khẩu" styleClass="text-field" />
-                  <Label prefHeight="18.0" prefWidth="30.0" text="👁" textAlignment="CENTER" textFill="#fafafa">
+                  <Label prefHeight="18.0" prefWidth="30.0" style="-fx-cursor: hand;" text="👁" textAlignment="CENTER" textFill="#fafafa">
                      <font>
                         <Font size="14.0" />
                      </font>

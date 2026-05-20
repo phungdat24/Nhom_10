@@ -33,7 +33,8 @@ public abstract class BaseController {
         if (SessionManager.getInstance().isLoggedIn()) {
             User user = SessionManager.getInstance().getCurrentUser();
 
-            menuUser.setText("👤  " + user.getFullName());
+            menuUser.setText( user.getFullName());
+            menuUser.getStyleClass().add("menu-button");
             if (lblBalance != null) {
                 lblBalance.setText(CurrencyFormatter.formatVND(user.getBalance()));
             }

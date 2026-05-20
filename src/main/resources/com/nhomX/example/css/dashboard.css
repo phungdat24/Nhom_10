@@ -490,3 +490,61 @@
     -fx-text-fill: #9b50c7;
     -fx-letter-spacing: 0.5px;
 }
+.vibo-logo-text {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+/* ========================================================
+   NÂNG CẤP HỘP TÊN NGƯỜI DÙNG (MENUBUTTON) THÀNH KHUNG BO TRÒN
+   ======================================================== */
+
+/* 1. Trạng thái bình thường: Tạo khung viền bo tròn nhẹ nhàng, tinh tế */
+.menu-button {
+
+    -fx-padding: 4 12 4 12 !important;      /* Căn lề trong cho nút cân đối */
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s ease-in-out;
+}
+
+/* 2. Hiệu ứng Hover (Di chuột qua): Sáng nhẹ lên */
+.menu-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.15) !important;
+    -fx-border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 3. TRẠNG THÁI KHI ẤN VÀO (Menu đang mở): Biến thành KHUNG NỀN TRẮNG TOÀN BỘ cực chất */
+.menu-button:showing {
+    -fx-background-color: #ffffff !important;      /* Nền hóa trắng hoàn toàn */
+    -fx-border-color: #ffffff !important;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 8, 0, 0, 2); /* Đổ bóng nhẹ */
+}
+
+/* 4. Định dạng chữ (Label) bên trong nút */
+.menu-button .label {
+    -fx-text-fill: #ffffff !important;   /* Bình thường chữ màu trắng */
+    -fx-font-weight: bold;
+}
+
+/* Khi ấn mở Menu: Chữ tự động chuyển sang màu tối để nổi bật trên nền trắng */
+.menu-button:showing .label {
+    -fx-text-fill: #3c2a1a !important;   /* Chuyển sang màu nâu sẫm trùng màu Header */
+}
+
+/* 5. Cấu hình phần chứa Mũi tên (Arrow Button) */
+.menu-button .arrow-button {
+    -fx-background-color: transparent !important; /* Xóa nền riêng của mũi tên */
+    -fx-padding: 0 0 0 6 !important;             /* Tạo khoảng cách nhỏ với chữ */
+}
+
+/* 6. Định dạng hình hình tam giác Mũi tên (Arrow) */
+.menu-button .arrow {
+    -fx-background-color: #ffffff !important;    /* Bình thường mũi tên màu trắng */
+    -fx-padding: 3 4 3 4 !important;             /* Chỉnh kích thước mũi tên vừa vặn */
+}
+
+/* Khi ấn mở Menu: Mũi tên cũng tự động chuyển sang màu tối theo chữ */
+.menu-button:showing .arrow {
+    -fx-background-color: #3c2a1a !important;    /* Mũi tên chuyển màu nâu sẫm */
+}
