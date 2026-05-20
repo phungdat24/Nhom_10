@@ -77,6 +77,9 @@ public class Auction extends Entity {
      * Kiểm tra xem phiên đấu giá đã đến giờ kết thúc chưa.
      */
     public boolean isExpired() {
+        if (endTime == null) {
+            return false;
+        }
         return LocalDateTime.now().isAfter(endTime);
     }
 
@@ -84,7 +87,8 @@ public class Auction extends Entity {
      * Kiểm tra xem phiên còn cho phép đặt giá không.
      */
     public boolean canAcceptBids() {
-        return(this.status==AuctionStatus.OPEN || (this.status == AuctionStatus.RUNNING && !isExpired()));
+        return (this.status == AuctionStatus.OPEN || this.status == AuctionStatus.RUNNING)
+                && !isExpired();
     }
 
     /**
