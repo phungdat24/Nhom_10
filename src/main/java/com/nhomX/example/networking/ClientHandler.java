@@ -274,6 +274,16 @@ public class ClientHandler implements Runnable {
                 case "VERIFY_FORGOT_PW_OTP":
                     handleVerifyForgotPwOtp(msg);
                     break;
+                case "GET_SELLER_AUCTIONS":
+                    String sellerId = (String) msg.getData();
+                    System.out.println("SERVER: Đang truy vấn danh sách bán hàng cho user");
+                    try{
+                        List<Auction> sellerList = auctionRepository.findBySellerId(sellerId);
+                        sendToClient(new Message("SELLER_AUCTIONS_RESULT", sellerList));
+                    } catch (Exception e){
+                        sendToClient(new Message("ERROR", "Không thể lấy danh sách bán hàng"));
+                    }
+                    break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }

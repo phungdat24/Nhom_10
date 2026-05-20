@@ -310,6 +310,13 @@ public class AuctionClient {
                     }
                 break;
 
+            case "SELLER_AUCTIONS_RESULT":
+                List<Auction> sellerAuctionsList = (List<Auction>) msg.getData();
+                if (listener != null){
+                    listener.onAuctionsReceived(sellerAuctionsList);
+                }
+                break;
+
             default:
                 System.err.println("CLIENT: Loại message không xác định – " + type);
         }
