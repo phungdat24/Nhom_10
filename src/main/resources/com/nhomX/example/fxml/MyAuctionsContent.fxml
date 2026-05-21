@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MyAuctionsController">
+<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MyAuctionsController">
     <VBox spacing="20">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
         <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 8; -fx-padding: 15;">
@@ -17,9 +17,9 @@
             <Label fx:id="lblTotalLockedMoney" style="-fx-font-size: 14px; -fx-text-fill: #cc0000; -fx-font-weight: bold;" text="Tổng tiền đang cược: 0 VNĐ" />
         </HBox>
         <HBox alignment="CENTER_LEFT" spacing="15">
-            <Button fx:id="btnTabActive" style="-fx-background-color: #c9a227; -fx-text-fill: white;" styleClass="live-filter-btn" text="🔥 Đang diễn ra" />
-            <Button fx:id="btnTabWon" styleClass="tab-inactive-brown" text="🏆 Đã thắng" />
-            <Button fx:id="btnTabLost" styleClass="tab-inactive-brown" text="❌ Đã thua" />
+            <Button fx:id="btnTabActive" onAction="#handleTabActive" style="-fx-background-color: #c9a227; -fx-text-fill: white;" styleClass="live-filter-btn" text="🔥 Đang diễn ra" />
+            <Button fx:id="btnTabWon" onAction="#handleTabWon" styleClass="tab-inactive-brown" text="🏆 Đã thắng" />
+            <Button fx:id="btnTabLost" onAction="#handleTabLost" styleClass="tab-inactive-brown" text="❌ Đã thua" />
         </HBox>
         <FlowPane fx:id="contentArea" hgap="16" styleClass="content-area" vgap="16">
         </FlowPane>

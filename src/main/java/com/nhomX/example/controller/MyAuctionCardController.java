@@ -3,6 +3,9 @@ package com.nhomX.example.controller;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.MyAuctionStatus;
 import com.nhomX.example.utils.CurrencyFormatter;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +13,9 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.util.Duration;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class MyAuctionCardController {
@@ -34,6 +39,7 @@ public class MyAuctionCardController {
     private Button btnDetail;
 
     private MyAuctionDTO currentDTO;
+    private Timeline cardTimeline;
 
     // Hàm này sẽ được MyAuctionsController gọi để nhồi dữ liệu vào thẻ
     public void setData(MyAuctionDTO dto) {
@@ -49,8 +55,46 @@ public class MyAuctionCardController {
 
         // 2. Logic xử lý UX (Đổi màu và nút bấm theo trạng thái)
         updateStatusUI(dto.getMyStatus());
+        startCardCountdown(dto.getAuction().getEndTime());
 
         // (Gợi ý: Em có thể copy đoạn code Timeline đếm ngược từ Dashboard thả vào đây cho lblTimeLeft)
+    }
+    private void startCardCountdown(LocalDateTime endTime) {
+        if (cardTimeline != null) {
+            cardTimeline.stop(); // Khử trùng luồng chạy ngầm chống giật lag UI
+        }
+
+        if (endTime == null || currentDTO.getMyStatus() == MyAuctionStatus.WON || currentDTO.getMyStatus() == MyAuctionStatus.LOST) {
+            if (lblTimeLeft != null) lblTimeLeft.setText("Đã đóng phiên");
+            return;
+        }
+
+        cardTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), endTime);
+
+            if (duration.isNegative() || duration.isZero()) {
+                if (lblTimeLeft != null) lblTimeLeft.setText("Hết giờ");
+                cardTimeline.stop();
+            } else {
+                long days = duration.toDays();
+                long hours = duration.toHoursPart();
+                long minutes = duration.toMinutesPart();
+                long seconds = duration.toSecondsPart();
+
+                if (lblTimeLeft != null) {
+                    if (days > 0) {
+                        // Hiển thị định dạng kèm số ngày: "X ngày HH:mm:ss"
+                        lblTimeLeft.setText(String.format("⏳ Còn: %d ngày %02d:%02d:%02d", days, hours, minutes, seconds));
+                    } else {
+                        // Dưới 24 tiếng: hiển thị "HH:mm:ss" rực lửa
+                        lblTimeLeft.setText(String.format("⏳ Còn: %02d:%02d:%02d", hours, minutes, seconds));
+                    }
+                }
+            }
+        }));
+
+        cardTimeline.setCycleCount(Animation.INDEFINITE);
+        cardTimeline.play();
     }
 
     private void updateStatusUI(MyAuctionStatus status) {
