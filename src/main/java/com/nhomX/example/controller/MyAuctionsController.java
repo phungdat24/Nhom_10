@@ -55,6 +55,8 @@ public class MyAuctionsController extends BaseController implements ServerEventL
                 if (dto.getMyStatus() == MyAuctionStatus.LEADING ||
                         dto.getMyStatus() == MyAuctionStatus.OUTBID) {
                     totalJoined++;
+                }
+                if (dto.getMyStatus()== MyAuctionStatus.LEADING){
                     // Tiền đang cược (tiền bị giam) thường là số tiền cao nhất mình đã đặt
                     totalLockedMoney += dto.getMyHighestBid();
                 }

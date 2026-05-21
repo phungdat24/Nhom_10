@@ -27,7 +27,7 @@
         </VBox>
 
         <!-- ===== MAIN CONTENT: 2 COLUMNS ===== -->
-        <HBox alignment="TOP_CENTER" maxWidth="Infinity" spacing="20" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS">
+        <HBox alignment="TOP_CENTER" maxWidth="Infinity" spacing="20" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
             <padding><Insets bottom="24" left="24" right="24" top="10" /></padding>
 
             <!-- ========== LEFT COLUMN: Profile Info (30%) ========== -->
@@ -79,7 +79,7 @@
                         <!-- Phone -->
                         <VBox spacing="6">
                             <Label style="-fx-text-fill: #3c2a1a; -fx-font-size: 12px; -fx-font-weight: bold;" text="Số điện thoại" />
-                            <TextField fx:id="txtUsername" promptText="Nhập số điện thoại..." style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: #1a1a1a; -fx-prompt-text-fill: rgba(60, 42, 26, 0.5); -fx-background-radius: 8; -fx-border-color: rgba(201,162,39,0.35); -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 10 14 10 14; -fx-font-size: 14px;" />
+                            <TextField fx:id="txtPhone" promptText="Nhập số điện thoại..." style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: #1a1a1a; -fx-prompt-text-fill: rgba(60, 42, 26, 0.5); -fx-background-radius: 8; -fx-border-color: rgba(201,162,39,0.35); -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 10 14 10 14; -fx-font-size: 14px;" />
                         </VBox>
 
                     </VBox>

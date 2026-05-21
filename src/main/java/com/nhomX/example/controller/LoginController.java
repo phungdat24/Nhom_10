@@ -11,18 +11,31 @@ import com.nhomX.example.utils.SecurityUtils;
 import com.nhomX.example.utils.ValidatorUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-public class LoginController implements ServerEventListener {
+import java.net.URL;
+import java.util.ResourceBundle;
+
+public class LoginController implements ServerEventListener , Initializable {
 
     private AuctionClient auctionClient;
 
     @FXML private TextField     account;
     @FXML private PasswordField password;
-
-    @FXML
+    @FXML private TextField passwordVisible;
+    @FXML private Label togglePasswordIcon;
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Đồng bộ dữ liệu 2 chiều giữa ô Password và ô TextField
+        if (password != null && passwordVisible != null) {
+            passwordVisible.textProperty().bindBidirectional(password.textProperty());
+        }
+    }
     // Method khi bấm nút Login
+    @FXML
     void login(ActionEvent event){
 
         String email = account.getText();
@@ -90,5 +103,27 @@ public class LoginController implements ServerEventListener {
             auctionClient.setServerEventListener(null);
         }
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+    }
+    @FXML
+    private void handleTogglePassword() {
+        if (password.isVisible()) {
+            // Đang ẩn -> Chuyển sang chế độ hiện chữ
+            password.setVisible(false);
+            password.setManaged(false); // Rút ô ẩn ra khỏi luồng Layout
+
+            passwordVisible.setVisible(true);
+            passwordVisible.setManaged(true); // Đưa ô chữ thường vào Layout
+
+            togglePasswordIcon.setText("🙈"); // Đổi icon thành khỉ bịt mắt (hoặc 👁‍🗨)
+        } else {
+            // Đang hiện -> Chuyển về chế độ dấu chấm đen
+            passwordVisible.setVisible(false);
+            passwordVisible.setManaged(false);
+
+            password.setVisible(true);
+            password.setManaged(true);
+
+            togglePasswordIcon.setText("👁");
+        }
     }
 }

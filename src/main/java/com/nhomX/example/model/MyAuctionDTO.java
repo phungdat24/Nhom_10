@@ -59,6 +59,19 @@ public class MyAuctionDTO implements Serializable {
     public MyAuctionStatus getMyStatus() {
         return myStatus;
     }
+    /**
+     * Hàm ủy quyền lấy Trạng thái (Enum) từ thực thể Auction bên trong
+     */
+    public AuctionStatus getStatus() { // Đổi AuctionStatus thành tên Enum chính xác của em nếu khác
+        return this.auction.getStatus();
+    }
+    /**
+     * Hàm ủy quyền lấy Giá cao nhất từ thực thể Auction bên trong
+     */
+    public long getHighestBid() {
+        // Giả sử DTO của em đang lưu đối tượng Auction dưới tên biến là 'auction'
+        return this.auction.getHighestBid();
+    }
 
     public void setMyStatus(MyAuctionStatus myStatus) {
         this.myStatus = myStatus;
