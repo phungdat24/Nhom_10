@@ -29,9 +29,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
+/** Kiem thu luong dau gia tich hop voi repository SQLite tam. */
 class AuctionFlowTest extends DatabaseBackedTest {
   @Test
   void fullAuctionFlow() {
+    // Chay flow co ban: tao du lieu, bid, dong phien va kiem tra lich su.
     UserRepository userRepository = new UserRepositoryImpl();
     ItemRepository itemRepository = new ItemRepositoryImpl();
     AuctionRepository auctionRepository = new AuctionRepositoryImpl();
@@ -98,6 +100,7 @@ class AuctionFlowTest extends DatabaseBackedTest {
 
   @Test
   void expiredQueryIgnoresFuture() {
+    // Scheduler query chi lay phien da het gio.
     UserRepository userRepository = new UserRepositoryImpl();
     ItemRepository itemRepository = new ItemRepositoryImpl();
     AuctionRepository auctionRepository = new AuctionRepositoryImpl();
