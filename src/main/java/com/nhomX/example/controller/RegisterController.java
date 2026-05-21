@@ -108,6 +108,7 @@ public class RegisterController implements ServerEventListener {
         Platform.runLater(() -> {
             btnSignUp.setDisable(false);
             // [QUAN TRỌNG]: BÁO CHO HỆ THỐNG BIẾT ĐÂY LÀ LUỒNG ĐĂNG KÝ
+            SessionManager.getInstance().setTempEmail(account.getText().trim());
             SessionManager.getInstance().setCurrentFlow("REGISTER");
             System.out.println("CLIENT: Server báo đã gửi email OTP thành công. Tiến hành chuyển cảnh nội tuyến...");
 
