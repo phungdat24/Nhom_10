@@ -117,7 +117,10 @@ public class BidRepositoryImpl implements BidRepository {
           // =========================================================
           // TRẠM 1: KIỂM DUYỆT TỪ SERVER (Zero-Trust Validation)
           // =========================================================
-          String sqlCheckAuction = "SELECT highest_bid, winner_id, status, end_time FROM auctions WHERE id = ?";
+          String sqlCheckAuction = "SELECT a.highest_bid, a.winner_id, a.status, a.end_time, i.seller_id " +
+                  "FROM auctions a " +
+                  "JOIN items i ON a.item_id = i.id " +
+                  "WHERE a.id = ?";
           // Gía cao nhất hiện tại
           long currentHighestBid = 0;
           // Người dẫn đầu cũ
@@ -131,11 +134,15 @@ public class BidRepositoryImpl implements BidRepository {
               if (rs.next()) {
                 String status = rs.getString("status");
                 currentHighestBid = rs.getLong("highest_bid");
+                String sellerId = rs.getString("seller_id");
                 oldWinnerId = rs.getString("winner_id");
 
                 String endTimeStr = rs.getString("end_time");
                 endTime = (endTimeStr != null) ? LocalDateTime.parse(endTimeStr, DB_FORMATTER) : null;
-
+                // Kiểm tra xem có phải là người bán không
+                if (userId.equals(sellerId)) {
+                  throw new InvalidBidException("Bạn không thể tự đặt giá cho sản phẩm của chính mình!");
+                }
                 // Kiểm tra 1: Có đang mở bán không?
                 if (!"RUNNING".equals(status) && !"OPEN".equals(status)) {
                   // Java Database Transaction mặc định chỉ tự động Rollback khi gặp RuntimeException

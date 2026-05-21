@@ -442,6 +442,21 @@ public class ItemDetailController extends BaseController implements ServerEventL
             return firstWord + " *** " + lastWord;
         }
     }
+    @Override
+    public void onBidResult(boolean isSuccess, String message) {
+        // Luôn phải bọc trong Platform.runLater khi muốn hiển thị Popup UI
+        Platform.runLater(() -> {
+            if (isSuccess) {
+                AlertUtils.showSuccess("Thành công", message);
+                // (Tuỳ chọn) Nếu thành công thì xóa số tiền vừa nhập
+                if (txtBidAmount != null) {
+                    txtBidAmount.clear();
+                }
+            } else {
+                AlertUtils.showError("Lỗi đặt giá", message);
+            }
+        });
+    }
 
 }
 
