@@ -33,10 +33,12 @@ public interface ServerEventListener {
 
     default void onDashboardDataReceived(Map<String, Integer> stats, List<Auction> endingSoon, List<Auction> trending) {}
 
-    default void onMyAuctionsReceived(List<com.nhomX.example.model.MyAuctionDTO> myAuctionsList) {}
+    default void onMyAuctionsReceived(List<MyAuctionDTO> myAuctionsList) {}
 
     // Lắng nghe sự kiện thay đổi số người Online
     default void onOnlineCountUpdated(int onlineCount) {}
 
     default void onForgotPasswordResult(boolean isSuccess, String responseMsg){}
+    // Lấy danh sách bán
+    default void onSellerAuctionsReceived(List<Auction> sellerAuctions){};
 }

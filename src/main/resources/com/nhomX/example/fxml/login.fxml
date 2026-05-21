@@ -72,17 +72,20 @@
                   <TextField fx:id="account" minHeight="-Infinity" prefHeight="45.0" prefWidth="250.0" promptText="Email" styleClass="text-field" />
                </children>
             </HBox>
-            <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="320.0" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.1);;" styleClass="input-field-container">
+            <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="320.0" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.1);" styleClass="input-field-container">
                <children>
                   <FontAwesomeIcon fill="#00d4c8" glyphName="LOCK" size="2em" />
-                  <PasswordField fx:id="password" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="250.0" promptText="Mật khẩu" styleClass="text-field" />
-                  <Label prefHeight="18.0" prefWidth="30.0" style="-fx-cursor: hand;" text="👁" textAlignment="CENTER" textFill="#fafafa">
+
+                  <PasswordField fx:id="password" HBox.hgrow="ALWAYS" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="210.0" promptText="Mật khẩu" styleClass="text-field" />
+
+                  <TextField fx:id="passwordVisible" managed="false" visible="false" HBox.hgrow="ALWAYS" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="210.0" promptText="Mật khẩu" styleClass="text-field" />
+
+                  <Label fx:id="togglePasswordIcon" onMouseClicked="#handleTogglePassword" prefHeight="18.0" prefWidth="30.0" style="-fx-cursor: hand;" text="👁" textAlignment="CENTER" textFill="#fafafa">
                      <font>
                         <Font size="14.0" />
                      </font>
                   </Label>
-
-                                 </children>
+               </children>
             </HBox>
             <HBox prefHeight="18.0" prefWidth="351.0" />
             <Button alignment="CENTER" mnemonicParsing="false" onAction="#login" prefHeight="40.0" prefWidth="300.0" styleClass="btn-login" text="Đăng nhập">

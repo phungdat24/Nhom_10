@@ -9,9 +9,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fx:id="scrollArea" prefHeight="700.0" prefWidth="800.0" fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" vbarPolicy="AS_NEEDED"
-            stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.nhomX.example.controller.SellerController">
+<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.SellerController">
     <VBox spacing="20">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
         <HBox alignment="CENTER_LEFT" spacing="20">
@@ -23,9 +21,9 @@
             </HBox>
         </HBox>
         <HBox alignment="CENTER_LEFT" spacing="15">
-            <Button onAction="#btnTabPending" styleClass="tab-inactive-brown" text="📦 Chờ lên sàn" />
-            <Button onAction="#btnTabActive" style="-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8;" text="🔥 Đang đấu giá" />
-            <Button onAction="#btnTabSold" styleClass="tab-inactive-brown" text="🤝 Đã bán" />
+            <Button fx:id="btnPending" onAction="#btnTabPending" styleClass="tab-inactive-brown" text="📦 Chờ lên sàn" />
+            <Button fx:id="btnActive" onAction="#btnTabActive" style="-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8;" text="🔥 Đang đấu giá" />
+            <Button fx:id="btnSold" onAction="#btnTabSold" styleClass="tab-inactive-brown" text="🤝 Đã bán" />
         </HBox>
         <FlowPane fx:id="contentArea" hgap="16" styleClass="content-area" vgap="16" />
     </VBox>

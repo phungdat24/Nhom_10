@@ -313,7 +313,7 @@ public class AuctionClient {
             case "SELLER_AUCTIONS_RESULT":
                 List<Auction> sellerAuctionsList = (List<Auction>) msg.getData();
                 if (listener != null){
-                    listener.onAuctionsReceived(sellerAuctionsList);
+                    listener.onSellerAuctionsReceived(sellerAuctionsList);
                 }
                 break;
 
