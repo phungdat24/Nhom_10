@@ -215,6 +215,23 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
   }
 
+  public void save(Items item, Connection conn) throws SQLException {
+    String sqlItem =
+        "INSERT INTO items (id, title, description, category, seller_id) VALUES (?, ?, ?, ?, ?)";
+    String sqlImage = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
+
+    try (PreparedStatement pstmtItem = conn.prepareStatement(sqlItem)) {
+      pstmtItem.setString(1, item.getId());
+      pstmtItem.setString(2, item.getTitle());
+      pstmtItem.setString(3, item.getDescription());
+      pstmtItem.setString(4, item.getCategory());
+      pstmtItem.setString(5, item.getSeller() != null ? item.getSeller().getId() : null);
+      pstmtItem.executeUpdate();
+    }
+
+    insertImages(item, conn, sqlImage);
+  }
+
   @Override
   public void delete(String itemId) {
     // [FIX] Xóa ảnh trước, rồi mới xóa item (tránh lỗi foreign key constraint)

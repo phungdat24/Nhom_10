@@ -10,6 +10,7 @@ import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.BidTransaction;
+import com.nhomX.example.model.Items;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.User;
 
@@ -93,6 +94,12 @@ public class AuctionClient {
     public void setupAutoBid(String auctionId, long maxLimit, long increment) {
         Object[] data = {auctionId, maxLimit, increment};
         sendToServer(new Message("SETUP_AUTO_BID", username, auctionId, 0, data));
+    }
+
+    public void requestCreateAuction(Items item, Auction auction,
+            Map<String, byte[]> imageDataMap) {
+        Object[] payload = {item, auction, imageDataMap};
+        sendToServer(new Message("CREATE_AUCTION_REQUEST", username, null, 0, payload));
     }
 
     // Lắng nghe các UPDATE từ Server gửi về (Realtime)
@@ -257,6 +264,17 @@ public class AuctionClient {
                     if (listener != null) {
                         // Cần thêm hàm này vào ServerEventListener.java trước
                         listener.onBidHistoryReceived(history);
+                    }
+                });
+                break;
+
+            case "CREATE_AUCTION_RESULT":
+                String[] createAuctionData = (String[]) msg.getData();
+                boolean isCreated = Boolean.parseBoolean(createAuctionData[0]);
+                String resultMsg = createAuctionData[1];
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onCreateAuctionResult(isCreated, resultMsg);
                     }
                 });
                 break;

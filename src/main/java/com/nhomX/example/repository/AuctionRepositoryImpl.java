@@ -57,6 +57,26 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
   }
 
+  public void save(Auction auction, Connection conn) throws SQLException {
+    String sql =
+        "INSERT INTO auctions (id, starting_price, highest_bid, start_time, end_time, status, item_id, winner_id, approved_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, auction.getId());
+      pstmt.setLong(2, auction.getStartingPrice());
+      pstmt.setLong(3, auction.getHighestBid());
+      pstmt.setString(4,
+          auction.getStartTime() != null ? auction.getStartTime().format(DB_FORMATTER) : null);
+      pstmt.setString(5,
+          auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
+      pstmt.setString(6,
+          auction.getStatus() != null ? auction.getStatus().name() : AuctionStatus.PENDING.name());
+      pstmt.setString(7, auction.getItem() != null ? auction.getItem().getId() : null);
+      pstmt.setString(8, auction.getWinner() != null ? auction.getWinner().getId() : null);
+      pstmt.setString(9, auction.getApprovedBy());
+      pstmt.executeUpdate();
+    }
+  }
+
   @Override
   public Auction findById(String id) {
     String sql = "SELECT * FROM auctions WHERE id = ?";
