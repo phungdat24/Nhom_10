@@ -2,6 +2,7 @@ package com.nhomX.example.controller;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -54,7 +55,7 @@ public class SellerController extends BaseController implements Initializable, S
         updateHeaderUI();
 
         // Mặc định chọn Tab "Đang đấu giá"
-        switchTab("ACTIVE", btnActive);
+        switchTab("TAB_ACTIVE", btnActive);
 
         // Gửi yêu cầu lấy danh sách tài sản của Seller này lên Server
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
@@ -118,17 +119,19 @@ public class SellerController extends BaseController implements Initializable, S
             switch (currentFilterStatus) {
                 case "TAB_PENDING":
                     // Tab "Chờ lên sàn" -> Khớp với PENDING
-                    isMatchTab = statusName.equals("PENDING");
+                    isMatchTab = statusName.equals("PENDING") || statusName.equals("OPEN");;
                     break;
 
                 case "TAB_ACTIVE":
                     // Tab "Đang đấu giá" -> Gom cả phiên vừa mở (OPEN) và phiên đang giành giật (RUNNING)
-                    isMatchTab = statusName.equals("OPEN") || statusName.equals("RUNNING");
+                    isMatchTab = statusName.equals("RUNNING");
                     break;
 
                 case "TAB_SOLD":
                     // Tab "Đã bán" -> Gom cả phiên chốt sổ (FINISHED) và phiên đã nhận tiền (PAID)
-                    isMatchTab = statusName.equals("FINISHED") || statusName.equals("PAID");
+                    isMatchTab = statusName.equals("FINISHED")
+                            || statusName.equals("PAID")
+                            || statusName.equals("CANCELED");;
                     break;
             }
 
@@ -152,7 +155,18 @@ public class SellerController extends BaseController implements Initializable, S
         // Cập nhật nhãn doanh thu lên UI
         lblRevenue.setText(CurrencyFormatter.formatVND(projectedRevenue));
     }
+    @Override
+    public void onSellerAuctionsReceived(List<Auction> sellerAuctions) {
+        // Platform.runLater để đảm bảo việc vẽ UI diễn ra trên luồng chính (JavaFX Application Thread)
+        Platform.runLater(() -> {
+            // Cập nhật lại kho dữ liệu trên RAM
+            this.allMySellerItems = sellerAuctions;
 
+            // Gọi lại hàm vẽ màn hình để hiển thị các món hàng
+            renderFilteredAuctions();
+            System.out.println("SELLER: Đã tải xong " + sellerAuctions.size() + " sản phẩm.");
+        });
+    }
 
     // TÍNH NĂNG TẠO MỚI SẢN PHẨM
 
@@ -161,8 +175,44 @@ public class SellerController extends BaseController implements Initializable, S
         System.out.println("Mở giao diện Đăng sản phẩm mới...");
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/AddItemcard.fxml");
     }
-    // NHẬN DỮ LIỆU TỪ SERVER (OVERRIDE)
-        // [Nâng cao]: Nếu em muốn khi đang đứng ở màn hình Seller mà giá món hàng nảy lên,
-        // Em có thể chọc vào allMyItems để sửa giá, rồi gọi lại renderFilteredAuctions()
+    @Override
+    public void onHighestBidUpdated(String auctionId, long newPrice, String bidderName) {
+        Platform.runLater(() -> {
+            for (Auction item : allMySellerItems) {
+                if (item.getId().equals(auctionId)) {
+                    // 1. Cập nhật giá trần mới nhất
+                    item.setHighestBid(newPrice);
+
+                    // 2. Nếu phiên đang ở trạng thái OPEN (Sắp lên sàn) mà có người bid,
+                    // tự động chuyển trạng thái mô hình sang RUNNING
+                    if (item.getStatus() == AuctionStatus.OPEN) {
+                        item.setStatus(AuctionStatus.RUNNING);
+                    }
+
+                    // 3. Vẽ lại màn hình để cập nhật cả thẻ lẫn Tổng doanh thu dự kiến
+                    renderFilteredAuctions();
+                    System.out.println("🔄 SELLER REAL-TIME: Phiên " + auctionId + " vừa nảy giá lên " + newPrice);
+                    break;
+                }
+            }
+        });
+    }
+    // ==========================================
+    // LẮNG NGHE SỰ KIỆN ĐÓNG PHIÊN ĐẤU GIÁ
+    // ==========================================
+    @Override
+    public void onAuctionClosed(String auctionId, String winnerId) {
+        Platform.runLater(() -> {
+            for (Auction item : allMySellerItems) {
+                if (item.getId().equals(auctionId)) {
+                    // Chuyển trạng thái mô hình sang FINISHED để nó tự động nhảy tab sang "Đã bán"
+                    item.setStatus(AuctionStatus.FINISHED);
+                    renderFilteredAuctions();
+                    System.out.println("🏁 SELLER REAL-TIME: Phiên " + auctionId + " đã kết thúc!");
+                    break;
+                }
+            }
+        });
+    }
 
 }
