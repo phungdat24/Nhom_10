@@ -125,17 +125,6 @@ public class ClientHandler implements Runnable {
                     handleCreateAuctionRequest(msg);
                     break;
                 case "GET_DASHBOARD_DATA":
-                    List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
-                    List<Auction> trendingList = auctionRepository.getTrendingAuctions(10);
-                    Map<String, Integer> stats = new HashMap<>();
-                    stats.put("active", auctionRepository.countActiveAuctions());
-                    stats.put("ending", auctionRepository.countEndingSoonAuctions());
-                    stats.put("users", userRepository.getTotalUserCount());
-                    stats.put("online", server.getOnlineUserCount());
-                    Object[] dashboardPayload = {stats, endingSoonlist, trendingList};
-                    Message responseMsg = new Message("DASHBOARD_DATA_RESULT", dashboardPayload);
-                    sendToClient(responseMsg);
-                case "GET_DASHBOARD_DATA":
                     handleGetDashboardData();
                     break;
                 case "GET_MY_AUCTIONS":
@@ -230,9 +219,6 @@ public class ClientHandler implements Runnable {
             sendToClient(new Message("CREATE_AUCTION_RESULT",
                     new String[] {"false", "Loi server khi tao phien dau gia."}));
         }
-    }
-
-    public static class OtpData {
     }
     private void handleGetDashboardData() {
         List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
