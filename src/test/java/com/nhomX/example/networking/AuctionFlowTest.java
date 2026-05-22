@@ -54,9 +54,10 @@ class AuctionFlowTest extends DatabaseBackedTest {
     Items item = new GeneralItem("item-1", "Vintage Clock", "Working antique clock", seller);
     itemRepository.save(item);
 
-    Auction auction =
-        new Auction("auction-1", item, LocalDateTime.now().plusMinutes(20), 100);
-    auction.setStartTime(LocalDateTime.now().minusMinutes(1));
+    LocalDateTime start = LocalDateTime.now().minusMinutes(1);
+    LocalDateTime end = LocalDateTime.now().plusMinutes(20);
+// Truyền đủ 5 tham số, thêm chữ 'L' sau số 100 để ép kiểu long
+    Auction auction = new Auction("auction-1", item, start, end, 100L);
     auction.setStatus(AuctionStatus.OPEN);
     auction.setApprovedBy("admin-1");
     auctionRepository.save(auction);
@@ -112,16 +113,16 @@ class AuctionFlowTest extends DatabaseBackedTest {
     Items item = new GeneralItem("item-2", "Camera", "Film camera", seller);
     itemRepository.save(item);
 
-    Auction pastAuction =
-        new Auction("past-auction", item, LocalDateTime.now().minusSeconds(5), 100);
-    pastAuction.setStartTime(LocalDateTime.now().minusMinutes(10));
+    LocalDateTime pastStart = LocalDateTime.now().minusMinutes(10);
+    LocalDateTime pastEnd = LocalDateTime.now().minusSeconds(5);
+    Auction pastAuction = new Auction("past-auction", item, pastStart, pastEnd, 100L);
     pastAuction.setStatus(AuctionStatus.OPEN);
     pastAuction.setApprovedBy("admin-1");
     auctionRepository.save(pastAuction);
 
-    Auction futureAuction =
-        new Auction("future-auction", item, LocalDateTime.now().plusHours(1), 100);
-    futureAuction.setStartTime(LocalDateTime.now().minusMinutes(10));
+    LocalDateTime futureStart = LocalDateTime.now().minusMinutes(10);
+    LocalDateTime futureEnd = LocalDateTime.now().plusHours(1);
+    Auction futureAuction = new Auction("future-auction", item, futureStart, futureEnd, 100L);
     futureAuction.setStatus(AuctionStatus.OPEN);
     futureAuction.setApprovedBy("admin-1");
     auctionRepository.save(futureAuction);

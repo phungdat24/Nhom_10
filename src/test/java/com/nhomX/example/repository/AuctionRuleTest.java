@@ -17,7 +17,9 @@ class AuctionRuleTest {
     // Arrange: phiên vẫn OPEN nhưng thời gian kết thúc đã qua.
     RegularUser seller = new RegularUser("seller", "seller@example.com", "hash", "Seller", 0);
     GeneralItem item = new GeneralItem("item", "Clock", "Vintage clock", seller);
-    Auction auction = new Auction("auction", item, LocalDateTime.now().minusSeconds(1), 100);
+    LocalDateTime start = LocalDateTime.now().minusMinutes(10); // Cho thời gian bắt đầu là 10 phút trước
+    LocalDateTime end = LocalDateTime.now().minusSeconds(1);
+    Auction auction = new Auction("auction", item, start, end, 100L);
     auction.setStatus(AuctionStatus.OPEN);
 
     RegularUser bidder = new RegularUser("bidder", "bidder@example.com", "hash", "Bidder", 500);
