@@ -7,19 +7,19 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.SellerItemCardController">
+<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.SellerItemCardController">
 
     <padding>
         <Insets bottom="12" left="12" right="12" top="12" />
     </padding>
 
     <HBox alignment="CENTER_LEFT">
-        <Label fx:id="lblStatus" styleClass="status-badge" style="-fx-background-color: #1976d2;" text="ĐANG ĐẤU GIÁ" />
+        <Label fx:id="lblStatus" style="-fx-background-color: #1976d2;" styleClass="status-badge" text="ĐANG ĐẤU GIÁ" />
         <Region HBox.hgrow="ALWAYS" />
-        <Label fx:id="lblBidCount" text="🔥 15 Bids" style="-fx-text-fill: #FF4500; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+        <Label fx:id="lblBidCount" style="-fx-text-fill: #FF4500; -fx-font-weight: bold; -fx-font-size: 12px;" text="🔥 15 Bids" />
     </HBox>
 
     <ImageView fx:id="itemImageView" fitHeight="120" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
@@ -36,7 +36,7 @@
         <HBox alignment="CENTER_LEFT" spacing="6">
             <Label styleClass="label-caption" text="Giá khởi điểm:" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblStartingPrice" text="1.000.000 đ" style="-fx-text-fill: #666666; -fx-font-size: 12px;"/>
+            <Label fx:id="lblStartingPrice" style="-fx-text-fill: #666666; -fx-font-size: 12px;" text="1.000.000 đ" />
         </HBox>
 
         <HBox alignment="CENTER_LEFT" spacing="6">
@@ -47,19 +47,26 @@
     </VBox>
 
     <Separator opacity="0.3" />
+   <HBox alignment="CENTER_LEFT" layoutX="24.0" layoutY="279.0" spacing="6">
+      <children>
+         <Label fx:id="lblTimeCaption1" styleClass="label-caption" text="Bắt đầu:" />
+         <Region HBox.hgrow="ALWAYS" />
+         <Label fx:id="lblTimeValue1" style="-fx-font-weight: bold; -fx-text-fill: #cc0000; -fx-font-size: 12px;" text="23/05/2026 23:59" />
+      </children>
+   </HBox>
 
     <!-- ── 4. Thời gian thông minh (Controller sẽ đổi text tùy trạng thái) ── -->
     <HBox alignment="CENTER_LEFT" spacing="6">
         <Label fx:id="lblTimeCaption" styleClass="label-caption" text="Kết thúc:" />
         <Region HBox.hgrow="ALWAYS" />
-        <Label fx:id="lblTimeValue" text="23/05/2026 23:59" style="-fx-font-weight: bold; -fx-text-fill: #cc0000; -fx-font-size: 12px;" />
+        <Label fx:id="lblTimeValue" style="-fx-font-weight: bold; -fx-text-fill: #cc0000; -fx-font-size: 12px;" text="23/05/2026 23:59" />
     </HBox>
 
     <!-- ── 5. Nút hành động ── -->
 
-    <HBox spacing="8" fx:id="actionBox">
-        <Button fx:id="btnEdit" maxWidth="Infinity" text="Sửa" style="-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnDelete" maxWidth="Infinity" text="Xóa" style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" HBox.hgrow="ALWAYS" />
+    <HBox fx:id="actionBox" spacing="8">
+        <Button fx:id="btnEdit" maxWidth="Infinity" style="-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Sửa" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDelete" maxWidth="Infinity" style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Xóa" HBox.hgrow="ALWAYS" />
     </HBox>
 
 </VBox>
