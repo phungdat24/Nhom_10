@@ -97,10 +97,18 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public List<Auction> findAllActiveAuctions() {
     List<Auction> list = new ArrayList<>();
-    String sql = "SELECT * FROM auctions WHERE status IN('OPEN', 'RUNNING') ";
+    String sql = "SELECT * " +
+            "FROM auctions " +
+            "WHERE status IN('OPEN', 'RUNNING') " +
+            "AND start_time <= ? " +
+            "AND end_time > ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
+      String now = LocalDateTime.now().format(DB_FORMATTER);
+
+      pstmt.setString(1, now); // start_time <= now
+      pstmt.setString(2, now); // end_time > now
       while (rs.next()) {
         list.add(mapRowToAuction(rs));
       }

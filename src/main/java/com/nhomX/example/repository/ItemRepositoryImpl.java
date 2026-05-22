@@ -88,7 +88,7 @@ public class ItemRepositoryImpl implements ItemRepository {
       pstmt.setString(1, itemId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
-          imageList.add(new ItemImage(rs.getString("id"), rs.getString("image_path")));
+          imageList.add(new ItemImage(rs.getString("id"), rs.getString("image_path"), itemId));
         }
       }
     }

@@ -23,7 +23,7 @@ public class ItemFactory {
             case "ART":
                 return new Art(id, title, description, seller, null, 0);
             // artistName và yearCreated có thể set sau
-            case "GENERAL":
+            case "GENERALITEM":
             default:
                 // Nếu gặp loại hàng lạ chưa được định nghĩa class, mặc định đưa về GeneralItem
                 return new GeneralItem(id, title, description, seller);

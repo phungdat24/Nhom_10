@@ -186,23 +186,24 @@ public class ClientHandler implements Runnable {
             }
 
             if (imageDataMap != null) {
+                // Lưu ảnh xuống ổ cứng và update đường dẫn vao item
                 for (Map.Entry<String, byte[]> entry : imageDataMap.entrySet()) {
                     String fileName = entry.getKey();
                     byte[] imageBytes = entry.getValue();
-
+                    // Tạo file lưu dữ liệu đầu vào
                     File imageFile = new File(serverImageDir + fileName);
                     try (FileOutputStream fos = new FileOutputStream(imageFile)) {
                         fos.write(imageBytes);
                     }
 
                     String relativePath = "/images/" + fileName;
-                    item.addImage(new ItemImage(UUID.randomUUID().toString(), relativePath));
+                    item.addImage(new ItemImage(UUID.randomUUID().toString(), relativePath, item.getId()));
                 }
             }
-
+            // Gọi server lưu DB
             AuctionService auctionService = new AuctionService();
             boolean isSuccess = auctionService.createAuctionListing(item, auction);
-
+            // Trả về kết quả Client
             Message response;
             if (isSuccess) {
                 response = new Message("CREATE_AUCTION_RESULT",

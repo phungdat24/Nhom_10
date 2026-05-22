@@ -155,13 +155,14 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 lblStatusMessage.setVisible(false);
             }
         }
+        String basePath = "/com/nhomX/example/images/";
         List<ItemImage> images = item.getImages();
 
         if (images != null && !images.isEmpty() && images.get(0).getImagePath() != null) {
             String firstImagePath = images.get(0).getImagePath().trim();
             try {
                 // Lấy ảnh từ thư mục resources
-                Image img = new Image(getClass().getResourceAsStream(firstImagePath));
+                Image img = new Image(getClass().getResourceAsStream( basePath+ firstImagePath));
                 imgItem.setImage(img);
             } catch (Exception e) {
                 System.err.println("Không tìm thấy ảnh tại đường dẫn: " + firstImagePath);
