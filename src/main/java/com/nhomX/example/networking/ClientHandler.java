@@ -1,6 +1,8 @@
 package com.nhomX.example.networking;
 
 import java.io.EOFException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,6 +21,8 @@ import com.nhomX.example.exception.InvalidBidException;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.BidTransaction;
+import com.nhomX.example.model.ItemImage;
+import com.nhomX.example.model.Items;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.model.Role;
@@ -27,6 +31,7 @@ import com.nhomX.example.repository.AuctionRepository;
 import com.nhomX.example.repository.BidRepository;
 import com.nhomX.example.repository.ItemRepository;
 import com.nhomX.example.repository.UserRepository;
+import com.nhomX.example.service.AuctionService;
 import com.nhomX.example.service.EmailService;
 import com.nhomX.example.service.GmailServiceImpl;
 import com.nhomX.example.utils.ValidatorUtils;
@@ -116,6 +121,20 @@ public class ClientHandler implements Runnable {
                 case "SETUP_AUTO_BID":
                     handleSetupAutoBid(msg);
                     break; // BUG FIX: thiếu handler này
+                case "CREATE_AUCTION_REQUEST":
+                    handleCreateAuctionRequest(msg);
+                    break;
+                case "GET_DASHBOARD_DATA":
+                    List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
+                    List<Auction> trendingList = auctionRepository.getTrendingAuctions(10);
+                    Map<String, Integer> stats = new HashMap<>();
+                    stats.put("active", auctionRepository.countActiveAuctions());
+                    stats.put("ending", auctionRepository.countEndingSoonAuctions());
+                    stats.put("users", userRepository.getTotalUserCount());
+                    stats.put("online", server.getOnlineUserCount());
+                    Object[] dashboardPayload = {stats, endingSoonlist, trendingList};
+                    Message responseMsg = new Message("DASHBOARD_DATA_RESULT", dashboardPayload);
+                    sendToClient(responseMsg);
                 case "GET_DASHBOARD_DATA":
                     handleGetDashboardData();
                     break;
@@ -161,6 +180,59 @@ public class ClientHandler implements Runnable {
                     .println("SERVER: Dữ liệu không đúng định dạng từ client – " + e.getMessage());
             sendToClient(Message.error("Dữ liệu gửi lên không hợp lệ!"));
         }
+    }
+
+    private void handleCreateAuctionRequest(Message msg) {
+        try {
+            Object[] payload = (Object[]) msg.getData();
+            Items item = (Items) payload[0];
+            Auction auction = (Auction) payload[1];
+            @SuppressWarnings("unchecked")
+            Map<String, byte[]> imageDataMap = (Map<String, byte[]>) payload[2];
+
+            String serverImageDir = "src/main/resources/images/";
+            File dir = new File(serverImageDir);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            if (imageDataMap != null) {
+                for (Map.Entry<String, byte[]> entry : imageDataMap.entrySet()) {
+                    String fileName = entry.getKey();
+                    byte[] imageBytes = entry.getValue();
+
+                    File imageFile = new File(serverImageDir + fileName);
+                    try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+                        fos.write(imageBytes);
+                    }
+
+                    String relativePath = "/images/" + fileName;
+                    item.addImage(new ItemImage(UUID.randomUUID().toString(), relativePath));
+                }
+            }
+
+            AuctionService auctionService = new AuctionService();
+            boolean isSuccess = auctionService.createAuctionListing(item, auction);
+
+            Message response;
+            if (isSuccess) {
+                response = new Message("CREATE_AUCTION_RESULT",
+                        new String[] {"true", "Tao phien dau gia thanh cong."});
+            } else {
+                response = new Message("CREATE_AUCTION_RESULT",
+                        new String[] {"false", "Luu phien dau gia that bai."});
+            }
+            sendToClient(response);
+
+        } catch (Exception e) {
+            System.err.println("SERVER LOI: Xu ly anh va them san pham that bai - "
+                    + e.getMessage());
+            sendToClient(new Message("CREATE_AUCTION_RESULT",
+                    new String[] {"false", "Loi server khi tao phien dau gia."}));
+        }
+    }
+
+    public static class OtpData {
     }
     private void handleGetDashboardData() {
         List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
