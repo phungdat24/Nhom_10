@@ -2,16 +2,17 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox alignment="CENTER" spacing="30.0" style="-fx-background-color: #f8f9fa;" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.nhomX.example.controller.DepositMoneyController">
+<HBox alignment="CENTER" spacing="30.0" style="-fx-background-color: #f8f9fa;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.DepositMoneyController">
     <padding>
         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
     </padding>
@@ -62,19 +63,38 @@
                                 <Font name="System Italic" size="13.0" />
                             </font>
                         </Label>
+                  <FlowPane hgap="10.0" prefHeight="200.0" prefWidth="200.0" vgap="10.0">
+                     <children>
+                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="50.000đ" />
+                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="100.000đ" />
+                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="200.000đ" />
+                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="500.000đ" />
+                     </children>
+                  </FlowPane>
                     </children>
                 </VBox>
-
-                <VBox spacing="8.0">
-                    <children>
-                        <Label text="NGÂN HÀNG THỤ HƯỞNG" textFill="#555555">
-                            <font>
-                                <Font name="System Bold" size="11.0" />
-                            </font>
-                        </Label>
-                        <ComboBox fx:id="cbBank" prefHeight="45.0" prefWidth="350.0" promptText="Chọn ngân hàng" style="-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-radius: 6; -fx-background-radius: 6;" />
-                    </children>
-                </VBox>
+            <VBox prefHeight="200.0" prefWidth="100.0">
+               <padding>
+                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+               </padding>
+               <children>
+                  <Label text="💡 Nạp tối thiểu 10.000 VNĐ, tối đa 500.000.000 VNĐ." textFill="#6c757d">
+                     <font>
+                        <Font name="System Italic" size="12.0" />
+                     </font>
+                  </Label>
+                  <Label text="💡 Vui lòng nạp bằng tài khoản chính chủ." textFill="#6c757d">
+                     <font>
+                        <Font name="System Italic" size="12.0" />
+                     </font>
+                  </Label>
+                  <Label text="📞 Hotline hỗ trợ sự cố: 1900 1234." textFill="#6c757d">
+                     <font>
+                        <Font name="System Italic" size="12.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
 
                 <Button fx:id="btnCreateQr" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateQr" prefHeight="45.0" style="-fx-background-color: #111111; -fx-background-radius: 6;" text="Tạo mã thanh toán" textFill="white">
                     <font>
@@ -100,7 +120,7 @@
 
         <VBox spacing="15.0">
             <children>
-                <HBox prefWidth="500.0" spacing="20.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-background-radius: 8;">
+                <HBox fx:id="infoPanel" prefWidth="500.0" spacing="20.0" style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-background-radius: 8;">
                     <padding>
                         <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
                     </padding>
@@ -143,7 +163,7 @@
                                         <Font name="System Bold" size="18.0" />
                                     </font>
                                 </Label>
-                                <hr style="-fx-border-color: #eeeeee; -fx-border-width: 1 0 0 0;" />
+                                <Separator style="-fx-background-color: #eeeeee;" />
 
                                 <VBox spacing="2.0">
                                     <children>
@@ -227,8 +247,8 @@
                         </VBox>
                     </children>
                 </HBox>
-
-                <Button fx:id="btnConfirm" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmPayment" prefHeight="48.0" style="-fx-background-color: #0b7285; -fx-background-radius: 8;" text="✓  Tôi đã chuyển khoản thành công" textFill="white">
+      
+                                        <Button fx:id="btnConfirm" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmPayment" prefHeight="48.0" style="-fx-background-color: #0b7285; -fx-background-radius: 8;" text="✓  Đã chuyển khoản thành công" textFill="white">
                     <font>
                         <Font name="System Bold" size="15.0" />
                     </font>
