@@ -103,14 +103,15 @@ public class AuctionRepositoryImpl implements AuctionRepository {
             "AND start_time <= ? " +
             "AND end_time > ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql);
-        ResultSet rs = pstmt.executeQuery()) {
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       String now = LocalDateTime.now().format(DB_FORMATTER);
 
       pstmt.setString(1, now); // start_time <= now
       pstmt.setString(2, now); // end_time > now
-      while (rs.next()) {
-        list.add(mapRowToAuction(rs));
+      try (ResultSet rs = pstmt.executeQuery()) { // ← Query sau khi đã set tham số
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi khi lấy ds phiên mở: " + e.getMessage());

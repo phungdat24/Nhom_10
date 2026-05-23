@@ -65,8 +65,6 @@ class AuctionFlowTest extends DatabaseBackedTest {
     // ✅ CHỈ dùng Service — đây là Single Source of Truth
     assertTrue(auctionService.createAuctionListing(item, auction),
             "Phải lưu thành công qua Service");
-    // [FIX LỖI 1]: Dùng Service để lưu cả Cụm (Item + Auction) vào Database
-    assertTrue(auctionService.createAuctionListing(item, auction), "Phải lưu thành công qua Service");
 
     // Act 1: người dùng xem danh sách phiên đang mở.
     List<Auction> activeAuctions = auctionRepository.findAllActiveAuctions();
