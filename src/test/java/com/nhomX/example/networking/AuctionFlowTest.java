@@ -55,7 +55,6 @@ class AuctionFlowTest extends DatabaseBackedTest {
     assertEquals("bidder-1", loggedIn.getId());
 
     Items item = new GeneralItem("item-1", "Vintage Clock", "Working antique clock", seller);
-    itemRepository.save(item);
 
     LocalDateTime start = LocalDateTime.now().minusMinutes(1);
     LocalDateTime end = LocalDateTime.now().plusMinutes(20);
@@ -63,7 +62,9 @@ class AuctionFlowTest extends DatabaseBackedTest {
     Auction auction = new Auction("auction-1", item, start, end, 100L);
     auction.setStatus(AuctionStatus.OPEN);
     auction.setApprovedBy("admin-1");
-    auctionRepository.save(auction);
+    // ✅ CHỈ dùng Service — đây là Single Source of Truth
+    assertTrue(auctionService.createAuctionListing(item, auction),
+            "Phải lưu thành công qua Service");
     // [FIX LỖI 1]: Dùng Service để lưu cả Cụm (Item + Auction) vào Database
     assertTrue(auctionService.createAuctionListing(item, auction), "Phải lưu thành công qua Service");
 
