@@ -97,12 +97,21 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public List<Auction> findAllActiveAuctions() {
     List<Auction> list = new ArrayList<>();
-    String sql = "SELECT * FROM auctions WHERE status IN('OPEN', 'RUNNING') ";
+    String sql = "SELECT * " +
+            "FROM auctions " +
+            "WHERE status IN('OPEN', 'RUNNING') " +
+            "AND start_time <= ? " +
+            "AND end_time > ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql);
-        ResultSet rs = pstmt.executeQuery()) {
-      while (rs.next()) {
-        list.add(mapRowToAuction(rs));
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      String now = LocalDateTime.now().format(DB_FORMATTER);
+
+      pstmt.setString(1, now); // start_time <= now
+      pstmt.setString(2, now); // end_time > now
+      try (ResultSet rs = pstmt.executeQuery()) { // ← Query sau khi đã set tham số
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
       }
     } catch (SQLException e) {
       System.err.println("❌ Lỗi khi lấy ds phiên mở: " + e.getMessage());

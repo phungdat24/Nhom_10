@@ -39,9 +39,10 @@ public class Auction extends Entity {
     }
 
     // 2. Hàm tạo đầy đủ tham số
-    public Auction(String id, Items item, LocalDateTime endTime, long startingPrice) {
+    public Auction(String id, Items item, LocalDateTime startTime, LocalDateTime endTime, long startingPrice) {
         super(id);
         this.item = item;
+        this.startTime=startTime;
         this.endTime = endTime;
         this.setStartingPrice(startingPrice);
         this.highestBid = startingPrice;

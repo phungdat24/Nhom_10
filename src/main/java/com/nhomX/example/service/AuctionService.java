@@ -16,6 +16,7 @@ public class AuctionService {
     Connection conn = null;
     try {
       conn = DatabaseConnection.getInstance().getConnection();
+      // Tắt auto-commit bắt đầu Transaction
       conn.setAutoCommit(false);
 
       itemRepo.save(item, conn);
@@ -37,6 +38,7 @@ public class AuctionService {
       return false;
     } finally {
       try {
+        //Luôn trả lại Auto-commit
         if (conn != null) {
           conn.setAutoCommit(true);
         }

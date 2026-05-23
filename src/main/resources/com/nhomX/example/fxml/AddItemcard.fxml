@@ -2,14 +2,14 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -24,67 +24,108 @@
 
             <VBox alignment="CENTER" spacing="10.0">
                <children>
-                  <Label text="THÊM SẢN PHẨM MỚI">
-                     <font>
-                        <Font name="System Bold" size="18.0" />
-                     </font>
-                  </Label>
-                  <ImageView fx:id="imgProduct" fitHeight="180.0" fitWidth="300.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../images/hermes.png" />
-                     </image>
-                  </ImageView>
-                  <Button fx:id="btnUploadImg" mnemonicParsing="false" onAction="#handleAddImage" text="Tải ảnh lên" />
+                  <VBox alignment="CENTER" spacing="5.0">
+                     <children>
+                        <Label text="THÊM SẢN PHẨM MỚI">
+                           <font>
+                              <Font name="System Bold" size="18.0" />
+                           </font>
+                        </Label>
+                        <Label text="Các ô có dấu (*) là bắt buộc điền" textFill="#e53935" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="10.0">
+                     <children>
+                        <Label text="Ảnh sản phẩm *" />
+                        <FlowPane fx:id="imageFlowPane" hgap="10.0" prefHeight="80.0" prefWidth="200.0" vgap="10.0" />
+                        <Button fx:id="btnUploadImg" mnemonicParsing="false" onAction="#handleAddImage" text="+ Thêm ảnh" />
+                     </children>
+                  </VBox>
                </children>
             </VBox>
 
             <VBox spacing="15.0">
-            <children>
-               <TextField fx:id="txtProductName" prefHeight="35.0" promptText="Tên sản phẩm" />
-               <TextArea fx:id="txtProductDescription" prefHeight="80.0" prefWidth="341.0" promptText="Mô tả chi tiết sản phẩm..." wrapText="true" />
-               <TextField fx:id="txtStartPrice" prefHeight="35.0" promptText="Giá khởi điểm (VNĐ)" />
-
-               <VBox spacing="5.0">
-                  <children>
-                     <Label text="Thời gian bắt đầu đấu giá:" textFill="#555555" />
-                     <HBox alignment="CENTER_LEFT" spacing="10.0">
-                        <children>
-                           <DatePicker fx:id="dpStartDate" prefWidth="150.0" promptText="Chọn ngày" />
-                           <Spinner fx:id="spStartHour" prefWidth="70.0" />
-                           <Label text="Giờ" />
-                           <Spinner fx:id="spStartMin" prefWidth="70.0" />
-                           <Label text="Phút" />
-                        </children>
-                     </HBox>
-                  </children>
-               </VBox>
-
-               <VBox spacing="5.0">
-                  <children>
-                     <Label text="Thời gian kết thúc đấu giá:" textFill="#555555" />
-                     <HBox alignment="CENTER_LEFT" spacing="10.0">
-                        <children>
-                           <DatePicker fx:id="dpEndDate" prefWidth="150.0" promptText="Chọn ngày" />
-                           <Spinner fx:id="spEndHour" prefWidth="70.0" />
-                           <Label text="Giờ" />
-                           <Spinner fx:id="spEndMin" prefWidth="70.0" />
-                           <Label text="Phút" />
-                        </children>
-                     </HBox>
-                  </children>
-               </VBox>
-            </children>
-         </VBox>
-
-            <HBox alignment="CENTER_RIGHT" spacing="15.0">
                <children>
-                  <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#handleCancel" prefHeight="35.0" prefWidth="100.0" style="-fx-background-color: #e0e0e0;" text="Hủy bỏ" />
-                  <Button fx:id="btnSubmit" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="35.0" prefWidth="140.0" style="-fx-background-color: #2196F3; -fx-text-fill: white;" text="Thêm sản phẩm" />
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Tên sản phẩm *" />
+                        <TextField fx:id="txtProductName" prefHeight="35.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Danh mục *" />
+                        <ComboBox fx:id="cbCategory" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="-- Chọn danh mục --" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Mô tả chi tiết sản phẩm*" />
+                        <TextArea fx:id="txtProductDescription" prefHeight="80.0" prefWidth="341.0" wrapText="true" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Giá khởi điểm (VNĐ) *" />
+                        <TextField fx:id="txtStartPrice" prefHeight="35.0" promptText="Ví dụ: 15000" />
+                        <Label fx:id="lblPriceInWords" textFill="#2e7d32">
+                           <font>
+                              <Font name="System Italic" size="12.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Thời gian bắt đầu đấu giá*:" textFill="#555555" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <DatePicker fx:id="dpStartDate" prefWidth="150.0" promptText="Chọn ngày" />
+                              <Spinner fx:id="spStartHour" prefWidth="70.0" />
+                              <Label text="Giờ" />
+                              <Spinner fx:id="spStartMin" prefWidth="70.0" />
+                              <Label text="Phút" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Thời gian kết thúc đấu giá*:" textFill="#555555" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <DatePicker fx:id="dpEndDate" prefWidth="150.0" promptText="Chọn ngày" />
+                              <Spinner fx:id="spEndHour" prefWidth="70.0" />
+                              <Label text="Giờ" />
+                              <Spinner fx:id="spEndMin" prefWidth="70.0" />
+                              <Label text="Phút" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
                </children>
+            </VBox>
+            <VBox alignment="CENTER_RIGHT" spacing="10.0">
                <VBox.margin>
                   <Insets top="10.0" />
                </VBox.margin>
-            </HBox>
+               <children>
+                  <Label text="Bằng việc thêm sản phẩm, bạn đồng ý với chính sách và quy định đấu giá." textFill="#888888">
+                     <font>
+                        <Font name="System Italic" size="12.0" />
+                     </font>
+                  </Label>
+
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                     <children>
+                        <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#handleCancel" prefHeight="35.0" prefWidth="100.0" style="-fx-background-color: #e0e0e0;" text="Hủy bỏ" />
+                        <Button fx:id="btnSubmit" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="35.0" prefWidth="140.0" style="-fx-background-color: #2196F3; -fx-text-fill: white;" text="Thêm sản phẩm" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
 
          </children>
       </VBox>

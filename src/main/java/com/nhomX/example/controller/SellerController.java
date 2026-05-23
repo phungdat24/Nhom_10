@@ -14,10 +14,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -45,9 +50,11 @@ public class SellerController extends BaseController implements Initializable, S
     // Trạng thái hiện tại ("PENDING", "ACTIVE", "SOLD")
     private String currentFilterStatus = "ACTIVE";
 
-    // Các hằng số Style cho Tab
-    private final String STYLE_ACTIVE = "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8;";
-    private final String STYLE_INACTIVE = "-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8;"; // Tùy chỉnh màu xám cho khớp css của em
+    // Nút đang chọn: Nền vàng, chữ trắng, viền vàng (để đồng bộ)
+    private final String STYLE_ACTIVE = "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-border-color: #c9a227; -fx-border-radius: 8; -fx-border-width: 1;";
+
+    // Nút không chọn: Nền trong suốt, chữ xám, viền xám nhạt
+    private final String STYLE_INACTIVE = "-fx-background-color: transparent; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-border-color: #cccccc; -fx-border-radius: 8; -fx-border-width: 1;";
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -119,12 +126,12 @@ public class SellerController extends BaseController implements Initializable, S
             switch (currentFilterStatus) {
                 case "TAB_PENDING":
                     // Tab "Chờ lên sàn" -> Khớp với PENDING
-                    isMatchTab = statusName.equals("PENDING") || statusName.equals("OPEN");;
+                    isMatchTab = statusName.equals("PENDING") ;;
                     break;
 
                 case "TAB_ACTIVE":
                     // Tab "Đang đấu giá" -> Gom cả phiên vừa mở (OPEN) và phiên đang giành giật (RUNNING)
-                    isMatchTab = statusName.equals("RUNNING");
+                    isMatchTab = statusName.equals("RUNNING")|| statusName.equals("OPEN");
                     break;
 
                 case "TAB_SOLD":
@@ -172,8 +179,33 @@ public class SellerController extends BaseController implements Initializable, S
 
     @FXML
     private void handleAddItem(ActionEvent event) {
-        System.out.println("Mở giao diện Đăng sản phẩm mới...");
-        SceneSwitcher.switchScene("/com/nhomX/example/fxml/AddItemcard.fxml");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/AddItemcard.fxml"));
+            Parent root = loader.load();
+
+            // TẠO MỘT STAGE MỚI (CỬA SỔ MỚI) CHỈ DÀNH CHO POP-UP
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Thêm Sản Phẩm Mới");
+            popupStage.setScene(new Scene(root));
+            popupStage.setResizable(false);
+
+            // Lệnh này quan trọng nhất: KHÓA CỨNG CỬA SỔ CHA (Trang Seller)
+            popupStage.initModality(Modality.WINDOW_MODAL);
+
+            // Lấy cửa sổ cha để làm "nạn nhân" bị khóa
+            Stage parentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            popupStage.initOwner(parentStage);
+
+            // Hiển thị Pop-up và chờ đợi (Code sẽ dừng ở đây cho đến khi Pop-up đóng)
+            popupStage.showAndWait();
+
+            // SAU KHI POP-UP ĐÓNG LẠI, HÃY CẬP NHẬT LẠI BẢNG DANH SÁCH Ở ĐÂY
+            System.out.println("Pop-up đã đóng. Đang tải lại danh sách sản phẩm...");
+            renderFilteredAuctions(); // Hàm tải lại dữ liệu của em
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     @Override
     public void onHighestBidUpdated(String auctionId, long newPrice, String bidderName) {

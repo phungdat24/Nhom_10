@@ -1,6 +1,8 @@
 package com.nhomX.example.manager;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import com.nhomX.example.model.Auction;
@@ -62,14 +64,18 @@ public class AuctionManager {
             String winnerName) {
         Auction auction = auctionCache.get(auctionId);
         if (auction != null) {
-            auction.setHighestBid(newPrice);
-
-            // Cập nhật người dẫn đầu tạm thời
-            if (winnerId != null) {
-                RegularUser tempWinner = new RegularUser();
-                tempWinner.setId(winnerId);
-                tempWinner.setFullName(winnerName);
-                auction.setWinner(tempWinner);
+            // Chỉ cập nhật nếu giá mới CAO HƠN giá hiện tại
+            if (newPrice >= auction.getHighestBid()) {
+                auction.setHighestBid(newPrice);
+                if (winnerId != null) {
+                    RegularUser tempWinner = new RegularUser();
+                    tempWinner.setId(winnerId);
+                    tempWinner.setFullName(winnerName);
+                    auction.setWinner(tempWinner);
+                }
+            } else {
+                System.err.println("CACHE WARNING: Bỏ qua gói tin cũ — giá "
+                        + newPrice + " thấp hơn giá hiện tại " + auction.getHighestBid());
             }
         }
     }
@@ -92,20 +98,39 @@ public class AuctionManager {
     }
 
     // CÁC HÀM CUNG CẤP DỮ LIỆU CHO GIAO DIỆN JAVAFX (Đọc dữ liệu)
-    /**
-     * Lấy toàn bộ danh sách để vẽ lên màn hình Dashboard.
-     */
+    // ✅ FIX getAllCachedAuctions(): Trả về bản sao có thứ tự ổn định
+    // ConcurrentHashMap không đảm bảo thứ tự → sort theo ID để UI không bị nhảy loạn
     public List<Auction> getAllCachedAuctions() {
-        return new ArrayList<>(auctionCache.values());
+        List<Auction> list = new ArrayList<>(auctionCache.values());
+        list.sort(Comparator.comparing(Auction::getId));
+        return list;
     }
-
     /**
      * Lấy ra đúng những phiên đang hiển thị cho phép đấu giá (OPEN, RUNNING).
+     * ĐIỀU KIỆN HỢP LỆ (3 tiêu chí phải thỏa đồng thời):
+     * 1. Status phải là OPEN hoặc RUNNING
+     * 2. startTime <= now  (phiên đã bắt đầu)
+     * 3. endTime   >  now  (phiên chưa kết thúc)
      */
     public List<Auction> getActiveAuctions() {
+        LocalDateTime now = LocalDateTime.now();
         List<Auction> activeList = new ArrayList<>();
+
         for (Auction a : auctionCache.values()) {
-            if (a.getStatus() == AuctionStatus.OPEN || a.getStatus() == AuctionStatus.RUNNING) {
+            // Tiêu chí 1: Lọc theo trạng thái
+            boolean validStatus = a.getStatus() == AuctionStatus.OPEN
+                    || a.getStatus() == AuctionStatus.RUNNING;
+            if (!validStatus) continue;
+
+            // Tiêu chí 2: Phiên phải đã bắt đầu
+            boolean hasStarted = a.getStartTime() != null
+                    && !a.getStartTime().isAfter(now);
+
+            // Tiêu chí 3: Phiên chưa kết thúc
+            boolean notExpired = a.getEndTime() != null
+                    && a.getEndTime().isAfter(now);
+
+            if (hasStarted && notExpired) {
                 activeList.add(a);
             }
         }

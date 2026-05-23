@@ -11,7 +11,7 @@ public class GeneralItem extends Items {
 
     @Override
     public String getCategory() {
-        return "General";
+        return "GENERALITEM";
     }
 
     @Override

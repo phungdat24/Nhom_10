@@ -41,6 +41,6 @@ public interface ServerEventListener {
     default void onForgotPasswordResult(boolean isSuccess, String responseMsg){}
     // Lấy danh sách bán
     default void onSellerAuctionsReceived(List<Auction> sellerAuctions){};
-
+    // Lắng nghe kết quả tạo phiên đấu giá
     default void onCreateAuctionResult(boolean isSuccess, String message) {}
 }

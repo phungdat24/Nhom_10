@@ -41,8 +41,8 @@ class ConcurrentBidTest extends DatabaseBackedTest {
     itemRepository.save(item);
 
     LocalDateTime originalEndTime = LocalDateTime.now().plusSeconds(2).withNano(0);
-    Auction auction = new Auction("auction-concurrent", item, originalEndTime, 100);
-    auction.setStartTime(LocalDateTime.now().minusMinutes(1));
+    LocalDateTime startTime = LocalDateTime.now().minusMinutes(1);
+    Auction auction = new Auction("auction-concurrent", item, startTime, originalEndTime, 100L);
     auction.setStatus(AuctionStatus.OPEN);
     auction.setApprovedBy("admin-1");
     auctionRepository.save(auction);
@@ -105,9 +105,9 @@ class ConcurrentBidTest extends DatabaseBackedTest {
     Items item = new GeneralItem("item-4", "Speaker", "Portable speaker", seller);
     itemRepository.save(item);
 
-    Auction auction =
-        new Auction("auction-equal-bids", item, LocalDateTime.now().plusSeconds(2), 100);
-    auction.setStartTime(LocalDateTime.now().minusMinutes(1));
+    LocalDateTime start2 = LocalDateTime.now().minusMinutes(1);
+    LocalDateTime end2 = LocalDateTime.now().plusSeconds(2);
+    Auction auction = new Auction("auction-equal-bids", item, start2, end2, 100L);
     auction.setStatus(AuctionStatus.OPEN);
     auction.setApprovedBy("admin-1");
     auctionRepository.save(auction);
