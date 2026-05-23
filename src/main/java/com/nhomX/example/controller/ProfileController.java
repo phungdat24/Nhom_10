@@ -7,6 +7,7 @@ import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
+import com.nhomX.example.utils.SceneSwitcher;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -141,31 +142,7 @@ public class ProfileController extends BaseController implements Initializable, 
 
     @FXML
     private void handleDeposit(ActionEvent event) {
-        // Sử dụng JavaFX TextInputDialog để nạp tiền nhanh
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nạp tiền vào ví");
-        dialog.setHeaderText("Số dư hiện tại: " + lblBalance.getText() + " VNĐ");
-        dialog.setContentText("Nhập số tiền muốn nạp (VNĐ):");
-
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(amountStr -> {
-            try {
-                long amount = Long.parseLong(amountStr.replace(".", "").replace(",", ""));
-                if (amount < 10000) {
-                    AlertUtils.showError("Lỗi", "Số tiền nạp tối thiểu là 10.000 VNĐ");
-                    return;
-                }
-
-                // Gửi lệnh nạp tiền lên Server
-                String[] depositData = {currentUser.getId(), String.valueOf(amount)};
-                if (auctionClient != null) {
-                    auctionClient.sendToServer(new Message("DEPOSIT_FUNDS", depositData));
-                }
-
-            } catch (NumberFormatException e) {
-                AlertUtils.showError("Lỗi nhập liệu", "Vui lòng chỉ nhập số hợp lệ!");
-            }
-        });
+        SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/RechargeContent.fxml");
     }
 
     @FXML

@@ -43,4 +43,12 @@ public interface ServerEventListener {
     default void onSellerAuctionsReceived(List<Auction> sellerAuctions){};
     // Lắng nghe kết quả tạo phiên đấu giá
     default void onCreateAuctionResult(boolean isSuccess, String message) {}
+    // SỰ KIỆN GIAO DỊCH TÀI CHÍNH
+    // ==========================================
+    /**
+     * Lắng nghe kết quả nạp tiền từ Server.
+     * @param isSuccess Thành công hay thất bại.
+     * @param newBalance Số dư mới nhất (nếu thành công).
+     */
+    default void onDepositResult(boolean isSuccess, long newBalance) {}
 }
