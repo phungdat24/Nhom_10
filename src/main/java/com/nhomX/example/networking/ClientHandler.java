@@ -161,6 +161,9 @@ public class ClientHandler implements Runnable {
                         sendToClient(new Message("ERROR", "Không thể lấy danh sách bán hàng"));
                     }
                     break;
+                case "DEPOSIT_REQUEST":
+                    handleDepositRequest(msg);
+                    break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
@@ -168,6 +171,33 @@ public class ClientHandler implements Runnable {
             System.err
                     .println("SERVER: Dữ liệu không đúng định dạng từ client – " + e.getMessage());
             sendToClient(Message.error("Dữ liệu gửi lên không hợp lệ!"));
+        }
+    }
+
+    private void handleDepositRequest(Message msg) {
+        try{
+            // Giải nén payload: [userId, amount, content, bankName]
+            Object[] payload = (Object[]) msg.getData();
+            String userId = (String) payload[0];
+            long amount = (Long) payload[1];
+
+            userRepository.updateBalance(userId, amount);
+            User updatedUser = userRepository.findById(userId);
+
+            Message response;
+            if (updatedUser != null) {
+                System.out.println("SERVER: Nạp thành công" + amount + "cho" + userId);
+                Object[] responseData = {true, updatedUser.getBalance()};
+                response = new Message("DEPOSIT_RESULT", responseData);
+            } else {
+                Object[] responseData = {false, 0L};
+                response = new Message("DEPOSIT_RESULT", responseData);
+            }
+            sendToClient(response);
+        } catch (Exception e) {
+            System.out.println("SERVER LỖI: Xử lý giao dịch nạp tiền thất bại - " + e.getMessage());
+            Object[] responseData = {false, 0L};
+            sendToClient(new Message("ERROR", responseData));
         }
     }
 

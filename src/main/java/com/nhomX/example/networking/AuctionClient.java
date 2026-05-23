@@ -335,6 +335,24 @@ public class AuctionClient {
                 }
                 break;
 
+            case "DEPOSIT_RESULT":
+                Object[] depositData = (Object[]) msg.getData();
+                boolean isDepositSuccess = (Boolean) depositData[0];
+                long newBalance = (long) depositData[1];
+
+                if (isDepositSuccess){
+                    User currentSessionUser = SessionManager.getInstance().getCurrentUser();
+                    if (currentSessionUser != null){
+                        currentSessionUser.setBalance(newBalance);
+                    }
+                }
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onDepositResult(isDepositSuccess, newBalance);
+                    }
+                });
+                break;
+
             default:
                 System.err.println("CLIENT: Loại message không xác định – " + type);
         }
