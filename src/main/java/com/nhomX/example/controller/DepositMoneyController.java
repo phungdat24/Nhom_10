@@ -18,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
@@ -152,12 +153,14 @@ public class DepositMoneyController implements Initializable {
                     "Vui lòng nhập số tiền tối thiểu " + CurrencyFormatter.formatVND(MIN_DEPOSIT) + ".");
             return;
         }
+        String transferContent = generateTransferContent();
         // Điền thông tin tĩnh (Hardcoded)
         lblBankName.setText(COMPANY_BANK_NAME);
         lblAccountNumber.setText(COMPANY_ACCOUNT_NO);
         lblAccountOwner.setText(COMPANY_OWNER);
         lblContent.setText(generateTransferContent());
-
+        // Hàm sinh QR:
+        generateDynamicQR(amount, transferContent);
         // Hiện panel, MỞ KHÓA nút Xác nhận & khởi động timer
         showInfoPanel();
         btnConfirm.setVisible(true);
@@ -293,5 +296,33 @@ public class DepositMoneyController implements Initializable {
     private void hideInfoPanel() {
         if (infoPanel != null) infoPanel.setVisible(false);
         if (infoPanel != null) infoPanel.setManaged(false);
+    }
+    // HÀM TẠO MÃ QR ĐỘNG TỪ API VIETQR
+    // =========================================================================
+    private void generateDynamicQR(long amount, String transferContent) {
+        try {
+            // 1. Mã hóa URL (URLEncode) để các khoảng trắng trong chuỗi không làm hỏng đường dẫn
+            String encodedContent = java.net.URLEncoder.encode(transferContent, "UTF-8");
+            String encodedAccountName = java.net.URLEncoder.encode(COMPANY_OWNER, "UTF-8");
+
+            // 2. Lắp ghép đường dẫn (Giả sử dùng Techcombank BIN là 970407)
+            String qrUrl = String.format(
+                    "https://img.vietqr.io/image/970407-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                    COMPANY_ACCOUNT_NO,
+                    amount,
+                    encodedContent,
+                    encodedAccountName
+            );
+
+            // 3. Yêu cầu JavaFX tải ảnh từ URL trên một luồng ngầm (Tham số true = background loading)
+            Image dynamicQrImage = new Image(qrUrl, true);
+
+            // 4. Gắn vào ImageView trên màn hình
+            imgQrCode.setImage(dynamicQrImage);
+
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi sinh mã QR Động: " + e.getMessage());
+            // Fallback: Nếu mất mạng, có thể set lại cái ảnh mock_qr.png mặc định
+        }
     }
 }
