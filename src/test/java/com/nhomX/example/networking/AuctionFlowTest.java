@@ -24,6 +24,7 @@ import com.nhomX.example.repository.ItemRepository;
 import com.nhomX.example.repository.ItemRepositoryImpl;
 import com.nhomX.example.repository.UserRepository;
 import com.nhomX.example.repository.UserRepositoryImpl;
+import com.nhomX.example.service.AuctionService;
 import com.nhomX.example.utils.SecurityUtils;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,12 +39,14 @@ class AuctionFlowTest extends DatabaseBackedTest {
     ItemRepository itemRepository = new ItemRepositoryImpl();
     AuctionRepository auctionRepository = new AuctionRepositoryImpl();
     BidRepository bidRepository = new BidRepositoryImpl();
+    AuctionService auctionService = new AuctionService(); // KHỞI TẠO SERVICE
 
     // Arrange: tạo dữ liệu giống luồng app: user, item, phiên đấu giá đang mở.
     RegularUser seller = regularUser("seller-1", "seller@example.com", 0, Role.SELLER);
     RegularUser bidder = regularUser("bidder-1", "bidder@example.com", 1_000, Role.BIDDER);
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(bidder));
+
 
     // Login kiểm tra đúng tài khoản bidder được lấy ra từ database.
     User loggedIn = userRepository.login(
@@ -61,6 +64,8 @@ class AuctionFlowTest extends DatabaseBackedTest {
     auction.setStatus(AuctionStatus.OPEN);
     auction.setApprovedBy("admin-1");
     auctionRepository.save(auction);
+    // [FIX LỖI 1]: Dùng Service để lưu cả Cụm (Item + Auction) vào Database
+    assertTrue(auctionService.createAuctionListing(item, auction), "Phải lưu thành công qua Service");
 
     // Act 1: người dùng xem danh sách phiên đang mở.
     List<Auction> activeAuctions = auctionRepository.findAllActiveAuctions();
