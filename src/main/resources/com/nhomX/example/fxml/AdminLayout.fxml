@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="720" prefWidth="1100" styleClass="root-pane" stylesheets="@../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.AdminLayoutController">
+
+    <left>
+        <VBox prefWidth="220" spacing="0" styleClass="sidebar">
+
+            <VBox spacing="4" styleClass="sidebar-logo">
+                <Label styleClass="logo-title" text="PEAKBID ADMIN" />
+            </VBox>
+
+            <VBox spacing="0" styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
+
+                      <Button fx:id="btnHome" maxWidth="Infinity" onAction="#handleNavHome" styleClass="nav-item" text="Trang chủ">
+               <graphic>
+                  <FontAwesomeIcon fill="#b7aaaa" glyphName="TH_LARGE" size="2em" text="" />
+               </graphic>
+            </Button>
+
+                <Button fx:id="btnUsers" maxWidth="Infinity" onAction="#handleNavUsers" styleClass="nav-item" text="Người dùng">
+               <graphic>
+                  <FontAwesomeIcon fill="#b7aaaa" glyphName="USERS" size="2em" />
+               </graphic>
+                </Button>
+
+                <Button fx:id="btnProducts" maxWidth="Infinity" onAction="#handleNavProducts" styleClass="nav-item" text="Quản lý sản phẩm">
+               <graphic>
+                  <FontAwesomeIcon fill="#b7aaaa" glyphName="LIST_ALT" size="2em" />
+               </graphic>
+                </Button>
+
+                <Button fx:id="btnAuctions" maxWidth="Infinity" onAction="#handleNavAuctions" styleClass="nav-item" text="Phiên đấu giá">
+               <graphic>
+                  <FontAwesomeIcon fill="#b7aaaa" glyphName="DOLLAR" size="2em" />
+               </graphic>
+                </Button>
+
+                <Button fx:id="btnSettings" maxWidth="Infinity" onAction="#handleNavSettings" styleClass="nav-item" text="Cài đặt">
+               <graphic>
+                  <FontAwesomeIcon fill="#b7aaaa" glyphName="GEAR" size="2em" />
+               </graphic>
+                </Button>
+
+                <Region VBox.vgrow="ALWAYS" />
+            </VBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="sidebar-footer">
+                <Label styleClass="avatar" text="A" />
+                <VBox spacing="2">
+                    <Label styleClass="footer-name" text="Admin" />
+                    <Label styleClass="footer-role" text="System Manager" />
+                </VBox>
+            <VBox.margin>
+               <Insets bottom="15.0" left="10.0" right="10.0" />
+            </VBox.margin>
+            </HBox>
+
+        </VBox>
+    </left>
+
+    <center>
+        <VBox spacing="0" styleClass="main-area">
+
+            <HBox alignment="CENTER_LEFT" spacing="0" styleClass="topbar">
+                <Label fx:id="topbarTitle" text="Quản lý sản phẩm" styleClass="topbar-title" />
+                <Region HBox.hgrow="ALWAYS" />
+
+                <HBox fx:id="searchBox" alignment="CENTER_LEFT" spacing="10" styleClass="search-box">
+                    <Label styleClass="search-icon" text="🔍" />
+                    <TextField fx:id="searchField" prefWidth="230" promptText="Tìm kiếm sản phẩm..." styleClass="search-input" />
+                </HBox>
+
+                <Button onAction="#handleNotification" styleClass="notif-btn">
+               <graphic>
+                  <FontAwesomeIcon fill="GOLD" glyphName="BELL" />
+               </graphic></Button>
+            </HBox>
+
+            <StackPane fx:id="contentArea" styleClass="content-area" VBox.vgrow="ALWAYS">
+
+                <Label alignment="CENTER" styleClass="loading-label" text="Đang tải nội dung..." />
+
+            </StackPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>

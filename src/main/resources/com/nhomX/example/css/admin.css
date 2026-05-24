@@ -1,0 +1,514 @@
+/* =============================================
+   AUCTION ADMIN — main.css
+   Áp dụng cho MainLayout.fxml và tất cả views con
+   ============================================= */
+
+/* ── ROOT ── */
+.root-pane {
+    -fx-background-color: #484848;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+/* =============================================
+   SIDEBAR
+   ============================================= */
+.sidebar {
+    -fx-background-color:#242424
+    -fx-border-color: #252220;
+    -fx-border-width: 0 1 0 0;
+    -fx-pref-width: 220;
+    -fx-min-width: 220;
+    -fx-max-width: 220;
+}
+
+.sidebar-logo {
+    -fx-padding: 28 24 24 24;
+    -fx-border-color: #252220;
+    -fx-border-width: 0 0 1 0;
+}
+
+.logo-title {
+    -fx-text-fill: #ffd700;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 2;
+}
+
+.logo-subtitle {
+    -fx-text-fill: #4A4540;
+    -fx-font-size: 10px;
+    -fx-letter-spacing: 1;
+}
+
+/* Sidebar nav */
+.sidebar-nav {
+    -fx-padding: 16 0 0 0;
+    -fx-background-color: transparent;
+}
+
+.nav-section-label {
+    -fx-text-fill: #4A4540;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 16 24 6 24;
+    -fx-letter-spacing: 2;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b7aaaa;
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 11 24 11 24;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 12;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.nav-item:hover {
+    -fx-background-color: #1E1E1E;
+    -fx-text-fill: #F0EAD6;
+}
+
+.nav-item-active {
+    -fx-background-color: rgba(201, 168, 76, 0.08);
+    -fx-text-fill: #C9A84C;
+    -fx-border-color: #C9A84C transparent transparent transparent;
+    -fx-border-width: 0 0 0 2;
+    -fx-padding: 11 24 11 22;
+}
+
+.nav-item-active:hover {
+    -fx-background-color: rgba(201, 168, 76, 0.12);
+    -fx-text-fill: #C9A84C;
+}
+
+.nav-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: inherit;
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+    -fx-margin: 0 30 0 30;
+    -fx-padding: 18 24 18 24;
+    -fx-border-color: #252220;
+    -fx-border-width: 1 0 0 0;
+    -fx-background-color: #111111;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.avatar {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #8B6D2F, #C9A84C);
+    -fx-text-fill: #000000;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-max-width: 36;
+    -fx-max-height: 36;
+    -fx-background-radius: 18;
+}
+
+.footer-name {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.footer-role {
+    -fx-text-fill: #4A4540;
+    -fx-font-size: 11px;
+}
+
+/* =============================================
+   TOPBAR
+   ============================================= */
+.main-area {
+    -fx-background-color: #0E0E0E;
+}
+
+.topbar {
+    -fx-background-color: #212121;
+    -fx-padding: 18 36 18 36;
+    -fx-border-color: #252220;
+    -fx-border-width: 0 0 1 0;
+    -fx-pref-height: 64;
+    -fx-min-height: 64;
+    -fx-max-height: 64;
+    -fx-spacing: 16;
+}
+
+.topbar-title {
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.centerbar-title {
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+.search-box {
+    -fx-background-color: #0E0E0E;
+    -fx-border-color: #252220;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 0 16 0 16;
+    -fx-pref-height: 45;
+}
+
+.search-box:focused-within {
+    -fx-border-color: #8B6D2F;
+}
+
+.search-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: #4A4540;
+}
+
+.search-input {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F0EAD6;
+    -fx-prompt-text-fill: #4A4540;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent;
+    -fx-pref-width: 230;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.notif-btn {
+    -fx-background-color: #0E0E0E;
+    -fx-border-color: #252220;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #888070;
+    -fx-font-size: 16px;
+    -fx-pref-width: 38;
+    -fx-pref-height: 38;
+    -fx-cursor: hand;
+    -fx-margin: 0 0 0 8;
+}
+
+.notif-btn:hover {
+    -fx-border-color: #8B6D2F;
+    -fx-text-fill: #C9A84C;
+}
+
+/* =============================================
+   CONTENT AREA (vùng chèn màn hình con)
+   ============================================= */
+.content-area {
+    -fx-background-color:#1A1A1A;
+    -fx-padding: 32 36 32 36;
+}
+
+.loading-label {
+    -fx-text-fill: #4A4540;
+    -fx-font-size: 14px;
+}
+
+/* =============================================
+   TABS (dùng cho ProductManagementView, v.v.)
+   ============================================= */
+.custom-tab-bar {
+    -fx-background-color: transparent;
+    -fx-border-color: #252220;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 0 0 0;
+    -fx-spacing: 0;
+}
+
+.custom-tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: #888070;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20 10 20;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-background-radius: 0;
+}
+
+.custom-tab:hover {
+    -fx-text-fill: #F0EAD6;
+}
+
+.custom-tab-active {
+    -fx-text-fill: #C9A84C;
+    -fx-border-color: #C9A84C transparent transparent transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 10 20 8 20;
+}
+
+.tab-badge {
+    -fx-background-color: rgba(201, 168, 76, 0.15);
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 20;
+}
+
+/* =============================================
+   STAT CARDS
+   ============================================= */
+.stats-row {
+    -fx-spacing: 16;
+    -fx-padding: 0 0 24 0;
+}
+
+.stat-card {
+    -fx-background-color: #161616;
+    -fx-border-color: #252220;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 18 20 18 20;
+    -fx-spacing: 6;
+}
+
+.stat-label {
+    -fx-text-fill: #4A4540;
+    -fx-font-size: 10px;
+    -fx-letter-spacing: 1;
+}
+
+.stat-value {
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.stat-sub {
+    -fx-text-fill: #4A4540;
+    -fx-font-size: 11px;
+}
+
+/* =============================================
+   PRODUCT CARDS
+   ============================================= */
+.product-card {
+    -fx-background-color: #161616;
+    -fx-border-color: #252220;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: null;
+    -fx-cursor: hand;
+
+}
+
+.product-card:hover {
+    -fx-border-color: #8B6D2F;
+}
+
+.product-name {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.product-seller {
+    -fx-text-fill:#ccbebe;
+    -fx-font-size: 14px;
+}
+
+.price-label {
+    -fx-text-fill: #b6bc40;
+    -fx-font-size: 12px;
+    -fx-letter-spacing: 1;
+}
+
+.price-value {
+    -fx-text-fill: #2ECC71;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+/* Badges trạng thái */
+.badge-pending {
+    -fx-background-color: rgba(201, 168, 76, 0.2);
+    -fx-border-color: rgba(201, 168, 76, 0.4);
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-text-fill: #E8C76A;
+    -fx-font-size: 11px;
+    -fx-padding: 3 12 3 12;
+}
+
+/* --- STYLE CHO NÚT TỪ CHỐI (REJECT) --- */
+.badge-rejected {
+    /* Đổi màu nền tối hơn và hòa trộn mượt với nền card */
+    -fx-background-color: rgba(231, 76, 60, 0.08);
+    -fx-border-color: rgba(231, 76, 60, 0.4);
+
+    /* Đồng bộ hai thuộc tính bo góc bằng nhau để nút không bị méo */
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+
+    /* Màu chữ hồng đỏ nhạt sang trọng */
+    -fx-text-fill: #EAB4B4;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold; /* Làm chữ đậm lên giống hình mẫu */
+
+    /* Tăng padding dọc lên 8px và ngang lên 24px để nút to ra */
+    -fx-padding: 12 40 12 40;
+    -fx-cursor: hand;
+
+    /* Xóa bỏ khoảng đệm mặc định của JavaFX Button */
+    -fx-background-insets: 0;
+}
+.badge-rejected:hover {
+    -fx-background-color: rgba(231, 76, 60, 0.18);
+}
+
+/* --- STYLE CHO NÚT DUYỆT (APPROVE) --- */
+.badge-approved {
+    /* Nút Duyệt ở hình mẫu là dạng khối đặc màu vàng thương hiệu */
+    -fx-background-color: #F1C40F;
+    -fx-border-color: #F1C40F;
+
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+
+    /* Chữ màu đen xám để tương phản tốt trên nền vàng */
+    -fx-text-fill: #1E1E1E;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+
+    /* Padding bằng nhau để hai nút có kích thước tương đồng */
+    -fx-padding: 12 40 12 40;
+    -fx-cursor: hand;
+
+    -fx-background-insets: 0;
+}
+.badge-approved:hover {
+    -fx-background-color: #F39C12;
+    -fx-border-color: #F39C12;
+}
+
+/* =============================================
+   BUTTONS
+   ============================================= */
+.btn-reject {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(231, 76, 60, 0.4);
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 0 8 0;
+    -fx-cursor: hand;
+}
+
+.btn-reject:hover {
+    -fx-background-color: rgba(231, 76, 60, 0.1);
+    -fx-border-color: #E74C3C;
+}
+
+.btn-approve {
+    -fx-background-color: #C9A84C;
+    -fx-border-color: #C9A84C;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #000000;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 0 8 0;
+    -fx-cursor: hand;
+}
+
+.btn-approve:hover {
+    -fx-background-color: #E8C76A;
+    -fx-border-color: #E8C76A;
+}
+
+/* Dialog buttons */
+.btn-cancel {
+    -fx-background-color: transparent;
+    -fx-border-color: #252220;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #888070;
+    -fx-font-size: 13px;
+    -fx-padding: 9 20 9 20;
+    -fx-cursor: hand;
+}
+
+.btn-cancel:hover {
+    -fx-border-color: #4A4540;
+    -fx-text-fill: #F0EAD6;
+}
+
+.btn-confirm-approve {
+    -fx-background-color: #C9A84C;
+    -fx-border-color: transparent;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #000000;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 20 9 20;
+    -fx-cursor: hand;
+}
+
+.btn-confirm-reject {
+    -fx-background-color: #E74C3C;
+    -fx-border-color: transparent;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 20 9 20;
+    -fx-cursor: hand;
+}
+
+/* =============================================
+   SCROLLPANE (tắt viền mặc định xấu)
+   ============================================= */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 6;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #252220;
+    -fx-background-radius: 3;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-pref-height: 0;
+}
+
+/* =============================================
+   SEPARATOR
+   ============================================= */
+.separator .line {
+    -fx-border-color: #252220;
+    -fx-border-width: 1 0 0 0;
+}

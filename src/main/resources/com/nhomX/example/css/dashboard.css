@@ -548,3 +548,99 @@
 .menu-button:showing .arrow {
     -fx-background-color: #3c2a1a !important;    /* Mũi tên chuyển màu nâu sẫm */
 }
+
+/* =========================================================================
+   ELEGANT WARM THEME FOR SELLER - ADD ITEM MODAL (PEAKBID)
+   ========================================================================= */
+
+/* 1. Nền tổng thể của Form - Đồng bộ với tone Kem/Nâu của PeakBid */
+.form-scroll-pane {
+    -fx-background-color: #F4EBE1 !important; /* Màu nền kem nhạt dịu mắt */
+    -fx-viewport-background-color: #F4EBE1 !important;
+}
+
+.form-container {
+    -fx-background-color: #FFFFFF; /* Thân form màu trắng tinh sạch sẽ */
+    -fx-background-radius: 12px;   /* Bo góc nhẹ nhàng */
+    -fx-padding: 25px;
+    -fx-effect: dropshadow(three-pass-box, rgba(139, 90, 43, 0.15), 10, 0, 0, 4); /* Đổ bóng màu nâu ấm mờ */
+}
+
+/* 2. Tiêu đề chính của Form */
+.form-main-title {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3E2723; /* Màu nâu đen đậm đà, sang trọng */
+}
+
+/* 3. Tiêu đề của từng ô nhập liệu (Tên SP, Giá,...) */
+.form-label-title {
+    -fx-text-fill: #5D4037; /* Màu nâu đất để người bán dễ đọc */
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 0 0 5px 0;
+}
+
+/* 4. Thiết kế các ô nhập liệu (TextField, TextArea, Spinner...) */
+.dark-input, .dark-input .text-field, .dark-input .text-area {
+    -fx-background-color: #FAFAFA !important; /* Nền ô nhập liệu trắng xám nhẹ */
+    -fx-background-radius: 6px !important;
+    -fx-border-radius: 6px !important;
+    -fx-border-color: #D7CCC8 !important;   /* Viền màu nâu xám nhạt */
+    -fx-border-width: 1px !important;
+    -fx-text-fill: #3E2723 !important;       /* Màu chữ nhập vào */
+    -fx-prompt-text-fill: #9E9E9E !important; /* Chữ gợi ý mờ */
+}
+
+/* Hiệu ứng khi Người bán click vào ô nhập liệu (Focus) */
+.dark-input:focused, .dark-input .text-field:focused, .dark-input .text-area:focused {
+    -fx-border-color: #2E7D32 !important;   /* Viền chuyển sang màu Xanh lá thương hiệu */
+    -fx-effect: dropshadow(two-pass-box, rgba(46, 125, 50, 0.15), 4, 0, 0, 0);
+}
+
+/* 5. Vùng up ảnh sản phẩm đấu giá */
+.image-upload-zone {
+    -fx-background-color: #F5F5F5;
+    -fx-border-color: #A1887F;
+    -fx-border-style: dashed; /* Viền nét đứt */
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 15px;
+    -fx-cursor: hand;
+}
+.image-upload-zone:hover {
+    -fx-background-color: #EFEBE9;
+    -fx-border-color: #5D4037;
+}
+
+/* 6. Hệ thống nút bấm hành động (Buttons) */
+
+/* Nút Hủy / Quay lại */
+.btn-cancel {
+    -fx-background-color: #E0E0E0 !important;
+    -fx-text-fill: #616161 !important;
+    -fx-background-radius: 6px !important;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.btn-cancel:hover {
+    -fx-background-color: #BDBDBD !important;
+    -fx-text-fill: #212121 !important;
+}
+
+/* Nút "Đăng sản phẩm đấu giá" - Màu xanh lá đồng bộ nút "+ Thêm sản phẩm mới" */
+.btn-submit {
+    -fx-background-color: #2E7D32 !important; /* Xanh lá cây tạo cảm giác tin cậy, thành công */
+    -fx-text-fill: #FFFFFF !important;
+    -fx-background-radius: 6px !important;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(46, 125, 50, 0.2), 6, 0, 0, 2);
+}
+.btn-submit:hover {
+    -fx-background-color: #1B5E20 !important; /* Xanh đậm hơn khi hover */
+    -fx-effect: dropshadow(three-pass-box, rgba(46, 125, 50, 0.35), 8, 0, 0, 3);
+}
