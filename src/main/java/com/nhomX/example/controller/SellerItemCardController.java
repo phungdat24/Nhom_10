@@ -7,6 +7,7 @@ import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
+import com.nhomX.example.utils.ImageLoader;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -193,22 +194,14 @@ public class SellerItemCardController {
     // TÁC VỤ 3: TẢI ẢNH AN TOÀN
     // ==========================================
     private void loadImage(List<ItemImage> images) {
-        String basePath = "/com/nhomX/example/images/";
-        String defaultImage = "default_item.png";
-        try {
-            if (images == null || images.isEmpty() || images.get(0).getImagePath() == null || images.get(0).getImagePath().trim().isEmpty()) {
-                itemImageView.setImage(new Image(getClass().getResourceAsStream(basePath + defaultImage)));
-            } else {
-                String fileName = images.get(0).getImagePath().trim();
-                var imageStream = getClass().getResourceAsStream(basePath + fileName);
-                if (imageStream != null) {
-                    itemImageView.setImage(new Image(imageStream));
-                } else {
-                    itemImageView.setImage(new Image(getClass().getResourceAsStream(basePath + defaultImage)));
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Lỗi load ảnh Seller Card: " + e.getMessage());
+        // [REFACTOR]: Xóa bỏ việc đọc file cục bộ, ủy quyền hoàn toàn cho ImageLoader gọi mạng
+        if (images == null || images.isEmpty() || images.get(0).getImagePath() == null || images.get(0).getImagePath().trim().isEmpty()) {
+            // Truyền null để ImageLoader tự động set ảnh mặc định (Placeholder)
+            ImageLoader.loadAsync(null, itemImageView);
+        } else {
+            // Lấy đúng tên file (VD: item_123abc_0.jpg) gửi lên Server để xin ảnh
+            String fileName = images.get(0).getImagePath().trim();
+            ImageLoader.loadAsync(fileName, itemImageView);
         }
     }
 

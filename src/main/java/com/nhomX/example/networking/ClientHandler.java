@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -53,6 +54,11 @@ public class ClientHandler implements Runnable {
     private LocalDateTime otpCreationTime;
 
     private volatile boolean cleaned = false;
+    // THAY ĐỔI 1: Lưu ảnh ra ngoài JAR, vào thư mục tuyệt đối bên cạnh file chạy
+// =========================================================================
+    private static final String IMAGE_DIR =
+            System.getProperty("user.dir") + File.separator + "auction_images" + File.separator;
+
     public static final ConcurrentHashMap<String,OtpData> otpStorage = new ConcurrentHashMap<>();
 
     public ClientHandler(Socket socket, AuctionServer server, ItemRepository itemRepo,
@@ -164,6 +170,9 @@ public class ClientHandler implements Runnable {
                 case "DEPOSIT_REQUEST":
                     handleDepositRequest(msg);
                     break;
+                case "GET_IMAGE":
+                    handleGetImage(msg);
+                    break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
@@ -181,8 +190,23 @@ public class ClientHandler implements Runnable {
             String userId = (String) payload[0];
             long amount = (Long) payload[1];
 
+            // [REFACTOR] Guard: Kiểm tra amount hợp lệ
+            if (amount <= 0) {
+                System.err.println("SERVER SECURITY: Phát hiện amount không hợp lệ: " + amount);
+                sendToClient(new Message("DEPOSIT_RESULT", new Object[]{ false, 0L }));
+                return;
+            }
+
+            // [REFACTOR] Guard: Đảm bảo userId khớp với session hiện tại — chống giả mạo
+            if (currentUser == null || !currentUser.getId().equals(userId)) {
+                System.err.println("SERVER SECURITY: userId không khớp session, từ chối nạp tiền.");
+                sendToClient(new Message("DEPOSIT_RESULT", new Object[]{ false, 0L }));
+                return;
+            }
+
             userRepository.updateBalance(userId, amount);
             User updatedUser = userRepository.findById(userId);
+
 
             Message response;
             if (updatedUser != null) {
@@ -209,11 +233,9 @@ public class ClientHandler implements Runnable {
             @SuppressWarnings("unchecked")
             Map<String, byte[]> imageDataMap = (Map<String, byte[]>) payload[2];
 
-            String serverImageDir = "src/main/resources/images/";
-            File dir = new File(serverImageDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
+            // Tạo thư mục lưu ảnh nếu chưa có (ngoài JAR, bền vững khi restart)
+            File dir = new File(IMAGE_DIR);
+            if (!dir.exists()) dir.mkdirs();
 
             if (imageDataMap != null) {
                 // Lưu ảnh xuống ổ cứng và update đường dẫn vao item
@@ -221,34 +243,68 @@ public class ClientHandler implements Runnable {
                     String fileName = entry.getKey();
                     byte[] imageBytes = entry.getValue();
                     // Tạo file lưu dữ liệu đầu vào
-                    File imageFile = new File(serverImageDir + fileName);
+                    File imageFile = new File(IMAGE_DIR + fileName);
                     try (FileOutputStream fos = new FileOutputStream(imageFile)) {
                         fos.write(imageBytes);
                     }
-
-                    String relativePath = "/images/" + fileName;
-                    item.addImage(new ItemImage(UUID.randomUUID().toString(), relativePath, item.getId()));
+                    // Chỉ lưu tên file — không lưu đường dẫn tuyệt đối
+                    item.addImage(new ItemImage(
+                            UUID.randomUUID().toString(),
+                            fileName,          // ← CHỈ LƯU TÊN FILE: "item_abc123_0.jpg"
+                            item.getId()
+                    ));
                 }
             }
             // Gọi server lưu DB
             AuctionService auctionService = new AuctionService();
             boolean isSuccess = auctionService.createAuctionListing(item, auction);
             // Trả về kết quả Client
-            Message response;
-            if (isSuccess) {
-                response = new Message("CREATE_AUCTION_RESULT",
-                        new String[] {"true", "Tao phien dau gia thanh cong."});
-            } else {
-                response = new Message("CREATE_AUCTION_RESULT",
-                        new String[] {"false", "Luu phien dau gia that bai."});
-            }
-            sendToClient(response);
+            sendToClient(new Message("CREATE_AUCTION_RESULT",
+                    new String[]{ String.valueOf(isSuccess),
+                            isSuccess ? "Tạo phiên đấu giá thành công." : "Lưu phiên đấu giá thất bại." }
+            ));
 
         } catch (Exception e) {
-            System.err.println("SERVER LOI: Xu ly anh va them san pham that bai - "
-                    + e.getMessage());
+            System.err.println("SERVER LỖI: Xử lý ảnh thất bại - " + e.getMessage());
             sendToClient(new Message("CREATE_AUCTION_RESULT",
-                    new String[] {"false", "Loi server khi tao phien dau gia."}));
+                    new String[]{ "false", "Lỗi server khi tạo phiên đấu giá." }));
+        }
+    }
+    /**
+     * Validate tên file chống Path Traversal.
+     * Chỉ cho phép: chữ cái, số, gạch dưới, gạch ngang, dấu chấm.
+     * Từ chối: "../", "/", "\", ký tự đặc biệt.
+     */
+    private boolean isValidImageFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) return false;
+        // Regex: chỉ cho phép a-z, A-Z, 0-9, _, -, và đúng 1 dấu chấm trước extension
+        return fileName.matches("^[a-zA-Z0-9_\\-]+\\.(jpg|jpeg|png)$");
+    }
+    // THÊM MỚI: Handler trả ảnh về Client dưới dạng byte[]
+// =========================================================================
+    private void handleGetImage(Message msg) {
+        String fileName = (String) msg.getData();
+        // [REFACTOR] Guard: Validate tên file — chống Path Traversal
+        if (!isValidImageFileName(fileName)) {
+            System.err.println("SERVER SECURITY: Yêu cầu ảnh với tên file không hợp lệ: " + fileName);
+            sendToClient(new Message("IMAGE_RESULT", null));
+            return;
+        }
+        File   imageFile = new File(IMAGE_DIR + fileName);
+
+        if (!imageFile.exists()) {
+            sendToClient(new Message("IMAGE_RESULT", null));
+            System.err.println("SERVER: Không tìm thấy ảnh: " + fileName);
+            return;
+        }
+
+        try {
+            byte[] imageBytes = Files.readAllBytes(imageFile.toPath());
+            // Payload: [fileName, byte[]] để Client biết ảnh nào vừa về
+            sendToClient(new Message("IMAGE_RESULT", new Object[]{ fileName, imageBytes }));
+        } catch (IOException e) {
+            System.err.println("SERVER: Lỗi đọc ảnh " + fileName + " - " + e.getMessage());
+            sendToClient(new Message("IMAGE_RESULT", null));
         }
     }
     private void handleGetDashboardData() {

@@ -3,10 +3,12 @@ package com.nhomX.example.controller;
 import com.nhomX.example.factory.ItemFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
+import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -19,6 +21,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -70,6 +73,8 @@ public class AddItemcardController implements Initializable, ServerEventListener
     private Button btnSubmit;
     @FXML
     private Label lblPriceInWords; // <-- THÊM DÒNG NÀY
+
+    private static final int MAX_IMAGES = 5;
 
     // Thêm một biến cờ (flag) để kiểm soát sự kiện gõ phím
     private boolean isFormattingPrice = false;
@@ -181,9 +186,15 @@ public class AddItemcardController implements Initializable, ServerEventListener
      */
     @FXML
     private void handleAddImage(ActionEvent event) {
+        int remaining = MAX_IMAGES - uploadedImagePaths.size();
+        if (remaining <= 0) {
+            AlertUtils.showWarning("Đã đủ ảnh",
+                    "Bạn chỉ được tải lên tối đa " + MAX_IMAGES + " ảnh.");
+            return;
+        }
         // Sử dụng FileChooser mặc định của hệ điều hành để chọn file
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Chọn ảnh sản phẩm");
+        fileChooser.setTitle("Chọn ảnh sản phẩm (còn " + remaining + " ảnh)");
         // Lọc chỉ cho phép chọn file ảnh
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
@@ -192,23 +203,62 @@ public class AddItemcardController implements Initializable, ServerEventListener
         // Lấy Stage (cửa sổ hiện tại) để hiển thị hộp thoại chọn file
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         List<File> selectedFiles = fileChooser.showOpenMultipleDialog(stage);
+        if (selectedFiles == null || selectedFiles.isEmpty()) return;
+            // Chỉ lấy đủ số ảnh còn được phép
+        int canAdd = Math.min(selectedFiles.size(), remaining);
+        for (int i = 0; i < canAdd; i++) {
+            addImageThumbnail(selectedFiles.get(i).toURI().toString());
+        }
 
-        if (selectedFiles != null) {
-            for (File file : selectedFiles) {
-                String imagePath = file.toURI().toString(); // Chuyển đường dẫn file thành URI để Image đọc được
-                uploadedImagePaths.add(imagePath); // Lưu lại đường dẫn để sau này đẩy vào DB
+        if (selectedFiles.size() > canAdd) {
+            AlertUtils.showWarning("Giới hạn ảnh",
+                    "Chỉ " + canAdd + " ảnh đầu được thêm. Đã đạt giới hạn " + MAX_IMAGES + " ảnh.");
+        }
+    }
 
-                // Tạo ImageView nhỏ (Thumbnail) và thêm vào FlowPane
-                ImageView imageView = new ImageView(new Image(imagePath));
-                imageView.setFitWidth(80);
-                imageView.setFitHeight(80);
-                imageView.setPreserveRatio(true);
+        /**
+         * Tạo thumbnail có nút "✕" để xóa, rồi gắn vào imageFlowPane.
+         */
+    private void addImageThumbnail(String imageUri) {
+        uploadedImagePaths.add(imageUri);
 
-                // Thêm hiệu ứng viền để nhìn đẹp hơn
-                imageView.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 0);");
+        ImageView imageView = buildThumbnailImageView(imageUri);
+        Button btnRemove = buildRemoveButton();
+        StackPane wrapper = new StackPane(imageView, btnRemove);
 
-                imageFlowPane.getChildren().add(imageView);
-            }
+        StackPane.setAlignment(btnRemove, javafx.geometry.Pos.TOP_RIGHT);
+
+        // Khi bấm "✕", tìm đúng vị trí của wrapper trong FlowPane để xóa đồng bộ
+        btnRemove.setOnAction(e -> removeImage(wrapper));
+
+        imageFlowPane.getChildren().add(wrapper);
+    }
+    private Button buildRemoveButton() {
+        Button btn = new Button("✕");
+        btn.setStyle(
+                "-fx-background-color: #e53935; -fx-text-fill: white; " +
+                        "-fx-font-size: 9px; -fx-padding: 1 4; " +
+                        "-fx-background-radius: 10; -fx-cursor: hand;"
+        );
+        return btn;
+    }
+
+    private ImageView buildThumbnailImageView(String imageUri) {
+        ImageView iv = new ImageView(new Image(imageUri, true));
+        iv.setFitWidth(80);
+        iv.setFitHeight(80);
+        iv.setPreserveRatio(true);
+        iv.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 4, 0, 0, 0);");
+        return iv;
+    }
+    /**
+     * Xóa thumbnail và URI tương ứng ra khỏi danh sách.
+     */
+    private void removeImage(StackPane wrapper) {
+        int index = imageFlowPane.getChildren().indexOf(wrapper);
+        if (index >= 0 && index < uploadedImagePaths.size()) {
+            uploadedImagePaths.remove(index);
+            imageFlowPane.getChildren().remove(wrapper);
         }
     }
 
@@ -220,57 +270,62 @@ public class AddItemcardController implements Initializable, ServerEventListener
         if (!validateInputs()) {
             return; // Nếu dữ liệu không hợp lệ, dừng ngay việc submit
         }
+        setSubmitLoading(true);
         try {
-            // 1. Lấy dữ liệu từ các trường nhập liệu
-            String name = txtProductName.getText().trim();
-            String category = cbCategory.getValue();
-            String description = txtProductDescription.getText().trim();
-            // Lọc bỏ dấu chấm trước khi parse thành số nguyên
-            String rawPrice = txtStartPrice.getText().replaceAll("[^\\d]", "");
-            long startPrice = Long.parseLong(rawPrice);
+            Items   newItem    = buildItem();
+            Auction newAuction = buildAuction(newItem);
+            Map<String, byte[]> imageDataMap = buildImageDataMap(newItem.getId());
 
-            // 2. Xử lý thời gian (Ghép Ngày và Giờ:Phút thành LocalDateTime)
-            LocalDateTime startDateTime = LocalDateTime.of(dpStartDate.getValue(), LocalTime.of(spStartHour.getValue(), spStartMin.getValue()));
-            LocalDateTime endDateTime = LocalDateTime.of(dpEndDate.getValue(), LocalTime.of(spEndHour.getValue(), spEndMin.getValue()));
-
-            // Khởi tạo ID ngẫu nhiên trước
-            String itemId = UUID.randomUUID().toString();
-            String auctionId = UUID.randomUUID().toString();
-
-            // Lấy người bán hiện tại từ phiên đăng nhập
-            RegularUser currentSeller = (RegularUser) SessionManager.getInstance().getCurrentUser();
-
-            // 2. TẠO ĐỐI TƯỢNG ITEM (Sử dụng Factory)
-            Items newItem = ItemFactory.createItem(category, itemId, name, description, currentSeller);
-
-            // 3. XỬ LÝ ĐỌC FILE ẢNH THÀNH MẢNG BYTE
-            Map<String, byte[]> imageDataMap = new HashMap<>();
-            for (int i = 0; i < uploadedImagePaths.size(); i++) {
-                String uriPath = uploadedImagePaths.get(i);
-
-                // Đọc file thành mảng byte
-                byte[] fileBytes = Files.readAllBytes(Paths.get(URI.create(uriPath)));
-
-                // Đặt tên file độc nhất (VD: item_123abc_0.jpg) để không bị trùng tên file trên Server
-                String fileName = "item_" + itemId.substring(0, 6) + "_" + i + ".jpg";
-                imageDataMap.put(fileName, fileBytes);
-            }
-            // 4. TẠO ĐỐI TƯỢNG AUCTION
-            Auction newAuction = new Auction(auctionId, newItem, startDateTime, endDateTime, startPrice);
-
-            // 5. GỬI GÓI HÀNG LÊN SERVER THÔNG QUA CLIENT
             AuctionClient client = SessionManager.getInstance().getAuctionClient();
-            if (client != null) {
-                // Tắt nút submit để chống double-click trong lúc chờ mạng
-                btnSubmit.setDisable(true);
-                btnSubmit.setText("Đang tải lên...");
-
-                client.requestCreateAuction(newItem, newAuction, imageDataMap);
+            if (client == null) {
+                AlertUtils.showError("Lỗi kết nối", "Không tìm thấy kết nối tới Server.");
+                setSubmitLoading(false);
+                return;
             }
-        }catch (Exception e) {
-            System.err.println("Lỗi thu thập dữ liệu: " + e.getMessage());
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể nén dữ liệu ảnh. Vui lòng thử lại!");
+
+            client.requestCreateAuction(newItem, newAuction, imageDataMap);
+
+        } catch (Exception e) {
+            System.err.println("ADD ITEM: Lỗi đóng gói dữ liệu - " + e.getMessage());
+            AlertUtils.showError("Lỗi", "Không thể đọc hoặc nén dữ liệu ảnh. Vui lòng thử lại.");
+            setSubmitLoading(false);
         }
+    }
+    private Items buildItem() {
+        String itemId       = UUID.randomUUID().toString();
+        String name         = txtProductName.getText().trim();
+        String category     = cbCategory.getValue();
+        String description  = txtProductDescription.getText().trim();
+        RegularUser seller  = (RegularUser) SessionManager.getInstance().getCurrentUser();
+
+        return ItemFactory.createItem(category, itemId, name, description, seller);
+    }
+
+    private Auction buildAuction(Items item) {
+        String auctionId  = UUID.randomUUID().toString();
+        long   startPrice = parsedPrice();
+        LocalDateTime start = buildLocalDateTime(dpStartDate, spStartHour, spStartMin);
+        LocalDateTime end   = buildLocalDateTime(dpEndDate,   spEndHour,   spEndMin);
+
+        Auction auction = new Auction(auctionId, item, start, end, startPrice);
+        auction.setStatus(AuctionStatus.PENDING); // Chờ Admin duyệt
+        return auction;
+    }
+
+    /**
+     * Đọc từng file ảnh thành byte[], đặt tên file duy nhất có chứa UUID item.
+     */
+    private Map<String, byte[]> buildImageDataMap(String itemId) throws Exception {
+        Map<String, byte[]> imageDataMap = new LinkedHashMap<>();
+        String shortId = itemId.substring(0, 8);
+
+        for (int i = 0; i < uploadedImagePaths.size(); i++) {
+            String uriPath  = uploadedImagePaths.get(i);
+            byte[] bytes    = Files.readAllBytes(Paths.get(URI.create(uriPath)));
+            String fileName = "item_" + shortId + "_" + i + ".jpg";
+            imageDataMap.put(fileName, bytes);
+        }
+        return imageDataMap;
     }
 
     /**
@@ -292,13 +347,13 @@ public class AddItemcardController implements Initializable, ServerEventListener
     private boolean validateInputs() {
         // Kiểm tra bỏ trống
         if (txtProductName.getText().trim().isEmpty() || cbCategory.getValue() == null || txtStartPrice.getText().trim().isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi Nhập Liệu", "Vui lòng điền đầy đủ các trường bắt buộc (*).");
+            AlertUtils.showError("Lỗi Nhập Liệu", "Vui lòng điền đầy đủ các trường bắt buộc (*).");
             return false;
         }
 
         // Kiểm tra thời gian
         if (dpStartDate.getValue() == null || dpEndDate.getValue() == null) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi Nhập Liệu", "Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc.");
+            AlertUtils.showError("Lỗi Nhập Liệu", "Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc.");
             return false;
         }
 
@@ -306,33 +361,44 @@ public class AddItemcardController implements Initializable, ServerEventListener
         LocalDateTime end = LocalDateTime.of(dpEndDate.getValue(), LocalTime.of(spEndHour.getValue(), spEndMin.getValue()));
 
         if (start.isBefore(LocalDateTime.now())) {
-            showAlert(Alert.AlertType.WARNING, "Cảnh Báo Thời Gian", "Thời gian bắt đầu không được nằm trong quá khứ.");
+            AlertUtils.showError("Cảnh Báo Thời Gian", "Thời gian bắt đầu không được nằm trong quá khứ.");
             return false;
         }
 
         if (end.isBefore(start) || end.isEqual(start)) {
-            showAlert(Alert.AlertType.WARNING, "Cảnh Báo Thời Gian", "Thời gian kết thúc phải diễn ra SAU thời gian bắt đầu.");
+            AlertUtils.showError("Cảnh Báo Thời Gian", "Thời gian kết thúc phải diễn ra SAU thời gian bắt đầu.");
             return false;
         }
 
         // Kiểm tra có ít nhất 1 ảnh (Tùy chọn, tùy vào rule của em)
         if (uploadedImagePaths.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thiếu Ảnh", "Vui lòng tải lên ít nhất một ảnh sản phẩm.");
+            AlertUtils.showError("Thiếu Ảnh", "Vui lòng tải lên ít nhất một ảnh sản phẩm.");
             return false;
         }
 
         return true;
     }
+    private LocalDateTime buildLocalDateTime(DatePicker dp,
+                                             Spinner<Integer> hourSpinner,
+                                             Spinner<Integer> minSpinner) {
+        return LocalDateTime.of(
+                dp.getValue(),
+                LocalTime.of(hourSpinner.getValue(), minSpinner.getValue())
+        );
+    }
 
-    /**
-     * Hiển thị hộp thoại thông báo.
-     */
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    private long parsedPrice() {
+        try {
+            String raw = txtStartPrice.getText().replaceAll("[^\\d]", "");
+            return raw.isEmpty() ? 0L : Long.parseLong(raw);
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
+    }
+
+    private void setSubmitLoading(boolean isLoading) {
+        btnSubmit.setDisable(isLoading);
+        btnSubmit.setText(isLoading ? "Đang tải lên..." : "Thêm sản phẩm");
     }
 
     /**
@@ -349,11 +415,11 @@ public class AddItemcardController implements Initializable, ServerEventListener
             btnSubmit.setText("Thêm sản phẩm");
 
             if (isSuccess) {
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", message);
+               AlertUtils.showSuccess("Thành công", message);
                 // Đóng cửa sổ (Tương đương gọi nút Cancel)
                 btnCancel.fire();
             } else {
-                showAlert(Alert.AlertType.ERROR, "Thất bại", message);
+                AlertUtils.showError("Thất bại", message);
             }
         });
     }

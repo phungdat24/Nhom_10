@@ -148,7 +148,6 @@ public class SellerController extends BaseController implements Initializable, S
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/SellerItemCard.fxml"));
                     VBox card = loader.load();
 
-                    // TODO: Mở comment 2 dòng dưới sau khi tạo xong Controller
                     SellerItemCardController cardController = loader.getController();
                     cardController.setData(item);
 
@@ -199,13 +198,26 @@ public class SellerController extends BaseController implements Initializable, S
             // Hiển thị Pop-up và chờ đợi (Code sẽ dừng ở đây cho đến khi Pop-up đóng)
             popupStage.showAndWait();
 
-            // SAU KHI POP-UP ĐÓNG LẠI, HÃY CẬP NHẬT LẠI BẢNG DANH SÁCH Ở ĐÂY
-            System.out.println("Pop-up đã đóng. Đang tải lại danh sách sản phẩm...");
-            renderFilteredAuctions(); // Hàm tải lại dữ liệu của em
+            System.out.println("Pop-up đã đóng. Đang lấy lại danh sách mới nhất từ Server...");
+            refreshSellerAuctionsFromServer();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    /**
+     * [REFACTOR] Tách ra hàm riêng — có thể gọi lại ở nhiều nơi (DRY).
+     * Gửi request lên Server để lấy lại danh sách mới nhất.
+     */
+    private void refreshSellerAuctionsFromServer() {
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client == null) {
+            renderFilteredAuctions();
+            return;
+        }
+        client.setServerEventListener(this);
+        String myUserId = SessionManager.getInstance().getCurrentUser().getId();
+        client.sendToServer(new Message("GET_SELLER_AUCTIONS", myUserId));
     }
     @Override
     public void onHighestBidUpdated(String auctionId, long newPrice, String bidderName) {
