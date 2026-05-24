@@ -11,12 +11,12 @@
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="306.0" spacing="10.0" style="-fx-clip-to-padding: true;" styleClass="product-card" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <ImageView fitHeight="202.0" fitWidth="307.0" pickOnBounds="true" preserveRatio="true" />
-      <Label styleClass="product-name" text="Tên sản phẩm">
+      <Label fx:id="lblProductName" styleClass="product-name" text="Tên sản phẩm">
          <padding>
             <Insets left="10.0" />
          </padding>
       </Label>
-      <Label styleClass="product-seller" text="Người bán: Nguyễn Trung Dũng" textFill="#ccbebe">
+      <Label fx:id="lblSellerName" styleClass="product-seller" text="Người bán: Nguyễn Trung Dũng" textFill="#ccbebe">
          <graphic>
             <FontAwesomeIcon fill="#ccbebe" glyphName="USER" />
          </graphic>
@@ -29,15 +29,15 @@
             <Insets left="10.0" />
          </padding>
       </Label>
-      <Label prefHeight="26.0" prefWidth="143.0" styleClass="price-value" text="150.000.000">
+      <Label fx:id="lblPriceValue" prefHeight="26.0" prefWidth="143.0" styleClass="price-value" text="150.000.000">
          <padding>
             <Insets left="10.0" />
          </padding>
       </Label>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="15.0">
          <children>
-            <Button mnemonicParsing="false" styleClass="badge-rejected" text="Từ chối" />
-            <Button mnemonicParsing="false" styleClass="badge-approved" text="Duyệt" />
+            <Button mnemonicParsing="false" onAction="#handleRejected" styleClass="badge-rejected" text="Từ chối" />
+            <Button mnemonicParsing="false" onAction="#handleApproved" styleClass="badge-approved" text="Duyệt" />
          </children>
          <VBox.margin>
             <Insets />
