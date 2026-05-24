@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.AdminProductManagementController">
+   <content>
+      <VBox prefHeight="698.0" prefWidth="798.0" spacing="10.0" styleClass="content-area">
+         <children>
+            <Label styleClass="centerbar-title" text="Duyệt sản phẩm">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Separator prefHeight="14.0" prefWidth="754.0" styleClass="tab-item" />
+            <FlowPane prefHeight="200.0" prefWidth="200.0" />
+         </children>
+         <padding>
+            <Insets left="15.0" top="10.0" />
+         </padding>
+      </VBox>
+   </content>
+</ScrollPane>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
@@ -14,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToWidth="true" prefHeight="650.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.AddItemcardController">
+<ScrollPane fitToWidth="true" prefHeight="650.0" prefWidth="480.0" styleClass="form-scroll-pane" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.AddItemcardController">
    <content>
       <VBox spacing="20.0">
          <padding>
@@ -26,7 +27,7 @@
                <children>
                   <VBox alignment="CENTER" spacing="5.0">
                      <children>
-                        <Label text="THÊM SẢN PHẨM MỚI">
+                        <Label styleClass="form-main-title" text="THÊM SẢN PHẨM MỚI">
                            <font>
                               <Font name="System Bold" size="18.0" />
                            </font>
@@ -37,7 +38,7 @@
                   <VBox spacing="10.0">
                      <children>
                         <Label text="Ảnh sản phẩm *" />
-                        <FlowPane fx:id="imageFlowPane" hgap="10.0" prefHeight="80.0" prefWidth="200.0" vgap="10.0" />
+                        <FlowPane fx:id="imageFlowPane" hgap="10.0" prefHeight="80.0" prefWidth="200.0" styleClass="image-upload-zone" vgap="10.0" />
                         <Button fx:id="btnUploadImg" mnemonicParsing="false" onAction="#handleAddImage" text="+ Thêm ảnh" />
                      </children>
                   </VBox>
@@ -48,26 +49,30 @@
                <children>
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Tên sản phẩm *" />
-                        <TextField fx:id="txtProductName" prefHeight="35.0" />
+                        <Label styleClass="form-label-title" text="Tên sản phẩm *" />
+                        <TextField fx:id="txtProductName" prefHeight="35.0">
+                           <styleClass>
+                              <String fx:value="dark-input" />
+                              <String fx:value="text-field" />
+                           </styleClass></TextField>
                      </children>
                   </VBox>
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Danh mục *" />
-                        <ComboBox fx:id="cbCategory" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="-- Chọn danh mục --" />
+                        <Label styleClass="form-label-title" text="Danh mục *" />
+                        <ComboBox fx:id="cbCategory" maxWidth="1.7976931348623157E308" prefWidth="150.0" promptText="-- Chọn danh mục --" styleClass="form-label-title" />
                      </children>
                   </VBox>
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Mô tả chi tiết sản phẩm*" />
-                        <TextArea fx:id="txtProductDescription" prefHeight="80.0" prefWidth="341.0" wrapText="true" />
+                        <Label styleClass="form-label-title" text="Mô tả chi tiết sản phẩm*" />
+                        <TextArea fx:id="txtProductDescription" prefHeight="80.0" prefWidth="341.0" styleClass="dark-input" wrapText="true" />
                      </children>
                   </VBox>
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Giá khởi điểm (VNĐ) *" />
-                        <TextField fx:id="txtStartPrice" prefHeight="35.0" promptText="Ví dụ: 15000" />
+                        <Label styleClass="form-label-title" text="Giá khởi điểm (VNĐ) *" />
+                        <TextField fx:id="txtStartPrice" prefHeight="35.0" promptText="Ví dụ: 15000" styleClass="dark-input" />
                         <Label fx:id="lblPriceInWords" textFill="#2e7d32">
                            <font>
                               <Font name="System Italic" size="12.0" />
@@ -78,7 +83,7 @@
 
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Thời gian bắt đầu đấu giá*:" textFill="#555555" />
+                        <Label styleClass="form-label-title" text="Thời gian bắt đầu đấu giá*:" textFill="#555555" />
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
                               <DatePicker fx:id="dpStartDate" prefWidth="150.0" promptText="Chọn ngày" />
@@ -93,7 +98,7 @@
 
                   <VBox spacing="5.0">
                      <children>
-                        <Label text="Thời gian kết thúc đấu giá*:" textFill="#555555" />
+                        <Label styleClass="form-label-title" text="Thời gian kết thúc đấu giá*:" textFill="#555555" />
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
                               <DatePicker fx:id="dpEndDate" prefWidth="150.0" promptText="Chọn ngày" />
@@ -120,8 +125,8 @@
 
                   <HBox alignment="CENTER_RIGHT" spacing="15.0">
                      <children>
-                        <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#handleCancel" prefHeight="35.0" prefWidth="100.0" style="-fx-background-color: #e0e0e0;" text="Hủy bỏ" />
-                        <Button fx:id="btnSubmit" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="35.0" prefWidth="140.0" style="-fx-background-color: #2196F3; -fx-text-fill: white;" text="Thêm sản phẩm" />
+                        <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#handleCancel" prefHeight="35.0" prefWidth="100.0" style="-fx-background-color: #e0e0e0; -fx-cursor:hand" styleClass="btn-cancel" text="Hủy bỏ" />
+                        <Button fx:id="btnSubmit" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="35.0" prefWidth="140.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; " styleClass="btn-submit" text="Thêm sản phẩm" />
                      </children>
                   </HBox>
                </children>
