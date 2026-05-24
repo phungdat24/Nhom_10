@@ -8,6 +8,7 @@ import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.CurrencyFormatter;
+import com.nhomX.example.utils.ImageLoader;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -78,12 +79,11 @@ public class DashboardContentController extends BaseController implements Server
         try {
             List<ItemImage> images = freshAuction.getItem().getImages();
             if (images != null && !images.isEmpty()) {
-                String imagePath = images.get(0).getImagePath();
-                if (imagePath != null && !imagePath.isEmpty()) {
-                    imgFeatured.setImage(new Image(getClass().getResourceAsStream(imagePath)));
-                } else {
-                    imgFeatured.setImage(new Image(getClass().getResourceAsStream("/images/default_item.png")));
-                }
+                String fileName = images.get(0).getImagePath();
+                ImageLoader.loadAsync(fileName, imgFeatured);
+            }else {
+                // Không có ảnh -> Ném null để ImageLoader tự hiện Placeholder
+               ImageLoader.loadAsync(null, imgFeatured);
             }
         } catch (Exception e) {
             System.err.println("Không load được ảnh sản phẩm nổi bật: " + e.getMessage());

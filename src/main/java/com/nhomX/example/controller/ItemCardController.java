@@ -9,6 +9,7 @@ import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.utils.CurrencyFormatter;
+import com.nhomX.example.utils.ImageLoader;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -62,40 +63,16 @@ public class ItemCardController extends BaseController {
         if (auction.getEndTime() != null) {
             lblEndTime.setText(auction.getEndTime().format(formatter));
         }
-
-        String basePath = "/com/nhomX/example/images/";
         List<ItemImage> images = item.getImages();
-
-        try {
-            // Sửa lại cho ĐÚNG tên file ảnh có trong thư mục của bạn
-            String defaultImage = "default_item.png";
-
-            if (images == null || images.isEmpty() || images.get(0).getImagePath() == null
-                    || images.get(0).getImagePath().trim().isEmpty()) {
-                // Không có ảnh thật -> Load ảnh mặc định
-                itemImageView.setImage(
-                        new Image(getClass().getResourceAsStream(basePath + defaultImage)));
-            } else {
-                // Có ảnh thật -> Ghép thư mục gốc với tên file từ DB
-                String fileName = images.get(0).getImagePath().trim();
-                var imageStream = getClass().getResourceAsStream(basePath + fileName);
-
-                // Kiểm tra cực kỳ chặt chẽ: File ảnh thật có tồn tại trong thư mục không?
-                if (imageStream != null) {
-                    itemImageView.setImage(new Image(imageStream));
-                } else {
-                    System.out.println("❌ Cảnh báo: Không tìm thấy ảnh thật: " + fileName
-                            + " -> Dùng ảnh mặc định.");
-                    itemImageView.setImage(
-                            new Image(getClass().getResourceAsStream(basePath + defaultImage)));
-                }
-            }
-        } catch (Exception e) {
-            System.err.println(
-                    "❌ Lỗi load ảnh: Bạn chưa có file default_item.png trong thư mục images!");
+        if (images != null && !images.isEmpty() && images.get(0).getImagePath() != null) {
+            String fileName = images.get(0).getImagePath().trim();
+            ImageLoader.loadAsync(fileName, itemImageView);
+        } else {
+            // Cứ ném null vào, ImageLoader sẽ tự động lôi file default_item.png ra hiển thị
+            ImageLoader.loadAsync(null, itemImageView);
         }
 
-        // TODO: Logic set ảnh dựa theo item.getImagePath()
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime end = auction.getEndTime();
         LocalDateTime start = auction.getStartTime();

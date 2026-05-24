@@ -6,6 +6,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -24,6 +27,10 @@ public class AuctionClient {
     private volatile ObjectInputStream in;
 
     private volatile ServerEventListener listener;
+    // THÊM MỚI: Cache ảnh tại Client — tránh request trùng lặp
+    // Key: fileName, Value: byte[]
+    private final ConcurrentHashMap<String, byte[]> imageCache = new ConcurrentHashMap<>();
+
 
     // Cung cấp hàm để các Controller sử dụng:
     public void setServerEventListener(ServerEventListener listener) {
@@ -65,6 +72,25 @@ public class AuctionClient {
             e.printStackTrace();
         }
     }
+    /**
+     * Yêu cầu Server gửi ảnh về.
+     * Nếu ảnh đã có trong cache cục bộ → gọi callback ngay, không tốn mạng.
+     * Func dùng để gọi ảnh
+     */
+    public void requestImage(String fileName, Consumer<byte[]> onReceived) {
+        // Kiểm tra cache trước
+        if (imageCache.containsKey(fileName)) {
+            runOnUiThread(() -> onReceived.accept(imageCache.get(fileName)));
+            return;
+        }
+        // Lưu callback tạm để gọi khi nhận được IMAGE_RESULT
+        pendingImageCallbacks.put(fileName, onReceived);
+        sendToServer(new Message("GET_IMAGE", fileName));
+    }
+
+    // Map lưu callback chờ kết quả ảnh
+    private final ConcurrentHashMap<String, Consumer<byte[]>>
+            pendingImageCallbacks = new ConcurrentHashMap<>();
 
     // Gửi yêu cầu đặt giá lên Server
     public void placeBid(String userId, String auctionId, long bidAmount) {
@@ -181,6 +207,22 @@ public class AuctionClient {
                         listener.onAuctionClosed(msg.getAuctionId(), winnerId);
                     }
                 });
+                break;
+                // Khi Client gọi ảnh chi tiết sản phẩm
+            case "IMAGE_RESULT":
+                if (msg.getData() == null) break;
+                Object[] imgPayload  = (Object[]) msg.getData();
+                String   imgFileName = (String) imgPayload[0];
+                byte[]   imgBytes    = (byte[]) imgPayload[1];
+
+                // Lưu vào cache
+                imageCache.put(imgFileName, imgBytes);
+
+                // Gọi callback đang chờ
+                var callback = pendingImageCallbacks.remove(imgFileName);
+                if (callback != null) {
+                    runOnUiThread(() -> callback.accept(imgBytes));
+                }
                 break;
 
             case "BID_SUCCESS":
