@@ -1,6 +1,7 @@
 package com.nhomX.example.controller.admin;
 
 import com.nhomX.example.manager.SessionManager;
+import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -51,7 +52,7 @@ public class AdminLayoutController implements Initializable {
         }
 
         // 2. Mặc định load trang Quản lý sản phẩm khi vừa mở lên
-        //handleNavProducts(null);
+        handleNavProducts(null);
     }
 
     // --- CÁC HÀM XỬ LÝ CHUYỂN TRANG NỘI BỘ (ROUTING) ---
@@ -87,6 +88,10 @@ public class AdminLayoutController implements Initializable {
 
     @FXML
     void handleNavSettings(ActionEvent event) {
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.setServerEventListener(null);
+        }
         // Tích hợp Đăng xuất vào mục Cài đặt (hoặc tạo một nút Logout riêng)
         SessionManager.getInstance().logout();
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
@@ -104,8 +109,17 @@ public class AdminLayoutController implements Initializable {
      */
     public void loadView(String fxmlPath) {
         try {
+            // getResource() trả về null nếu file không tồn tại
+            var resource = getClass().getResource(fxmlPath);
+
+            if (resource == null) {
+                System.err.println("ADMIN ROUTING ERROR: Không tìm thấy file FXML: " + fxmlPath);
+                System.err.println("→ Kiểm tra file có tồn tại tại: src/main/resources" + fxmlPath);
+                return; // Dừng lại, không để crash toàn bộ app
+            }
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Node view = loader.load();
+
 
             // Xóa nội dung cũ và nhét nội dung mới vào
             contentArea.getChildren().clear();

@@ -3,7 +3,7 @@ package com.nhomX.example.model;
 public enum AuctionStatus {
     // Chờ ADMIN xét duyệt:
     PENDING,
-    // Da duoc Admin duyet nhung chua den gio bat dau
+    // Đã duyệt chờ đến giờ mở bán:
     UP_COMING,
     // Phiên vừa được duyệt, chưa có ai đấu giá
     OPEN,

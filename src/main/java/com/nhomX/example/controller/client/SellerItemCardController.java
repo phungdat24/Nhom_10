@@ -2,6 +2,7 @@ package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -49,6 +50,16 @@ public class SellerItemCardController {
     private Button btnEdit;
     @FXML
     private Button btnDelete;
+    @FXML
+    private Label lblTimeCaption1;
+    @FXML
+    private Label lblTimeValue1;
+    // [THÊM MỚI] Biến Callback để bấm chuông gọi Controller Cha
+    private Runnable onStatusChangeCallback;
+
+    public void setOnStatusChangeCallback(Runnable callback) {
+        this.onStatusChangeCallback = callback;
+    }
 
     private Auction currentAuction;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
@@ -68,6 +79,10 @@ public class SellerItemCardController {
 
         // 2. Load Ảnh sản phẩm (Có cơ chế fallback ảnh mặc định)
         loadImage(auction.getItem().getImages());
+        // [SỬA LỖI GÁN CỨNG]: Bơm thời gian Bắt đầu thực tế từ DB vào
+        if (lblTimeValue1 != null) {
+            lblTimeValue1.setText(auction.getStartTime() != null ? auction.getStartTime().format(formatter) : "Đang cập nhật");
+        }
 
         // 3. Xử lý Trạng thái, Màu sắc, Thời gian và Khóa nút
         updateUIByStatus(auction.getStatus().name());
@@ -93,13 +108,26 @@ public class SellerItemCardController {
                 lblTimeValue.setText("Đợi Admin phê duyệt");
                 enableActions(true); // Cho phép sửa/xóa
                 break;
-
-            case "OPEN":
+            case "UP_COMING": // [THÊM MỚI] SẮP LÊN SÀN
                 lblStatus.setText("SẮP LÊN SÀN");
                 lblStatus.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
-                lblTimeCaption.setText("Bắt đầu:");
-                lblTimeValue.setText(currentAuction.getStartTime() != null ? currentAuction.getStartTime().format(formatter) : "--");
-                enableActions(true); // Vẫn cho phép sửa/xóa vì chưa ai đặt tiền
+                lblTimeCaption.setText("Mở bán sau: ");
+                lblBidCount.setVisible(false); // Chưa ai được đặt
+
+                // Đếm ngược đến giờ BẮT ĐẦU (StartTime). Cờ isOpenCountdown = true
+                startCountdown(currentAuction.getStartTime(), true);
+                enableActions(true); // Vẫn cho phép người bán sửa/xóa vì chưa mở cửa
+                break;
+
+            case "OPEN":
+                lblStatus.setText("ĐANG MỞ");
+                lblStatus.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblTimeCaption.setText("Kết thúc: ");
+                lblBidCount.setVisible(true);
+                lblBidCount.setText("✨ Mới");
+
+                startCountdown(currentAuction.getEndTime(), false); // Đếm ngược đến giờ chốt sổ
+                enableActions(false);
                 break;
 
             case "RUNNING":
@@ -110,8 +138,8 @@ public class SellerItemCardController {
 
                 // Hiện số lượt Bid (Mock UI hoặc lấy thật nếu Model của em có hàm getBidCount)
                 lblBidCount.setVisible(true);
-                lblBidCount.setText(currentAuction.getHighestBid() > currentAuction.getStartingPrice() ? "🔥 Đang hot" : "✨ Mới");
-                startLiveCountdown(currentAuction.getEndTime());
+                lblBidCount.setText("🔥 Đang hot");
+                startCountdown(currentAuction.getEndTime(), false);
                 enableActions(false); // [GUARD CLAUSE]: CẤM SỬA/XÓA
                 break;
 
@@ -133,39 +161,46 @@ public class SellerItemCardController {
                 break;
         }
     }
-    // THUẬT TOÁN ĐẾM NGƯỢC DỰA TRÊN TIMELINE JAVAFX
-    private void startLiveCountdown(LocalDateTime endTime) {
-        if (endTime == null) {
+    // [THAY THẾ] HÀM ĐẾM NGƯỢC THÔNG MINH MỚI
+    // ==========================================
+    private void startCountdown(LocalDateTime targetTime, boolean isOpenCountdown) {
+        if (targetTime == null) {
             lblTimeValue.setText("--:--:--");
             return;
         }
 
         countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), endTime);
+            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), targetTime);
 
             if (duration.isNegative() || duration.isZero()) {
-                lblTimeValue.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold;"); // Chuyển màu đỏ báo hiệu
-                lblTimeValue.setText("00:00:00 (Hết giờ)");
-                countdownTimeline.stop();
+                countdownTimeline.stop(); // Dừng đồng hồ
+
+                if (isOpenCountdown) {
+                    // NẾU LÀ ĐẾM NGƯỢC MỞ BÁN -> Tới giờ thì Bấm chuông gọi trang Cha chuyển tab
+                    currentAuction.setStatus(AuctionStatus.OPEN); // Đổi trạng thái nội bộ
+                    if (onStatusChangeCallback != null) {
+                        onStatusChangeCallback.run(); // Kích hoạt callback!
+                    }
+                } else {
+                    // NẾU LÀ ĐẾM NGƯỢC KẾT THÚC -> Hiện chữ Hết giờ
+                    lblTimeValue.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold;");
+                    lblTimeValue.setText("00:00:00 (Hết giờ)");
+                }
             } else {
                 long days = duration.toDays();
-                long hours = duration.toHours();
+                long hours = duration.toHoursPart(); // [FIX BUG] Dùng Part để không cộng dồn ngày
                 long minutes = duration.toMinutesPart();
                 long seconds = duration.toSecondsPart();
-                // 2. LOGIC ĐỔI ĐỊNH DẠNG THÔNG MINH (UX REFACTOR)
-                if (days > 0) {
-                    // Nếu còn từ 1 ngày trở lên: Hiển thị "X ngày Y giờ Z phút" (hoặc format gọn: X ngày, HH:mm:ss)
-                    lblTimeValue.setText(String.format("%d ngày %02d:%02d:%02d", days, hours, minutes, seconds));
-                    lblTimeValue.setStyle("-fx-text-fill: #2f3542;"); // Màu chữ bình thường
-                } else {
-                    // Nếu còn dưới 24 giờ: Chỉ hiển thị "HH:mm:ss" chuẩn realtime
-                    lblTimeValue.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
 
-                    // NÂNG CAO: Nếu thời gian còn lại dưới 1 giờ (Sắp chốt sổ), đổi màu chữ sang cam/đỏ để kích thích Seller/Buyer chú ý
+                if (days > 0) {
+                    lblTimeValue.setText(String.format("%d ngày %02d:%02d:%02d", days, hours, minutes, seconds));
+                    lblTimeValue.setStyle("-fx-text-fill: #2f3542;");
+                } else {
+                    lblTimeValue.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
                     if (hours == 0) {
-                        lblTimeValue.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;"); // Màu cam rực lửa
+                        lblTimeValue.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
                     } else {
-                        lblTimeValue.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;"); // Màu xanh lá an toàn
+                        lblTimeValue.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
                     }
                 }
             }

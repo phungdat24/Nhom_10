@@ -13,7 +13,7 @@
    SIDEBAR
    ============================================= */
 .sidebar {
-    -fx-background-color:#242424
+    -fx-background-color:#242424;
     -fx-border-color: #252220;
     -fx-border-width: 0 1 0 0;
     -fx-pref-width: 220;

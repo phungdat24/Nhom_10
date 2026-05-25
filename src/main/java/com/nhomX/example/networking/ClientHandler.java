@@ -497,7 +497,7 @@ public class ClientHandler implements Runnable {
         boolean isSuccess = auctionRepository.updateAuctionStatus(auction);
         if (isSuccess) {
             Auction updatedAuction = auctionRepository.findById(auctionId);
-            server.broadcastToAll(new Message("AUCTION_APPROVE_ALERT", updatedAuction));
+            server.broadcastToAll(new Message("AUCTION_APPROVED_ALERT", updatedAuction));
         }
         sendToClient(new Message("APPROVE_RESULT",
                 new Object[]{isSuccess, isSuccess ? "Đã duyệt sản phẩm." : "Duyệt thất bại!"}));

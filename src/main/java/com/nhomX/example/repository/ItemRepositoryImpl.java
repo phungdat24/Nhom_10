@@ -1,21 +1,18 @@
 package com.nhomX.example.repository;
 
+import com.nhomX.example.factory.ItemFactory;
+import com.nhomX.example.model.ItemImage;
+import com.nhomX.example.model.Items;
+import com.nhomX.example.model.RegularUser;
+import com.nhomX.example.model.User;
+import com.nhomX.example.utils.DatabaseConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.nhomX.example.factory.ItemFactory;
-import com.nhomX.example.model.Art;
-import com.nhomX.example.model.Electronics;
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.ItemImage;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.model.Jewelry;
-import com.nhomX.example.model.RegularUser;
-import com.nhomX.example.utils.DatabaseConnection;
 
 public class ItemRepositoryImpl implements ItemRepository {
 
@@ -297,13 +294,24 @@ public class ItemRepositoryImpl implements ItemRepository {
     String id = rs.getString("id");
     String title = rs.getString("title");
     String description = rs.getString("description");
+    String sellerId = rs.getString("seller_id");
 
-    // 2. Tạo vỏ rỗng chứa ID của người bán
-    RegularUser seller = new RegularUser();
-    seller.setId(rs.getString("seller_id"));
+    // 2. [DEEP FETCHING]: Khai quật thông tin chi tiết của người bán
+    User fullSeller = null;
+    if (sellerId != null) {
+      UserRepository userRepo = new UserRepositoryImpl();
+      // Lấy nguyên bộ thông tin (Tên, Email, Số dư...) từ bảng users
+      fullSeller = userRepo.findById(sellerId);
+    }
 
-    // 3. Giao toàn quyền sinh sát cho Nhà máy (Khử hoàn toàn if-else/switch-case)
-    Items item = ItemFactory.createItem(category, id, title, description, seller);
+    // Phòng hờ trường hợp DB bị lỗi hoặc User đã bị xóa khỏi hệ thống
+    if (fullSeller == null) {
+      fullSeller = new RegularUser();
+      fullSeller.setId(sellerId);
+    }
+
+    // 3. Giao toàn quyền sinh sát cho Nhà máy với Seller ĐÃ CÓ TÊN
+    Items item = ItemFactory.createItem(category, id, title, description, fullSeller);
 
     // 4. Nhét thêm danh sách ảnh và trả về
     item.setImages(getImagesByItemId(item.getId(), conn));

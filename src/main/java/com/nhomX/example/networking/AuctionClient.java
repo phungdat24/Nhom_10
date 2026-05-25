@@ -363,6 +363,19 @@ public class AuctionClient {
                     }
                 });
                 break;
+            case "AUCTION_APPROVED_ALERT":
+                if (msg.getData() == null) break;
+                if (!(msg.getData() instanceof Auction)) {
+                    System.err.println("CLIENT: AUCTION_APPROVED_ALERT nhận data không phải Auction!");
+                    break;
+                }
+                Auction approvedAuction = (Auction) msg.getData();
+                Platform.runLater(() -> {
+                    if (listener != null) {
+                        listener.onAuctionApproved(approvedAuction);
+                    }
+                });
+                break;
 
             case "ERROR":
                 System.err.println("CLIENT nhận lỗi từ Server: " + msg.getData());
@@ -434,15 +447,6 @@ public class AuctionClient {
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onDepositResult(isDepositSuccess, newBalance);
-                    }
-                });
-                break;
-
-            case "AUCTIONS_AUCTION_ALERT":
-                Auction approvedAuction = (Auction) msg.getData();
-                Platform.runLater(() -> {
-                    if (listener != null) {
-                        listener.onAuctionApproved(approvedAuction);
                     }
                 });
                 break;
