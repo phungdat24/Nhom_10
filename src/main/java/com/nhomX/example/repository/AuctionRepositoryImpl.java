@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.Items;
@@ -97,11 +96,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public List<Auction> findAllActiveAuctions() {
     List<Auction> list = new ArrayList<>();
-    String sql = "SELECT * " +
-            "FROM auctions " +
-            "WHERE status IN('OPEN', 'RUNNING') " +
-            "AND start_time <= ? " +
-            "AND end_time > ?";
+    String sql = "SELECT * " + "FROM auctions " + "WHERE status IN('OPEN', 'RUNNING') "
+        + "AND start_time <= ? " + "AND end_time > ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       String now = LocalDateTime.now().format(DB_FORMATTER);
@@ -439,5 +435,30 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       System.err.println("❌ Lỗi cập nhật trạng thái phiên: " + e.getMessage());
       return false;
     }
+  }
+
+  @Override
+  public List<Auction> findReadyToOpenAuctions() {
+    List<Auction> list = new ArrayList<>();
+    // Tìm các phiên đang CHỜ, nhưng thời gian hiện tại đã vượt qua giờ BẮT ĐẦU
+    String sql = "SELECT * FROM auctions WHERE status = 'UP_COMING' AND start_time <= ?";
+
+    // Sử dụng try-with-resources để tự động đóng kết nối, chuẩn Checkstyle
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      String now = java.time.LocalDateTime.now().format(DB_FORMATTER);
+      pstmt.setString(1, now);
+
+      try (ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          list.add(mapRowToAuction(rs));
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi quét phiên UP_COMING: " + e.getMessage());
+    }
+
+    return list;
   }
 }

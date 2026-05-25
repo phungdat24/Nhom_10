@@ -47,6 +47,9 @@ public interface AuctionRepository {
 
     boolean updateAuctionStatus(Auction auction);
 
+    // [THÊM MỚI] Dành riêng cho Scheduler quét các phiên chuẩn bị mở
+    List<Auction> findReadyToOpenAuctions();
+
 
 }
 
