@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.nhomX.example.exception.AuctionClosedException;
+import com.nhomX.example.model.Admin;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.BidTransaction;
@@ -139,5 +140,61 @@ class AuctionFlowTest extends DatabaseBackedTest {
     // Assert: chỉ phiên quá hạn được trả về.
     assertTrue(expiredAuctionIds.contains("past-auction"));
     assertFalse(expiredAuctionIds.contains("future-auction"));
+  }
+
+  @Test
+  void adminApprovalFlowPersistsApprovedByAndRejectsPendingAuction() {
+    UserRepository userRepository = new UserRepositoryImpl();
+    ItemRepository itemRepository = new ItemRepositoryImpl();
+    AuctionRepository auctionRepository = new AuctionRepositoryImpl();
+
+    Admin admin = new Admin(
+        "admin-approval", "admin@example.com", SecurityUtils.hashPassword("password"), "Admin", 0);
+    RegularUser seller = regularUser("seller-approval", "seller-approval@example.com", 0,
+        Role.SELLER);
+    assertTrue(userRepository.register(admin));
+    assertTrue(userRepository.register(seller));
+
+    Items item = new GeneralItem("item-approval", "Pending Watch", "Needs review", seller);
+    itemRepository.save(item);
+
+    LocalDateTime start = LocalDateTime.now().minusMinutes(1);
+    LocalDateTime end = LocalDateTime.now().plusHours(1);
+    Auction approvalAuction = new Auction("auction-approval", item, start, end, 100L);
+    Auction rejectAuction = new Auction("auction-reject", item, start, end, 100L);
+    Auction alreadyOpenAuction = new Auction("auction-open", item, start, end, 100L);
+    approvalAuction.setStatus(AuctionStatus.PENDING);
+    rejectAuction.setStatus(AuctionStatus.PENDING);
+    alreadyOpenAuction.setStatus(AuctionStatus.OPEN);
+    alreadyOpenAuction.setApprovedBy(admin.getId());
+    auctionRepository.save(approvalAuction);
+    auctionRepository.save(rejectAuction);
+    auctionRepository.save(alreadyOpenAuction);
+
+    List<String> pendingIds = auctionRepository.findAuctionsByStatus(AuctionStatus.PENDING)
+        .stream()
+        .map(Auction::getId)
+        .toList();
+    assertTrue(pendingIds.contains("auction-approval"));
+    assertTrue(pendingIds.contains("auction-reject"));
+    assertFalse(pendingIds.contains("auction-open"));
+
+    approvalAuction.setApprovedBy(admin.getId());
+    approvalAuction.setStatus(AuctionStatus.OPEN);
+    assertTrue(auctionRepository.updateAuctionStatus(approvalAuction));
+
+    rejectAuction.setStatus(AuctionStatus.CANCELED);
+    assertTrue(auctionRepository.updateAuctionStatus(rejectAuction));
+
+    Auction approved = auctionRepository.findById("auction-approval");
+    assertEquals(AuctionStatus.OPEN, approved.getStatus());
+    assertEquals("admin-approval", approved.getApprovedBy());
+
+    Auction rejected = auctionRepository.findById("auction-reject");
+    assertEquals(AuctionStatus.CANCELED, rejected.getStatus());
+
+    Auction stillOpen = auctionRepository.findById("auction-open");
+    assertEquals(AuctionStatus.OPEN, stillOpen.getStatus());
+    assertEquals("admin-approval", stillOpen.getApprovedBy());
   }
 }

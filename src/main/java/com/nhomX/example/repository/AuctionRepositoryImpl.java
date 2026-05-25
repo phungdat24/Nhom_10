@@ -422,14 +422,15 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public boolean updateAuctionStatus(Auction auction) {
     // Cập nhật cả status và end_time (phòng trường hợp gia hạn do Anti-sniping)
-    String sql = "UPDATE auctions SET status = ?, end_time = ? WHERE id = ?";
+    String sql = "UPDATE auctions SET status = ?, end_time = ?, approved_by = ? WHERE id = ?";
     Connection conn = DatabaseConnection.getInstance().getConnection();
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auction.getStatus().name());
       pstmt.setString(2,
           auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
-      pstmt.setString(3, auction.getId());
+      pstmt.setString(3, auction.getApprovedBy());
+      pstmt.setString(4, auction.getId());
 
       int affectedRows = pstmt.executeUpdate();
       return affectedRows > 0;
