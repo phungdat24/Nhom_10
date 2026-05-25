@@ -162,13 +162,22 @@ class AuctionFlowTest extends DatabaseBackedTest {
     LocalDateTime end = LocalDateTime.now().plusHours(1);
     Auction approvalAuction = new Auction("auction-approval", item, start, end, 100L);
     Auction rejectAuction = new Auction("auction-reject", item, start, end, 100L);
+    Auction readyAuction = new Auction("auction-ready", item, start, end, 100L);
+    Auction futureAuction = new Auction(
+        "auction-future", item, LocalDateTime.now().plusHours(1), end, 100L);
     Auction alreadyOpenAuction = new Auction("auction-open", item, start, end, 100L);
     approvalAuction.setStatus(AuctionStatus.PENDING);
     rejectAuction.setStatus(AuctionStatus.PENDING);
+    readyAuction.setStatus(AuctionStatus.UP_COMING);
+    readyAuction.setApprovedBy(admin.getId());
+    futureAuction.setStatus(AuctionStatus.UP_COMING);
+    futureAuction.setApprovedBy(admin.getId());
     alreadyOpenAuction.setStatus(AuctionStatus.OPEN);
     alreadyOpenAuction.setApprovedBy(admin.getId());
     auctionRepository.save(approvalAuction);
     auctionRepository.save(rejectAuction);
+    auctionRepository.save(readyAuction);
+    auctionRepository.save(futureAuction);
     auctionRepository.save(alreadyOpenAuction);
 
     List<String> pendingIds = auctionRepository.findAuctionsByStatus(AuctionStatus.PENDING)
@@ -178,6 +187,13 @@ class AuctionFlowTest extends DatabaseBackedTest {
     assertTrue(pendingIds.contains("auction-approval"));
     assertTrue(pendingIds.contains("auction-reject"));
     assertFalse(pendingIds.contains("auction-open"));
+
+    List<String> readyIds = auctionRepository.findReadyToOpenAuctions()
+        .stream()
+        .map(Auction::getId)
+        .toList();
+    assertTrue(readyIds.contains("auction-ready"));
+    assertFalse(readyIds.contains("auction-future"));
 
     approvalAuction.setApprovedBy(admin.getId());
     approvalAuction.setStatus(AuctionStatus.OPEN);
@@ -192,6 +208,10 @@ class AuctionFlowTest extends DatabaseBackedTest {
 
     Auction rejected = auctionRepository.findById("auction-reject");
     assertEquals(AuctionStatus.CANCELED, rejected.getStatus());
+
+    readyAuction.setStatus(AuctionStatus.OPEN);
+    assertTrue(auctionRepository.updateAuctionStatus(readyAuction));
+    assertEquals(AuctionStatus.OPEN, auctionRepository.findById("auction-ready").getStatus());
 
     Auction stillOpen = auctionRepository.findById("auction-open");
     assertEquals(AuctionStatus.OPEN, stillOpen.getStatus());

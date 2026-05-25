@@ -488,8 +488,17 @@ public class ClientHandler implements Runnable {
         }
 
         auction.setApprovedBy(currentUser.getId());
-        auction.setStatus(AuctionStatus.OPEN);
+        if (auction.getStartTime() != null
+                && LocalDateTime.now().isBefore(auction.getStartTime())) {
+            auction.setStatus(AuctionStatus.UP_COMING);
+        } else {
+            auction.setStatus(AuctionStatus.OPEN);
+        }
         boolean isSuccess = auctionRepository.updateAuctionStatus(auction);
+        if (isSuccess) {
+            Auction updatedAuction = auctionRepository.findById(auctionId);
+            server.broadcastToAll(new Message("APPROVE_RESULT", updatedAuction));
+        }
         sendToClient(new Message("APPROVE_RESULT",
                 new Object[]{isSuccess, isSuccess ? "Đã duyệt sản phẩm." : "Duyệt thất bại!"}));
     }

@@ -444,8 +444,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE status = 'UP_COMING' AND start_time <= ?";
 
     // Sử dụng try-with-resources để tự động đóng kết nối, chuẩn Checkstyle
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       String now = java.time.LocalDateTime.now().format(DB_FORMATTER);
       pstmt.setString(1, now);

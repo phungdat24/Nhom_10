@@ -16,6 +16,7 @@ import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.User;
+import javafx.application.Platform;
 
 public class AuctionClient {
 
@@ -433,6 +434,15 @@ public class AuctionClient {
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onDepositResult(isDepositSuccess, newBalance);
+                    }
+                });
+                break;
+
+            case "AUCTIONS_AUCTION_ALERT":
+                Auction approvedAuction = (Auction) msg.getData();
+                Platform.runLater(() -> {
+                    if (listener != null) {
+                        listener.onAuctionApproved(approvedAuction);
                     }
                 });
                 break;

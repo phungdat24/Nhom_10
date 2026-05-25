@@ -54,4 +54,5 @@ public interface ServerEventListener {
      * @param newBalance Số dư mới nhất (nếu thành công).
      */
     default void onDepositResult(boolean isSuccess, long newBalance) {}
+    default void onAuctionApproved(Auction updatedAuction) {}
 }
