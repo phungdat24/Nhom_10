@@ -143,6 +143,10 @@ public class BidRepositoryImpl implements BidRepository {
                 if (userId.equals(sellerId)) {
                   throw new InvalidBidException("Bạn không thể tự đặt giá cho sản phẩm của chính mình!");
                 }
+                // [REFACTOR BẢO MẬT]: Chặn đứng các trạng thái không hợp lệ
+                if ("UP_COMING".equals(status)) {
+                  throw new InvalidBidException("Phiên đấu giá chưa đến giờ mở cửa! Vui lòng chờ thêm.");
+                }
                 // Kiểm tra 1: Có đang mở bán không?
                 if (!"RUNNING".equals(status) && !"OPEN".equals(status)) {
                   // Java Database Transaction mặc định chỉ tự động Rollback khi gặp RuntimeException
