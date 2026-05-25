@@ -1,4 +1,4 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.MyAuctionStatus;

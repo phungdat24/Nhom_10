@@ -1,14 +1,12 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.CurrencyFormatter;
-import com.nhomX.example.utils.SceneSwitcher;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

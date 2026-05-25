@@ -1,10 +1,11 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
@@ -18,7 +19,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class ItemCardController extends BaseController {

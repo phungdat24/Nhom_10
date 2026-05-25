@@ -1,9 +1,10 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;

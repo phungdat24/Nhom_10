@@ -6,8 +6,14 @@ module com.nhomX.example {
     requires java.mail;
 
     opens com.nhomX.example to javafx.fxml;
-    opens com.nhomX.example.controller to javafx.fxml;
 
     exports com.nhomX.example;
     exports com.nhomX.example.manager;
+
+    opens com.nhomX.example.controller.client to javafx.fxml;
+    exports com.nhomX.example.controller.client;
+    opens com.nhomX.example.controller.shared to javafx.fxml;
+    exports com.nhomX.example.controller.shared;
+    opens com.nhomX.example.controller.admin to javafx.fxml;
+    exports com.nhomX.example.controller.admin;
 }

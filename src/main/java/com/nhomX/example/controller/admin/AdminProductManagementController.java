@@ -1,4 +1,4 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.admin;
 
 public class AdminProductManagementController {
 }

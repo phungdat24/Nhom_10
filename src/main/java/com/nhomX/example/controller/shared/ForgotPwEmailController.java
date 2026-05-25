@@ -1,7 +1,6 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.shared;
 
 import com.nhomX.example.manager.SessionManager;
-import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;

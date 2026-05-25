@@ -1,4 +1,4 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -15,7 +15,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
