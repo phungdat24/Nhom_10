@@ -1,4 +1,4 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
@@ -10,12 +10,10 @@ import com.nhomX.example.utils.SceneSwitcher;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;

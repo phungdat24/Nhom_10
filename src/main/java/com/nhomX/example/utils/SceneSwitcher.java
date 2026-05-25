@@ -1,6 +1,6 @@
 package com.nhomX.example.utils;
 
-import com.nhomX.example.controller.MainDashBoardController;
+import com.nhomX.example.controller.client.MainDashBoardController;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;

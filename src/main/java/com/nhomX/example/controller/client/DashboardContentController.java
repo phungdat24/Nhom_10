@@ -1,4 +1,4 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
@@ -18,7 +18,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Duration;

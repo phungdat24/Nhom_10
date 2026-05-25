@@ -1,4 +1,4 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
@@ -20,7 +20,6 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class ProfileController extends BaseController implements Initializable, ServerEventListener {

@@ -1,6 +1,7 @@
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.shared;
 
 import com.nhomX.example.manager.SessionManager;
+import com.nhomX.example.model.Admin;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -78,14 +79,20 @@ public class LoginController implements ServerEventListener , Initializable {
         // AuctionClient của đã thực hiện Platform.runLater ở hàm handleServerMessage rồi:
         if (isSuccess && userData != null) {
             SessionManager.getInstance().login(userData);
-            // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
-            AuctionClient client = SessionManager.getInstance().getAuctionClient();
-            if (client != null) {
-                client.setUsername(userData.getUserName());
-                // [REFACTOR 2]: Trả lại micro cho hệ thống trước khi vào màn hình chính
-                auctionClient.setServerEventListener(null);
+            if (userData instanceof Admin) {
+                // Nếu là Admin -> Mở Không gian Quản trị
+                System.out.println("Đăng nhập quyền ADMIN thành công!");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/AdminLayout.fxml");
+            }else {
+                // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
+                AuctionClient client = SessionManager.getInstance().getAuctionClient();
+                if (client != null) {
+                    client.setUsername(userData.getUserName());
+                    // [REFACTOR 2]: Trả lại micro cho hệ thống trước khi vào màn hình chính
+                    auctionClient.setServerEventListener(null);
+                }
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
             }
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
         } else {
             AlertUtils.showError("Đăng nhập thất bại", message);
         }

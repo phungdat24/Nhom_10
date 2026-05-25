@@ -1,5 +1,5 @@
 
-package com.nhomX.example.controller;
+package com.nhomX.example.controller.client;
 
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;

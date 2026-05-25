@@ -18,7 +18,7 @@
     Controller: com.nhomX.example.controller.ForgotPasswordEmailController
 -->
 
-<StackPane prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: #2b1f12;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ForgotPwEmailController">
+<StackPane prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: #2b1f12;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.shared.ForgotPwEmailController">
 
     <!-- ===== BACKGROUND GLOW ===== -->
     <Circle fill="rgba(201,162,39,0.06)" radius="300" strokeWidth="0" translateX="-80" translateY="-80" StackPane.alignment="TOP_LEFT" />
