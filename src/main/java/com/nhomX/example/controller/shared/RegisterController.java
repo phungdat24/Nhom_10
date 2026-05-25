@@ -83,7 +83,7 @@ public class RegisterController implements ServerEventListener {
     @FXML
     void handleBackToLogin(ActionEvent event) {
         if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/login.fxml");
     }
 
     @Override
@@ -94,7 +94,7 @@ public class RegisterController implements ServerEventListener {
                 if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
                 // Đăng ký thành công: Báo xanh và tự động chuyển về trang Login
                 AlertUtils.showSuccess("Đăng ký thành công", message);
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
             } else {
                 AlertUtils.showError("Đăng ký thất bại", message);
             }
@@ -120,6 +120,6 @@ public class RegisterController implements ServerEventListener {
     @FXML
     public void handleBackToHome() {
         if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
-        SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/dashboard.fxml");
     }
 }

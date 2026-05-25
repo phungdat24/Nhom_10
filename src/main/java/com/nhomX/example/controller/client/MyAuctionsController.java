@@ -147,7 +147,7 @@ public class MyAuctionsController extends BaseController implements ServerEventL
             // Nếu phần tử khớp bộ lọc, tiến hành nạp FXML và đẩy lên giao diện
             if (isMatchTab) {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/MyAuctionCard.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/MyAuctions/MyAuctionCard.fxml"));
                     Node cardNode = loader.load();
 
                     MyAuctionCardController cardController = loader.getController();

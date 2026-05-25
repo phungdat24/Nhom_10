@@ -65,7 +65,7 @@ public class MainDashBoardController extends BaseController implements Initializ
             });
         }
         // Load trang mặc định
-        loadView("/com/nhomX/example/fxml/DashboardContent.fxml");
+        loadView("/com/nhomX/example/fxml/client/DashBoard/DashboardContent.fxml");
     }
 
     // ===== SIDEBAR LOGIC =====
@@ -124,13 +124,13 @@ public class MainDashBoardController extends BaseController implements Initializ
     // ===== ĐIỀU HƯỚNG TỪ SIDEBAR =====
     @FXML
     protected void handleDashboard(ActionEvent event) {
-        loadView("/com/nhomX/example/fxml/DashboardContent.fxml");
+        loadView("/com/nhomX/example/fxml/client/DashBoard/DashboardContent.fxml");
         setActiveButton(btnDashboard);
     }
 
     @FXML
     protected void handleLiveAuction(ActionEvent event) {
-        loadView("/com/nhomX/example/fxml/LiveAuctionContent.fxml");
+        loadView("/com/nhomX/example/fxml/client/LiveAuction/LiveAuctionContent.fxml");
         setActiveButton(btnLiveAuction);
     }
 
@@ -138,10 +138,10 @@ public class MainDashBoardController extends BaseController implements Initializ
     protected void handleMyAuctions(ActionEvent event) {
         if (!SessionManager.getInstance().isLoggedIn()) {
             clearServerListener();
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
             return;
         }
-        loadView("/com/nhomX/example/fxml/MyAuctionsContent.fxml");
+        loadView("/com/nhomX/example/fxml/client/MyAuctions/MyAuctionsContent.fxml");
         setActiveButton(btnMyAuction);
     }
 
@@ -149,10 +149,10 @@ public class MainDashBoardController extends BaseController implements Initializ
     protected void handleSeller(ActionEvent event) {
         if (!SessionManager.getInstance().isLoggedIn()) {
             clearServerListener();
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
             return;
         }
-        loadView("/com/nhomX/example/fxml/SellerContent.fxml");
+        loadView("/com/nhomX/example/fxml/client/Seller/SellerContent.fxml");
         setActiveButton(btnSeller);
     }
 

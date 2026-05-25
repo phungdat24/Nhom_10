@@ -118,7 +118,7 @@ public class LiveAuctionController extends BaseController
 
         for (Auction auction : auctions) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/LiveAuction/Itemcard.fxml"));
                 VBox cardItem = loader.load();
 
                 ItemCardController cardController = loader.getController();

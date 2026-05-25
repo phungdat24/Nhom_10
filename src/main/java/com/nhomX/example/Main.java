@@ -18,7 +18,7 @@ public class Main extends Application {
         SessionManager.getInstance().setAuctionClient(client);
         SceneSwitcher.mainStage = primaryStage;
         FXMLLoader fxmlLoader =
-                new FXMLLoader(Main.class.getResource("/com/nhomX/example/fxml/dashboard.fxml"));
+                new FXMLLoader(Main.class.getResource("/com/nhomX/example/fxml/client/dashboard.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 1024, 700);
         primaryStage.setTitle("Auction Project");
         primaryStage.setScene(scene);

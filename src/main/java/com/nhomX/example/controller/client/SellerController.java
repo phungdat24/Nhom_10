@@ -143,7 +143,7 @@ public class SellerController extends BaseController implements Initializable, S
             // 3. VẼ LÊN MÀN HÌNH NẾU KHỚP VỚI TAB ĐANG MỞ
             if (isMatchTab) {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/SellerItemCard.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/Seller/SellerItemCard.fxml"));
                     VBox card = loader.load();
 
                     SellerItemCardController cardController = loader.getController();
@@ -177,7 +177,7 @@ public class SellerController extends BaseController implements Initializable, S
     @FXML
     private void handleAddItem(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/AddItemcard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/Seller/AddItemcard.fxml"));
             Parent root = loader.load();
 
             // TẠO MỘT STAGE MỚI (CỬA SỔ MỚI) CHỈ DÀNH CHO POP-UP

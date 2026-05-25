@@ -644,3 +644,5 @@
     -fx-background-color: #1B5E20 !important; /* Xanh đậm hơn khi hover */
     -fx-effect: dropshadow(three-pass-box, rgba(46, 125, 50, 0.35), 8, 0, 0, 3);
 }
+
+/*---ItemCard---*/

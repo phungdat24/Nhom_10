@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.MyAuctionsController">
+<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../../../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MyAuctionsController">
     <VBox spacing="20">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
         <HBox alignment="CENTER_LEFT" spacing="30" style="-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 8; -fx-padding: 15;">

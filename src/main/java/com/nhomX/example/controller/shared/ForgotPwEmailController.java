@@ -71,7 +71,7 @@ public class ForgotPwEmailController implements ServerEventListener {
         if (auctionClient != null) {
             auctionClient.setServerEventListener(null);
         }
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/login.fxml");
     }
     // XỬ LÝ LẮNG NGHE TỪ SERVER (ServerEventListener)
     @Override
