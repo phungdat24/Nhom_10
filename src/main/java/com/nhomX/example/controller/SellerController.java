@@ -3,12 +3,10 @@ package com.nhomX.example.controller;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.CurrencyFormatter;
-import com.nhomX.example.utils.SceneSwitcher;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -145,7 +143,7 @@ public class SellerController extends BaseController implements Initializable, S
             // 3. VẼ LÊN MÀN HÌNH NẾU KHỚP VỚI TAB ĐANG MỞ
             if (isMatchTab) {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/SellerItemCard.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/Seller/SellerItemCard.fxml"));
                     VBox card = loader.load();
 
                     // TODO: Mở comment 2 dòng dưới sau khi tạo xong Controller
@@ -180,7 +178,7 @@ public class SellerController extends BaseController implements Initializable, S
     @FXML
     private void handleAddItem(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/AddItemcard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/Seller/AddItemcard.fxml"));
             Parent root = loader.load();
 
             // TẠO MỘT STAGE MỚI (CỬA SỔ MỚI) CHỈ DÀNH CHO POP-UP

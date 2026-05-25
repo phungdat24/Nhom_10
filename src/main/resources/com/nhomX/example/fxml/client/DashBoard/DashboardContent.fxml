@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.DashboardContentController">
+<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../../../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.DashboardContentController">
     <VBox alignment="CENTER">
         <children>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="50.0">

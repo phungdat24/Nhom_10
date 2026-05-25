@@ -141,7 +141,7 @@ public class DashboardContentController extends BaseController implements Server
         if (featuredAuctionId == null) return;
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemDetailContent.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/LiveAuction/ItemDetailContent.fxml"));
             Parent root = loader.load();
 
             ItemDetailController detailController = loader.getController();
@@ -203,7 +203,7 @@ public class DashboardContentController extends BaseController implements Server
                     for (int i = 1; i < trending.size(); i++) {
                         Auction auction = trending.get(i);
                         try {
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/ItemCard.fxml"));
+                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/LiveAuction/Itemcard.fxml"));
                             Node cardNode = loader.load();
 
                             ItemCardController cardController = loader.getController();

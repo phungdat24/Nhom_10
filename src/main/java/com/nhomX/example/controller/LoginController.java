@@ -70,7 +70,7 @@ public class LoginController implements ServerEventListener , Initializable {
     void handleRegister(ActionEvent event){
         // [REFACTOR 1]: Hủy đăng ký lắng nghe trước khi rời đi để chống Memory Leak
         if (auctionClient != null) auctionClient.setServerEventListener(null);
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/RegisterView.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/RegisterView.fxml");
     }
 
     @Override
@@ -85,7 +85,7 @@ public class LoginController implements ServerEventListener , Initializable {
                 // [REFACTOR 2]: Trả lại micro cho hệ thống trước khi vào màn hình chính
                 auctionClient.setServerEventListener(null);
             }
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/dashboard.fxml");
         } else {
             AlertUtils.showError("Đăng nhập thất bại", message);
         }
@@ -95,14 +95,14 @@ public class LoginController implements ServerEventListener , Initializable {
         if (auctionClient != null) {
             auctionClient.setServerEventListener(null);
         }
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ForgotPwEmail.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/Forgot/ForgotPwEmail.fxml");
     }
     @FXML
     public void handleBackToHome() {
         if (auctionClient != null){
             auctionClient.setServerEventListener(null);
         }
-        SceneSwitcher.switchScene("/com/nhomX/example/fxml/dashboard.fxml");
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/dashboard.fxml");
     }
     @FXML
     private void handleTogglePassword() {

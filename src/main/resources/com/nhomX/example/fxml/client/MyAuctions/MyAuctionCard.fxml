@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MyAuctionCardController">
+<VBox spacing="6" styleClass="product-card" stylesheets="@../../../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.MyAuctionCardController">
 
     <padding>
         <Insets bottom="12" left="12" right="12" top="12" />
@@ -26,7 +26,7 @@
     <!-- ── 2. Ảnh sản phẩm ── -->
     <ImageView fx:id="itemImageView" fitHeight="120" fitWidth="190" pickOnBounds="true" preserveRatio="true" styleClass="product-image">
         <image>
-            <Image url="@../images/default_item.png" />
+            <Image url="@../../../images/default_item.png" />
         </image>
     </ImageView>
 

@@ -140,7 +140,7 @@ public class ItemCardController extends BaseController {
         try {
             // 1. Tải giao diện trang Chi tiết
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/nhomX/example/fxml/ItemDetailContent.fxml"));
+                    getClass().getResource("/com/nhomX/example/fxml/client/LiveAuction/ItemDetailContent.fxml"));
             Parent root = loader.load();
 
             // 2. Lấy bộ điều khiển của trang Chi tiết và truyền dữ liệu sản phẩm qua

@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="720" prefWidth="1100" styleClass="root-pane" stylesheets="@../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.AdminLayoutController">
+<BorderPane prefHeight="720" prefWidth="1100" styleClass="root-pane" stylesheets="@../../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.AdminLayoutController">
 
     <left>
         <VBox prefWidth="220" spacing="0" styleClass="sidebar">

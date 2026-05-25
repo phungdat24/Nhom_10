@@ -251,10 +251,10 @@ public class OTPContentController implements Initializable , ServerEventListener
 
         if ("FORGOT_PASSWORD".equals(activeFlow)) {
             // Đang quên pass thì phải lùi về màn hình nhập Email
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/ForgotPwEmail.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/Forgot/ForgotPwEmail.fxml");
         } else {
             // Đang đăng ký thì lùi về màn hình Đăng ký
-            SceneSwitcher.switchScene("/com/nhomX/example/fxml/RegisterView.fxml");
+            SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/RegisterView.fxml");
         }
     }
     // Lắng nghe kết quả từ Server trả về
@@ -268,7 +268,7 @@ public class OTPContentController implements Initializable , ServerEventListener
                 cleanup(); //Chống tràn RAM khi đky thành công
                 AlertUtils.showSuccess("Thành công", message);
                 // Chuyển thẳng về trang Đăng nhập sau khi OTP đúng
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
             } else {
                 AlertUtils.showError("Đăng ký thất bại", message);
                 clearOtpFieldsForRetry();
@@ -284,7 +284,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             if (isSuccess) {
                 cleanup();
                 // Xác thực OTP thành công -> Chuyển sang Bước 3: Đặt mật khẩu mới
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/ForgotPwNew.fxml");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/Forgot/ForgotPwNew.fxml");
             } else {
                 AlertUtils.showError("Xác thực thất bại", message);
                 // [FIX BUG]: Tiện tay xóa 6 ô OTP bắt nhập lại cho đẹp

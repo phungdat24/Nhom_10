@@ -1,7 +1,6 @@
 package com.nhomX.example.controller;
 
 import com.nhomX.example.manager.SessionManager;
-import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
@@ -72,7 +71,7 @@ public class ForgotPwEmailController implements ServerEventListener {
         if (auctionClient != null) {
             auctionClient.setServerEventListener(null);
         }
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/login.fxml");
     }
     // XỬ LÝ LẮNG NGHE TỪ SERVER (ServerEventListener)
     @Override

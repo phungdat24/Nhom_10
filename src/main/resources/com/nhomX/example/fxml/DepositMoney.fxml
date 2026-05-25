@@ -4,6 +4,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
@@ -94,6 +95,7 @@
                         <Label text="Sau khi tạo mã, thông tin chuyển khoản và mã QR sẽ hiển thị bên phải." textFill="#333333" wrapText="true" />
                     </children>
                 </HBox>
+            <Hyperlink onAction="#handleBack" text="Quay lại " />
             </children>
         </VBox>
 

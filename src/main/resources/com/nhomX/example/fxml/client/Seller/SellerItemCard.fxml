@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="6" styleClass="product-card" stylesheets="@../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.SellerItemCardController">
+<VBox spacing="6" styleClass="product-card" stylesheets="@../../../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.SellerItemCardController">
 
     <padding>
         <Insets bottom="12" left="12" right="12" top="12" />

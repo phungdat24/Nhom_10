@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
@@ -63,38 +65,38 @@
                                 <Font name="System Italic" size="13.0" />
                             </font>
                         </Label>
-                  <FlowPane hgap="10.0" prefHeight="200.0" prefWidth="200.0" vgap="10.0">
-                     <children>
-                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="50.000đ" />
-                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="100.000đ" />
-                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="200.000đ" />
-                        <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="500.000đ" />
-                     </children>
-                  </FlowPane>
+                        <FlowPane hgap="10.0" prefHeight="200.0" prefWidth="200.0" vgap="10.0">
+                            <children>
+                                <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="50.000đ" />
+                                <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="100.000đ" />
+                                <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="200.000đ" />
+                                <Button mnemonicParsing="false" onAction="#handleQuickAmount" text="500.000đ" />
+                            </children>
+                        </FlowPane>
                     </children>
                 </VBox>
-            <VBox prefHeight="200.0" prefWidth="100.0">
-               <padding>
-                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-               </padding>
-               <children>
-                  <Label text="💡 Nạp tối thiểu 10.000 VNĐ, tối đa 500.000.000 VNĐ." textFill="#6c757d">
-                     <font>
-                        <Font name="System Italic" size="12.0" />
-                     </font>
-                  </Label>
-                  <Label text="💡 Vui lòng nạp bằng tài khoản chính chủ." textFill="#6c757d">
-                     <font>
-                        <Font name="System Italic" size="12.0" />
-                     </font>
-                  </Label>
-                  <Label text="📞 Hotline hỗ trợ sự cố: 1900 1234." textFill="#6c757d">
-                     <font>
-                        <Font name="System Italic" size="12.0" />
-                     </font>
-                  </Label>
-               </children>
-            </VBox>
+                <VBox prefHeight="200.0" prefWidth="100.0">
+                    <padding>
+                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                    </padding>
+                    <children>
+                        <Label text="💡 Nạp tối thiểu 10.000 VNĐ, tối đa 500.000.000 VNĐ." textFill="#6c757d">
+                            <font>
+                                <Font name="System Italic" size="12.0" />
+                            </font>
+                        </Label>
+                        <Label text="💡 Vui lòng nạp bằng tài khoản chính chủ." textFill="#6c757d">
+                            <font>
+                                <Font name="System Italic" size="12.0" />
+                            </font>
+                        </Label>
+                        <Label text="📞 Hotline hỗ trợ sự cố: 1900 1234." textFill="#6c757d">
+                            <font>
+                                <Font name="System Italic" size="12.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
 
                 <Button fx:id="btnCreateQr" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateQr" prefHeight="45.0" style="-fx-background-color: #111111; -fx-background-radius: 6;" text="Tạo mã thanh toán" textFill="white">
                     <font>
@@ -107,14 +109,15 @@
                         <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
                     </padding>
                     <children>
-                        <Label text="ⓘ" textFill="#2196f3">
-                            <font>
-                                <Font name="System Bold" size="14.0" />
-                            </font>
-                        </Label>
+                  <FontAwesomeIcon glyphName="INFO_CIRCLE" />
                         <Label text="Sau khi tạo mã, thông tin chuyển khoản và mã QR sẽ hiển thị bên phải." textFill="#333333" wrapText="true" />
                     </children>
                 </HBox>
+            <Hyperlink text="Quay lại">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Hyperlink>
             </children>
         </VBox>
 
@@ -247,11 +250,14 @@
                         </VBox>
                     </children>
                 </HBox>
-      
-                                        <Button fx:id="btnConfirm" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmPayment" prefHeight="48.0" style="-fx-background-color: #0b7285; -fx-background-radius: 8;" text="✓  Đã chuyển khoản thành công" textFill="white">
+
+                <Button fx:id="btnConfirm" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmPayment" prefHeight="48.0" style="-fx-background-color: #0b7285; -fx-background-radius: 8;" text="Đã chuyển khoản thành công" textFill="white">
                     <font>
                         <Font name="System Bold" size="15.0" />
                     </font>
+               <graphic>
+                  <FontAwesomeIcon fill="white" glyphName="CHECK_CIRCLE" size="16px" />
+               </graphic>
                 </Button>
             </children>
         </VBox>
