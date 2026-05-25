@@ -124,7 +124,7 @@ public class SellerController extends BaseController implements Initializable, S
             switch (currentFilterStatus) {
                 case "TAB_PENDING":
                     // Tab "Chờ lên sàn" -> Khớp với PENDING
-                    isMatchTab = statusName.equals("PENDING") ;;
+                    isMatchTab = statusName.equals("PENDING") || statusName.equals("UP_COMING") ;;
                     break;
 
                 case "TAB_ACTIVE":
@@ -147,6 +147,14 @@ public class SellerController extends BaseController implements Initializable, S
                     VBox card = loader.load();
 
                     SellerItemCardController cardController = loader.getController();
+                    // [ĐÃ FIX]: LẮP PIN CHO CHUÔNG BÁO TỪ THẺ CON
+                    // ===============================================
+                    cardController.setOnStatusChangeCallback(() -> {
+                        Platform.runLater(() -> {
+                            System.out.println("⏰ Tới giờ lên sàn! Tự động chuyển qua Tab Đang đấu giá...");
+                            renderFilteredAuctions();
+                        });
+                    });
                     cardController.setData(item);
 
                     contentArea.getChildren().add(card);
@@ -253,6 +261,30 @@ public class SellerController extends BaseController implements Initializable, S
                     System.out.println("🏁 SELLER REAL-TIME: Phiên " + auctionId + " đã kết thúc!");
                     break;
                 }
+            }
+        });
+    }
+    // LẮNG NGHE SỰ KIỆN ADMIN DUYỆT SẢN PHẨM (REAL-TIME)
+    // ==========================================
+    @Override
+    public void onAuctionApproved(Auction updatedAuction) {
+        Platform.runLater(() -> {
+            boolean isMyAuction = false;
+
+            // 1. Quét tìm xem sản phẩm vừa được duyệt có phải của mình không
+            for (int i = 0; i < allMySellerItems.size(); i++) {
+                if (allMySellerItems.get(i).getId().equals(updatedAuction.getId())) {
+                    // Cập nhật đè dữ liệu mới (Status: UP_COMING hoặc OPEN) vào RAM
+                    allMySellerItems.set(i, updatedAuction);
+                    isMyAuction = true;
+                    break;
+                }
+            }
+
+            // 2. Nếu đúng là hàng của mình, vẽ lại giao diện ngay lập tức
+            if (isMyAuction) {
+                renderFilteredAuctions();
+                System.out.println("🎉 SELLER REAL-TIME: Admin vừa duyệt sản phẩm " + updatedAuction.getItem().getTitle() + "!");
             }
         });
     }

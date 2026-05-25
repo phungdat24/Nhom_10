@@ -132,7 +132,10 @@ public class AuctionServer {
             client.sendToClient(msg);
         }
     }
-
+    /**
+     * Broadcast tới tất cả Client đang đăng nhập với role ADMIN.
+     * Dùng để thông báo sản phẩm mới chờ duyệt ngay lập tức.
+     */
     public void broadcastToAdmins(Message msg) {
         for (ClientHandler client : clients) {
             if (client.isAdminClient()) {
