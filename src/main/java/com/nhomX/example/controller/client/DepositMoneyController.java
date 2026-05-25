@@ -180,7 +180,7 @@ public class DepositMoneyController implements Initializable {
         AlertUtils.showSuccess("Đang xử lý",
                 "Hệ thống đang xử lý giao dịch. Tiền sẽ được cộng vào tài khoản sau ít phút.");
 
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ProfileContent.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/ProfileContent.fxml");
     }
 
     // =========================================================================

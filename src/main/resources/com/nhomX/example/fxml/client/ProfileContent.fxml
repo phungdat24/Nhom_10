@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 
-<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" stylesheets="@../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.ProfileController">
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" stylesheets="@../../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.ProfileController">
 
     <VBox alignment="TOP_CENTER" spacing="0" style="-fx-background-color: #2b1f12;" styleClass="root-pane">
 
@@ -47,7 +47,7 @@
                                             <Rectangle arcHeight="25.0" arcWidth="25.0" height="86.0" width="86.0" />
                                         </clip>
                                         <image>
-                                            <Image url="@../images/email_icon.png" />
+                                            <Image url="@../../images/email_icon.png" />
                                         </image>
                                     </ImageView>
                                 </children>

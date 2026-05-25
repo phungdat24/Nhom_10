@@ -71,7 +71,7 @@ public class ForgotPwEmailController implements ServerEventListener {
         if (auctionClient != null) {
             auctionClient.setServerEventListener(null);
         }
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/login.fxml");
     }
     // XỬ LÝ LẮNG NGHE TỪ SERVER (ServerEventListener)
     @Override
@@ -96,7 +96,7 @@ public class ForgotPwEmailController implements ServerEventListener {
                 }
 
                 // Thay đổi tên file FXML này cho khớp với tên màn hình OTP của nhóm em
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/OTPContent.fxml");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/OTPContent.fxml");
             } else {
                 // Báo lỗi bằng dòng chữ đỏ phía dưới ô input
                 showInlineError(message);

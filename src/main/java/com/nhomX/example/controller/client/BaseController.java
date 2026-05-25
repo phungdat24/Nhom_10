@@ -64,11 +64,11 @@ public abstract class BaseController {
         if (!SessionManager.getInstance().isLoggedIn()) {
             clearServerListener();
             SceneSwitcher.switchScene(event,
-                    "/com/nhomX/example/fxml/login/login.fxml");
+                    "/com/nhomX/example/fxml/client/login.fxml");
             return;
         }
         if (MainDashBoardController.instance != null) {
-            MainDashBoardController.instance.loadView("/com/nhomX/example/fxml/ProfileContent.fxml");
+            MainDashBoardController.instance.loadView("/com/nhomX/example/fxml/client/ProfileContent.fxml");
         }
     }
 
@@ -76,14 +76,14 @@ public abstract class BaseController {
     protected void handleLogin(ActionEvent event) {
         clearServerListener();
         SceneSwitcher.switchScene(event,
-                "/com/nhomX/example/fxml/login/login.fxml");
+                "/com/nhomX/example/fxml/client/login.fxml");
     }
 
     @FXML
     protected void handleLogout(ActionEvent event) {
         clearServerListener();
         SessionManager.getInstance().logout();
-        SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
     }
 }
 
