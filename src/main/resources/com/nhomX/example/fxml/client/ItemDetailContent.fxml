@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../../../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.ItemDetailController">
+<ScrollPane fx:id="scrollArea" fitToWidth="true" hbarPolicy="NEVER" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.ItemDetailController">
     <VBox spacing="20" styleClass="content-area">
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
@@ -29,7 +29,7 @@
                 <VBox alignment="CENTER" styleClass="product-card">
                     <ImageView fx:id="imgItem" fitHeight="250.0" fitWidth="196.0" preserveRatio="true">
                   <image>
-                     <Image url="@../../../images/anh_nen_5.jpg" />
+                     <Image url="@../../images/anh_nen_5.jpg" />
                   </image></ImageView>
                     <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />

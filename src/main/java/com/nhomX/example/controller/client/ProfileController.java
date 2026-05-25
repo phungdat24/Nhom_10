@@ -141,7 +141,7 @@ public class ProfileController extends BaseController implements Initializable, 
 
     @FXML
     private void handleDeposit(ActionEvent event) {
-        SceneSwitcher.switchScene(event,"/com/nhomX/example/fxml/RechargeContent.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/RechargeContent.fxml");
     }
 
     @FXML

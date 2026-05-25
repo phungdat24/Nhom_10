@@ -141,7 +141,7 @@ public class MyAuctionCardController {
 
         try {
             // 1. Nạp file giao diện chi tiết sản phẩm (ItemDetailContent.fxml)
-            FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/LiveAuction/ItemDetailContent.fxml"));
+            FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/ItemDetailContent.fxml"));
             Parent root = loader.load();
 
             // 2. Lấy Controller của trang chi tiết và truyền gói dữ liệu Auction sang

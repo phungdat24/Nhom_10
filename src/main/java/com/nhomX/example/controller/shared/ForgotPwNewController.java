@@ -175,7 +175,7 @@ public class ForgotPwNewController implements ServerEventListener {
     @FXML
     private void handleBackToLogin(ActionEvent event) {
         cleanup();
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/login.fxml");
     }
 
     private void cleanup() {
@@ -192,7 +192,7 @@ public class ForgotPwNewController implements ServerEventListener {
             if (isSuccess) {
                 cleanup();
                 AlertUtils.showSuccess("Đổi mật khẩu thành công", "Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập lại!");
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
             } else {
                 showInlineError(message);
             }

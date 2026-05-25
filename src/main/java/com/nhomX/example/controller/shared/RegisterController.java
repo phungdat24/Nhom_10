@@ -83,7 +83,7 @@ public class RegisterController implements ServerEventListener {
     @FXML
     void handleBackToLogin(ActionEvent event) {
         if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/login/login.fxml");
+        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/login.fxml");
     }
 
     @Override
@@ -94,7 +94,7 @@ public class RegisterController implements ServerEventListener {
                 if (auctionClient != null) auctionClient.setServerEventListener(null); // Dọn rác
                 // Đăng ký thành công: Báo xanh và tự động chuyển về trang Login
                 AlertUtils.showSuccess("Đăng ký thành công", message);
-                SceneSwitcher.switchScene("/com/nhomX/example/fxml/login/login.fxml");
+                SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
             } else {
                 AlertUtils.showError("Đăng ký thất bại", message);
             }
@@ -113,7 +113,7 @@ public class RegisterController implements ServerEventListener {
             System.out.println("CLIENT: Server báo đã gửi email OTP thành công. Tiến hành chuyển cảnh nội tuyến...");
 
             // Thực hiện chuyển cảnh ngay trên cửa sổ này sang giao diện 6 ô OTP
-            SceneSwitcher.switchSceneInline(btnSignUp, "/com/nhomX/example/fxml/OTPContent.fxml");
+            SceneSwitcher.switchSceneInline(btnSignUp, "/com/nhomX/example/fxml/client/OTPContent.fxml");
         });
     }
 

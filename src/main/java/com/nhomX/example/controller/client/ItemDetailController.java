@@ -195,7 +195,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
         }
         if (MainDashBoardController.instance != null) {
             MainDashBoardController.instance
-                    .loadView("/com/nhomX/example/fxml/client/LiveAuction/LiveAuctionContent.fxml");
+                    .loadView("/com/nhomX/example/fxml/client/LiveAuctionContent.fxml");
         } else {
             System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
         }
