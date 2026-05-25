@@ -43,6 +43,9 @@ public interface ServerEventListener {
     default void onSellerAuctionsReceived(List<Auction> sellerAuctions){};
     // Lắng nghe kết quả tạo phiên đấu giá
     default void onCreateAuctionResult(boolean isSuccess, String message) {}
+    default void onPendingAuctionsReceived(List<Auction> pendingAuctions) {}
+    default void onAdminActionCompleted(boolean isSuccess, String message) {}
+    default void onNewPendingAuctionReceived(Auction newAuction) {}
     // SỰ KIỆN GIAO DỊCH TÀI CHÍNH
     // ==========================================
     /**

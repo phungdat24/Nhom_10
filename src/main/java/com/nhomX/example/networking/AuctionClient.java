@@ -104,6 +104,18 @@ public class AuctionClient {
         sendToServer(new Message("GET_ALL_AUCTIONS"));
     }
 
+    public void requestPendingAuctions() {
+        sendToServer(new Message("GET_PENDING_AUCTIONS"));
+    }
+
+    public void approveAuction(String auctionId) {
+        sendToServer(new Message("APPROVE_AUCTION", username, auctionId, 0, auctionId));
+    }
+
+    public void rejectAuction(String auctionId) {
+        sendToServer(new Message("REJECT_AUCTION", username, auctionId, 0, auctionId));
+    }
+
     /** Gửi yêu cầu đăng nhập. Password phải đã hash SHA-256 trước khi gọi. */
     public void login(String username, String passwordHash) {
         String[] data = {username, passwordHash};
@@ -299,6 +311,15 @@ public class AuctionClient {
                     }
                 });
                 break;
+            case "PENDING_AUCTIONS_RESULT":
+                @SuppressWarnings("unchecked")
+                List<Auction> pendingAuctions = (List<Auction>) msg.getData();
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onPendingAuctionsReceived(pendingAuctions);
+                    }
+                });
+                break;
             case "RETURN_BID_HISTORY":
                 @SuppressWarnings("unchecked")
                 List<BidTransaction> history = (List<BidTransaction>) msg.getData();
@@ -317,6 +338,27 @@ public class AuctionClient {
                 runOnUiThread(() -> {
                     if (listener != null) {
                         listener.onCreateAuctionResult(isCreated, resultMsg);
+                    }
+                });
+                break;
+
+            case "APPROVE_RESULT":
+            case "REJECT_RESULT":
+                Object[] adminResultData = (Object[]) msg.getData();
+                boolean isAdminActionSuccess = (Boolean) adminResultData[0];
+                String adminResultMsg = (String) adminResultData[1];
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onAdminActionCompleted(isAdminActionSuccess, adminResultMsg);
+                    }
+                });
+                break;
+
+            case "NEW_PENDING_AUCTION_ALERT":
+                Auction newPendingAuction = (Auction) msg.getData();
+                runOnUiThread(() -> {
+                    if (listener != null) {
+                        listener.onNewPendingAuctionReceived(newPendingAuction);
                     }
                 });
                 break;

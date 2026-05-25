@@ -133,6 +133,14 @@ public class AuctionServer {
         }
     }
 
+    public void broadcastToAdmins(Message msg) {
+        for (ClientHandler client : clients) {
+            if (client.isAdminClient()) {
+                client.sendToClient(msg);
+            }
+        }
+    }
+
     // ĐÃ SỬA: Dọn dẹp triệt để khi Client ngắt kết nối (tắt app)
     public void removeClient(ClientHandler client) {
         clients.remove(client);

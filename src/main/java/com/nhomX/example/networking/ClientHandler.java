@@ -145,8 +145,14 @@ public class ClientHandler implements Runnable {
                 case "RESEND_OTP":
                     handleResendOtp(msg);
                     break;
+                case "GET_PENDING_AUCTIONS":
+                    handleGetPendingAuctions();
+                    break;
                 case "APPROVE_AUCTION":
                     handleApproveAuction(msg);
+                    break;
+                case "REJECT_AUCTION":
+                    handleRejectAuction(msg);
                     break;
                 case "FORGOT_PASSWORD_REQUEST":
                     handleForgotPasswordRequest(msg);
@@ -158,14 +164,7 @@ public class ClientHandler implements Runnable {
                     handleVerifyForgotPwOtp(msg);
                     break;
                 case "GET_SELLER_AUCTIONS":
-                    String sellerId = (String) msg.getData();
-                    System.out.println("SERVER: Đang truy vấn danh sách bán hàng cho user");
-                    try{
-                        List<Auction> sellerList = auctionRepository.findBySellerId(sellerId);
-                        sendToClient(new Message("SELLER_AUCTIONS_RESULT", sellerList));
-                    } catch (Exception e){
-                        sendToClient(new Message("ERROR", "Không thể lấy danh sách bán hàng"));
-                    }
+                    handleGetSellerAuctions(msg);
                     break;
                 case "DEPOSIT_REQUEST":
                     handleDepositRequest(msg);
@@ -180,6 +179,17 @@ public class ClientHandler implements Runnable {
             System.err
                     .println("SERVER: Dữ liệu không đúng định dạng từ client – " + e.getMessage());
             sendToClient(Message.error("Dữ liệu gửi lên không hợp lệ!"));
+        }
+    }
+
+    private void handleGetSellerAuctions(Message msg) {
+        String sellerId = (String) msg.getData();
+        System.out.println("SERVER: Đang truy vấn danh sách bán hàng cho user");
+        try{
+            List<Auction> sellerList = auctionRepository.findBySellerId(sellerId);
+            sendToClient(new Message("SELLER_AUCTIONS_RESULT", sellerList));
+        } catch (Exception e){
+            sendToClient(new Message("ERROR", "Không thể lấy danh sách bán hàng"));
         }
     }
 
@@ -258,6 +268,9 @@ public class ClientHandler implements Runnable {
             // Gọi server lưu DB
             AuctionService auctionService = new AuctionService();
             boolean isSuccess = auctionService.createAuctionListing(item, auction);
+            if (isSuccess) {
+                server.broadcastToAdmins(new Message("NEW_PENDING_AUCTION_ALERT", auction));
+            }
             // Trả về kết quả Client
             sendToClient(new Message("CREATE_AUCTION_RESULT",
                     new String[]{ String.valueOf(isSuccess),
@@ -448,17 +461,64 @@ public class ClientHandler implements Runnable {
         });
     }
 
-    private void handleApproveAuction(Message msg) {
-        String[] approvalData = (String[]) msg.getData();
-        String auctionToApprove = approvalData[0];
-        String adminId = approvalData[1];
-
-        Auction a = auctionRepository.findById(auctionToApprove);
-        if (a != null && a.getStatus() == AuctionStatus.PENDING) {
-            a.setApprovedBy(adminId);
-            auctionRepository.updateAuctionStatus(a);
-            sendToClient(new Message("APPOVE_SUCCESS", "Đã duyệt thành công"));
+    private void handleGetPendingAuctions() {
+        if (!isAdminClient()) {
+            sendToClient(new Message("ERROR", "Yêu cầu quyền Admin!"));
+            return;
         }
+
+        List<Auction> pendingList =
+                auctionRepository.findAuctionsByStatus(AuctionStatus.PENDING);
+        sendToClient(new Message("PENDING_AUCTIONS_RESULT", pendingList));
+    }
+
+    private void handleApproveAuction(Message msg) {
+        if (!isAdminClient()) {
+            sendToClient(new Message("APPROVE_RESULT",
+                    new Object[]{false, "Yêu cầu quyền Admin!"}));
+            return;
+        }
+
+        String auctionId = (String) msg.getData();
+        Auction auction = auctionRepository.findById(auctionId);
+        if (auction == null || auction.getStatus() != AuctionStatus.PENDING) {
+            sendToClient(new Message("APPROVE_RESULT",
+                    new Object[]{false, "Phiên đấu giá không hợp lệ hoặc đã được xử lý!"}));
+            return;
+        }
+
+        auction.setApprovedBy(currentUser.getId());
+        auction.setStatus(AuctionStatus.OPEN);
+        boolean isSuccess = auctionRepository.updateAuctionStatus(auction);
+        sendToClient(new Message("APPROVE_RESULT",
+                new Object[]{isSuccess, isSuccess ? "Đã duyệt sản phẩm." : "Duyệt thất bại!"}));
+    }
+
+    private void handleRejectAuction(Message msg) {
+        if (!isAdminClient()) {
+            sendToClient(new Message("REJECT_RESULT",
+                    new Object[]{false, "Yêu cầu quyền Admin!"}));
+            return;
+        }
+
+        String auctionId = (String) msg.getData();
+        Auction auction = auctionRepository.findById(auctionId);
+        if (auction == null || auction.getStatus() != AuctionStatus.PENDING) {
+            sendToClient(new Message("REJECT_RESULT",
+                    new Object[]{false, "Phiên đấu giá không hợp lệ hoặc đã được xử lý!"}));
+            return;
+        }
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        boolean isSuccess = auctionRepository.updateAuctionStatus(auction);
+        sendToClient(new Message("REJECT_RESULT",
+                new Object[]{isSuccess, isSuccess ? "Đã từ chối sản phẩm." : "Từ chối thất bại!"}));
+    }
+
+    public boolean isAdminClient() {
+        return currentUser != null
+                && currentUser.getRoleName() != null
+                && currentUser.getRoleName().contains(Role.ADMIN.name());
     }
 
     public static class OtpData {
