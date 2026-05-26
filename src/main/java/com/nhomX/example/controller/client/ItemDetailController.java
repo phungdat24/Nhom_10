@@ -15,6 +15,7 @@ import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -59,7 +60,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
     private String currentAuctionId;
 
     private AuctionClient auctionClient;
-
+    private int currentImageIndex = 0; // Lưu vị trí ảnh đang xem
+    private List<ItemImage> itemImages; // Danh sách ảnh của sản phẩm
 
     @FXML
     public void initialize() {
@@ -140,8 +142,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             }
 
             if (lblStatusMessage != null) {
-                java.time.format.DateTimeFormatter formatter =
-                        java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
+                        .ofPattern("HH:mm dd/MM/yyyy");
                 lblStatusMessage.setText("Bắt đầu vào lúc: " + start.format(formatter));
                 lblStatusMessage.setVisible(true);
             }
@@ -156,24 +158,10 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 lblStatusMessage.setVisible(false);
             }
         }
-        String basePath = "/com/nhomX/example/images/";
-        List<ItemImage> images = item.getImages();
-
-        if (images != null && !images.isEmpty() && images.get(0).getImagePath() != null) {
-            String firstImagePath = images.get(0).getImagePath().trim();
-            try {
-                // Lấy ảnh từ thư mục resources
-                Image img = new Image(getClass().getResourceAsStream( basePath+ firstImagePath));
-                imgItem.setImage(img);
-            } catch (Exception e) {
-                System.err.println("Không tìm thấy ảnh tại đường dẫn: " + firstImagePath);
-                // (Tùy chọn) Có thể set một ảnh mặc định (Placeholder) nếu lỗi
-                // imgItem.setImage(new
-                // Image(getClass().getResourceAsStream("/com/nhomX/example/images/default.png")));
-            }
-        } else {
-            System.out.println("Món hàng này chưa có đường dẫn ảnh trong Database.");
-        }
+        // Nạp danh sách ảnh vào biến toàn cục và hiển thị ảnh đầu tiên
+        this.itemImages = item.getImages();
+        this.currentImageIndex = 0;
+        showImage(currentImageIndex);
         // Gianh quyền sau vì nếu giành trước sẽ truyền các giá trị null gây sập server
         // Giành quyền
         auctionClient = SessionManager.getInstance().getAuctionClient();
@@ -203,7 +191,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
     @Override
     public void onHighestBidUpdated(String updatedItemId, long newPrice, String bidderName) {
-        // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình đang xem
+        // CỰC KỲ QUAN TRỌNG: Phải kiểm tra xem giá mới gửi về có đúng là của món mình
+        // đang xem
         // không?
         if (currentAuctionId != null && currentAuctionId.equals(updatedItemId)) {
 
@@ -211,8 +200,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             Platform.runLater(() -> {
                 // [REFACTOR 3]: Không dùng hàm setHighestBid tự chế nữa.
                 // Kéo giá mới từ AuctionManager (nơi đã được Socket nạp dữ liệu an toàn)
-                Auction freshAuction =
-                        AuctionManager.getInstance().getAuctionById(currentAuctionId);
+                Auction freshAuction = AuctionManager.getInstance().getAuctionById(currentAuctionId);
                 if (freshAuction != null) {
                     lblCurrentPrice
                             .setText(CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
@@ -255,9 +243,9 @@ public class ItemDetailController extends BaseController implements ServerEventL
         try {
             long bidAmount = Long.parseLong(rawValue);
 
-            // [REFACTOR 2]: Lấy giá tươi mới nhất từ Nguồn Sự Thật để kiểm duyệt trước khi bắn lệnh
-            Auction freshAuction =
-                    AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
+            // [REFACTOR 2]: Lấy giá tươi mới nhất từ Nguồn Sự Thật để kiểm duyệt trước khi
+            // bắn lệnh
+            Auction freshAuction = AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
             if (freshAuction != null && bidAmount <= freshAuction.getHighestBid()) {
                 AlertUtils.showWarning("Lỗi đặt giá", "Giá đấu phải CAO HƠN giá hiện tại!");
                 return;
@@ -287,7 +275,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
     @Override
     public void onBidHistoryReceived(List<BidTransaction> history) {
-        // [TỐI ƯU 1]: TẮT hiệu ứng chuyển động tạm thời để nạp dữ liệu cái rụp, không bị giật lag
+        // [TỐI ƯU 1]: TẮT hiệu ứng chuyển động tạm thời để nạp dữ liệu cái rụp, không
+        // bị giật lag
         priceChart.setAnimated(false);
         Platform.runLater(() -> {
             // 1. Dọn dẹp giao diện trước khi đổ dữ liệu mới
@@ -302,11 +291,11 @@ public class ItemDetailController extends BaseController implements ServerEventL
             // Lấy giá khởi điểm gốc từ Item
             long startingPrice = freshAuction.getStartingPrice();
 
-            // Lấy thời gian bắt đầu phiên làm mốc X (Nếu null thì lấy giờ hiện tại làm mốc tạm)
+            // Lấy thời gian bắt đầu phiên làm mốc X (Nếu null thì lấy giờ hiện tại làm mốc
+            // tạm)
             LocalDateTime startTime = freshAuction.getStartTime();
-            String startTimeStr =
-                    (startTime != null) ? startTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-                            : LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            String startTimeStr = (startTime != null) ? startTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+                    : LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
             // LUÔN LUÔN nạp điểm gốc này vào biểu đồ đầu tiên
             priceSeries.getData().add(new XYChart.Data<>(startTimeStr, startingPrice));
@@ -326,9 +315,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 // Thêm vào biểu đồ
                 priceSeries.getData().add(new XYChart.Data<>(timeStr, bid.getAmount()));
 
-                String fullName =
-                        bid.getBidder().getFullName() != null ? bid.getBidder().getFullName()
-                                : bid.getBidder().getUserName();
+                String fullName = bid.getBidder().getFullName() != null ? bid.getBidder().getFullName()
+                        : bid.getBidder().getUserName();
                 String maskedName = maskName(fullName);
                 Node row = createBidRow(maskedName, bid.getAmount(), timeStr);
 
@@ -346,7 +334,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
             lblCurrentPrice.setText(CurrencyFormatter.formatVND(latestPrice));
             // [REFACTOR 3]: ĐÃ XÓA dòng currentAuction.setHighestBid(latestPrice)
-            // Lý do: Việc cập nhật giá trị cao nhất vào RAM là nhiệm vụ của Manager, Giao diện
+            // Lý do: Việc cập nhật giá trị cao nhất vào RAM là nhiệm vụ của Manager, Giao
+            // diện
             // (Controller) chỉ lo hiển thị.
             String leaderFullName = winningBid.getBidder().getFullName() != null
                     ? winningBid.getBidder().getFullName()
@@ -354,7 +343,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             String maskedLeader = maskName(leaderFullName);
             lblLeader.setText("🏆 Người dẫn đầu: " + maskedLeader);
 
-            // [TỐI ƯU 3]: BẬT LẠI hiệu ứng chuyển động để sẵn sàng đón các lệnh đặt giá Realtime
+            // [TỐI ƯU 3]: BẬT LẠI hiệu ứng chuyển động để sẵn sàng đón các lệnh đặt giá
+            // Realtime
             priceChart.setAnimated(true);
         });
     }
@@ -444,6 +434,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             return firstWord + " *** " + lastWord;
         }
     }
+
     @Override
     public void onBidResult(boolean isSuccess, String message) {
         // Luôn phải bọc trong Platform.runLater khi muốn hiển thị Popup UI
@@ -460,6 +451,44 @@ public class ItemDetailController extends BaseController implements ServerEventL
         });
     }
 
+    private void showImage(int index) {
+        if (itemImages == null || itemImages.isEmpty()) {
+            System.out.println("Sản phẩm chưa có ảnh trong Database.");
+            return;
+        }
+
+        try {
+            String basePath = "/com/nhomX/example/images/";
+            String imagePath = itemImages.get(index).getImagePath().trim();
+
+            // Đọc file ảnh từ thư mục resources
+            var imageStream = getClass().getResourceAsStream(basePath + imagePath);
+            if (imageStream != null) {
+                imgItem.setImage(new Image(imageStream));
+            } else {
+                System.err.println("Không tìm thấy file ảnh gốc: " + imagePath);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Lỗi load ảnh Slide Show: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void onNextImageClick() {
+        if (itemImages != null && itemImages.size() > 1) {
+            // Tăng index, nếu đến cuồi thì quay lại ảnh 0
+            currentImageIndex = (currentImageIndex + 1) % itemImages.size();
+            showImage(currentImageIndex);
+        }
+    }
+
+    @FXML
+    public void onPrevImageClick() {
+        if (itemImages != null && itemImages.size() > 1) {
+            // Giảm index, nếu < 0 thì nhảy xuống ảnh cuối cùng
+            currentImageIndex = (currentImageIndex - 1 + itemImages.size()) % itemImages.size();
+            showImage(currentImageIndex);
+        }
+    }
+
 }
-
-
