@@ -61,7 +61,7 @@
             <AnchorPane maxWidth="-Infinity" minHeight="90" minWidth="90" prefHeight="90" prefWidth="90">
                 <Circle centerX="45" centerY="45" fill="rgba(201,162,39,0.10)" radius="44" style="-fx-stroke: rgba(201,162,39,0.25); -fx-stroke-width: 1.5;" />
                 <Circle centerX="45" centerY="45" fill="rgba(201,162,39,0.18)" radius="34" />
-                <Label layoutX="26" layoutY="22" style="-fx-text-fill: #c9a227; -fx-font-size: 30px;" text="🛡" AnchorPane.leftAnchor="26.0" AnchorPane.topAnchor="22.0" />
+            <FontAwesomeIcon fill="#ccc30f" glyphName="SHIELD" layoutX="32.0" layoutY="58.0" size="3em" />
                 <!-- Badge xanh góc phải dưới -->
                 <StackPane prefHeight="22" prefWidth="22" style="-fx-background-color: #2e7d32; -fx-background-radius: 11;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0">
                     <Label style="-fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold;" text="✓" />
@@ -100,7 +100,7 @@
             <!-- PASSWORD STRENGTH BAR -->
             <VBox maxWidth="Infinity" spacing="6">
                 <HBox alignment="CENTER_LEFT" spacing="6">
-                    <Label style="-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 11px;" text="Độ mạnh:" />
+                    <Label style="-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 12px;" text="Độ mạnh:" />
                     <Label fx:id="lblStrength" style="-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 11px; -fx-font-weight: bold;" text="—" />
                 </HBox>
                 <HBox spacing="4">
@@ -115,10 +115,16 @@
             <Label fx:id="lblError" managed="false" style="-fx-text-fill: #ff4444; -fx-font-size: 12px; -fx-font-weight: bold;" text="Mật khẩu xác nhận không khớp." visible="false" />
 
             <!-- CONFIRM BUTTON -->
-            <Button fx:id="btnConfirm" maxWidth="Infinity" onAction="#handleConfirmNewPassword" style="-fx-background-color: linear-gradient(to bottom, #d4aa2e, #c9a227); -fx-text-fill: #2b1f12; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-padding: 14 0 14 0; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.35), 12, 0, 0, 3);" text="✔   Xác nhận đổi mật khẩu" />
+            <Button fx:id="btnConfirm" maxWidth="Infinity" onAction="#handleConfirmNewPassword" style="-fx-background-color: linear-gradient(to bottom, #d4aa2e, #c9a227); -fx-text-fill: #2b1f12; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-padding: 14 0 14 0; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.35), 12, 0, 0, 3);" text="Xác nhận đổi mật khẩu">
+            <graphic>
+               <FontAwesomeIcon glyphName="CHECK" />
+            </graphic></Button>
 
             <!-- BACK TO LOGIN -->
-            <Hyperlink onAction="#handleBackToLogin" style="-fx-text-fill: rgba(255,220,160,0.60); -fx-font-size: 13px; -fx-border-width: 0; -fx-underline: true; -fx-cursor: hand;" text="← Quay lại đăng nhập" />
+            <Hyperlink onAction="#handleBackToLogin" style="-fx-text-fill: rgba(255,220,160,0.60); -fx-font-size: 14px; -fx-border-width: 0; -fx-underline: true; -fx-cursor: hand;" text="Quay lại đăng nhập">
+            <graphic>
+               <FontAwesomeIcon fill="#ffdca0" glyphName="ARROW_LEFT" />
+            </graphic></Hyperlink>
 
             <!-- FOOTER TRUST BADGES -->
             <HBox alignment="CENTER" spacing="14">

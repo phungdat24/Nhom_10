@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Hyperlink?>
@@ -19,10 +20,13 @@
     <Circle fill="rgba(201,162,39,0.04)" radius="250" strokeWidth="0" translateX="80" translateY="80" StackPane.alignment="BOTTOM_RIGHT" />
 
     <!-- ===== NÚT QUAY LẠI ===== -->
-    <Button fx:id="btnBack" onAction="#handleBack" style="-fx-background-color: rgba(201,162,39,0.12);                -fx-text-fill: #c9a227;                -fx-font-size: 13px;                -fx-font-weight: bold;                -fx-background-radius: 8;                -fx-border-color: rgba(201,162,39,0.30);                -fx-border-radius: 8;                -fx-border-width: 1;                -fx-padding: 8 16 8 12;                -fx-cursor: hand;" text="← Quay lại" StackPane.alignment="TOP_LEFT">
+    <Button fx:id="btnBack" onAction="#handleBack" style="-fx-background-color: rgba(201,162,39,0.12);                -fx-text-fill: #c9a227;                -fx-font-size: 13px;                -fx-font-weight: bold;                -fx-background-radius: 8;                -fx-border-color: rgba(201,162,39,0.30);                -fx-border-radius: 8;                -fx-border-width: 1;                -fx-padding: 8 16 8 12;                -fx-cursor: hand;" text="Quay lại" StackPane.alignment="TOP_LEFT">
         <StackPane.margin>
             <Insets left="20" top="20" />
         </StackPane.margin>
+      <graphic>
+         <FontAwesomeIcon fill="#c9a227" glyphName="CHEVRON_LEFT" size="1.2em" />
+      </graphic>
     </Button>
     
     <!-- ===== MAIN CARD ===== -->
@@ -40,8 +44,7 @@
                 <Circle centerX="45" centerY="45" fill="rgba(201,162,39,0.10)" radius="44" style="-fx-stroke: rgba(201,162,39,0.25); -fx-stroke-width: 1.5;" />
                 <!-- Vòng trong -->
                 <Circle centerX="45" centerY="45" fill="rgba(201,162,39,0.18)" radius="34" />
-                <!-- Icon email -->
-                <Label layoutX="31.0" layoutY="25.0" style="-fx-text-fill: #c9a227; -fx-font-size: 28px;" text="✉" AnchorPane.leftAnchor="31.0" AnchorPane.topAnchor="25.0" />
+            <FontAwesomeIcon fill="#ccc30f" glyphName="ENVELOPE" layoutX="27.0" layoutY="59.0" size="3em" text="" />
                 <!-- Badge xanh góc phải dưới -->
                 <StackPane prefHeight="22" prefWidth="22" style="-fx-background-color: #2e7d32; -fx-background-radius: 11;" AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0">
                     <Label style="-fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold;" text="✓" />
@@ -52,7 +55,7 @@
             <VBox alignment="CENTER" spacing="8">
                 <Label fx:id="lblTitle" style="-fx-text-fill: #c9a227; -fx-font-size: 22px; -fx-font-weight: bold; " text="Xác thực Email" />
                 <Label fx:id="lblDesc" alignment="CENTER" style="-fx-text-fill: rgba(255,220,160,0.75); -fx-font-size: 13px; -fx-text-alignment: center; -fx-wrap-text: true; -fx-max-width: 320;" text="Vui lòng nhập mã 6 số vừa được gửi tới email" />
-                <Label fx:id="lblEmail" style="-fx-text-fill: #c9a227; -fx-font-size: 13px; -fx-font-weight: bold;" text="abc@example.com" />
+                <Label fx:id="lblEmail" style="-fx-text-fill: #c9a227; -fx-font-size: 13px; -fx-font-weight: bold;" text="abc@gmail.com" />
             </VBox>
 
             <!-- - 6 OTP INPUT BOXES - -->
@@ -73,27 +76,41 @@
             <Label fx:id="lblError" managed="false" style="-fx-text-fill: #ff4444; -fx-font-size: 12px; -fx-font-weight: bold;" text="Mã OTP không chính xác hoặc đã hết hạn." visible="false" />
 
             <!-- - CONFIRM BUTTON - -->
-            <Button fx:id="btnConfirm" maxWidth="Infinity" onAction="#handleConfirmOtp" style="-fx-background-color: linear-gradient(to bottom, #d4aa2e, #c9a227); -fx-text-fill: #2b1f12; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-padding: 14 0 14 0; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.35), 12, 0, 0, 3);" text="✔   Xác nhận" />
+            <Button fx:id="btnConfirm" maxWidth="Infinity" onAction="#handleConfirmOtp" style="-fx-background-color: linear-gradient(to bottom, #d4aa2e, #c9a227); -fx-text-fill: #2b1f12; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-padding: 14 0 14 0; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.35), 12, 0, 0, 3);" text="Xác nhận">
+            <graphic>
+               <FontAwesomeIcon glyphName="CHECK" />
+            </graphic></Button>
 
             <!-- - RESEND AREA - -->
             <HBox alignment="CENTER" spacing="6">
-                <!-- Timer label (shown while countdown active) -->
-                <Label style="-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 12px;" text="⏱" />
-                <Label fx:id="lblResendTimer" style="-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 12px;" text="Gửi lại sau 60s" />
+            <FontAwesomeIcon fill="#aec70b" glyphName="HISTORY" size="1.3em" />
+                <Label fx:id="lblResendTimer" style="-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 13px;" text="Gửi lại sau 60s" />
                 <!-- Resend button (hidden while timer ticks, shown after) -->
                 <Hyperlink fx:id="btnResend" managed="false" onAction="#handleResendOtp" style="-fx-text-fill: #c9a227; -fx-font-size: 12px; -fx-font-weight: bold; -fx-border-width: 0; -fx-padding: 0; -fx-underline: true; -fx-cursor: hand;" text="Gửi lại ngay" visible="false" />
             </HBox>
 
-            <!-- - FOOTER TRUST BADGES - -->
-            <HBox alignment="CENTER" spacing="14">
-                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 10px;" text="🔒  SECURE" />
-                <Label style="-fx-text-fill: rgba(201,162,39,0.22); -fx-font-size: 10px;" text="•" />
-                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 10px;" text="🛡  ENCRYPTED" />
-                <Label style="-fx-text-fill: rgba(201,162,39,0.22); -fx-font-size: 10px;" text="•" />
-                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 10px;" text="⚡  VERIFIED" />
-            </HBox>
-
         </VBox>
+      <HBox alignment="CENTER" spacing="14">
+         <children>
+            <Label style="-fx-text-fill: #d0d719; -fx-font-size: 11px;" text="SECURE">
+               <graphic>
+                  <FontAwesomeIcon fill="#d0d719" glyphName="LOCK" size="1.3em" />
+               </graphic>
+            </Label>
+            <Label style="-fx-text-fill: #d0d719; -fx-font-size: 10px;" text="•" />
+            <Label style="-fx-text-fill: #d0d719; -fx-font-size: 11px;" text="ENCRYPTED">
+               <graphic>
+                  <FontAwesomeIcon fill="#d0d719" glyphName="SHIELD" size="1.3em" />
+               </graphic>
+            </Label>
+            <Label style="-fx-text-fill: #d0d719; -fx-font-size: 10px;" text="•" />
+            <Label style="-fx-text-fill: #d0d719; -fx-font-size: 11px;" text="VERIFIED">
+               <graphic>
+                  <FontAwesomeIcon fill="#d0d719" glyphName="CHECK_CIRCLE" size="1.3em" />
+               </graphic>
+            </Label>
+         </children>
+      </HBox>
     </VBox>
     <!-- ===== END CARD ===== -->
 
