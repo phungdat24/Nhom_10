@@ -22,7 +22,7 @@
          <children>
             <HBox alignment="CENTER" maxHeight="100.0" onMouseClicked="#handleBackToHome" styleClass="vibo-home-btn">
                <children>
-                  <FontAwesomeIcon fill="#00d4c8" glyphName="GAVEL" size="3em">
+                  <FontAwesomeIcon fill="RED" glyphName="PAW" size="3em">
                      <font>
                         <Font size="42.0" />
                      </font>
@@ -40,7 +40,7 @@
       </HBox>
       <VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="400.0" spacing="25.0" styleClass="login-card" StackPane.alignment="CENTER">
          <children>
-            <FontAwesomeIcon fill="#1bece2" glyphName="USER" size="10em" text="">
+            <FontAwesomeIcon fill="#1976d2" glyphName="USER" size="10em" text="">
                <selectionFill>
                   <LinearGradient endX="1.0" endY="1.0">
                      <stops>
@@ -68,17 +68,17 @@
             </Label>
             <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="320.0" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.1);;" styleClass="input-field-container">
                <children>
-                  <FontAwesomeIcon fill="#00d4c8" glyphName="ENVELOPE" size="2em" text="" />
+                  <FontAwesomeIcon fill="#1976d2" glyphName="ENVELOPE" size="2em" text="" />
                   <TextField fx:id="account" minHeight="-Infinity" prefHeight="45.0" prefWidth="250.0" promptText="Email" styleClass="text-field" />
                </children>
             </HBox>
             <HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="45.0" prefWidth="320.0" spacing="10.0" style="-fx-background-color: rgba(255, 255, 255, 0.1);" styleClass="input-field-container">
                <children>
-                  <FontAwesomeIcon fill="#00d4c8" glyphName="LOCK" size="2em" />
+                  <FontAwesomeIcon fill="#1976d2" glyphName="LOCK" size="2em" />
 
-                  <PasswordField fx:id="password" HBox.hgrow="ALWAYS" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="210.0" promptText="Mật khẩu" styleClass="text-field" />
+                  <PasswordField fx:id="password" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="210.0" promptText="Mật khẩu" styleClass="text-field" HBox.hgrow="ALWAYS" />
 
-                  <TextField fx:id="passwordVisible" managed="false" visible="false" HBox.hgrow="ALWAYS" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="210.0" promptText="Mật khẩu" styleClass="text-field" />
+                  <TextField fx:id="passwordVisible" managed="false" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="45.0" prefWidth="210.0" promptText="Mật khẩu" styleClass="text-field" visible="false" HBox.hgrow="ALWAYS" />
 
                   <Label fx:id="togglePasswordIcon" onMouseClicked="#handleTogglePassword" prefHeight="18.0" prefWidth="30.0" style="-fx-cursor: hand;" text="👁" textAlignment="CENTER" textFill="#fafafa">
                      <font>

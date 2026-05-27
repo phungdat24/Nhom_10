@@ -123,15 +123,13 @@
 .vibo-home-btn {
     -fx-cursor: hand;
     /* Thiết lập padding: 6px trên/dưới và 16px trái/phải để nút thon gọn */
-    -fx-padding: 2 16 2 16;
-    -fx-background-radius: 20;
+    -fx-padding: 6 16 6 16;
+    -fx-background-radius: 15;
     -fx-alignment: center;
 }
 
 /* Hiệu ứng sáng lên một chút khi người dùng di chuột vào nút */
-.vibo-home-btn:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.22);
-}
+
 
 .vibo-logo-text {
     -fx-text-fill: #ffffff;;

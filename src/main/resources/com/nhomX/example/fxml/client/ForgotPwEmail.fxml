@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Hyperlink?>
@@ -59,7 +60,7 @@
             <AnchorPane maxWidth="-Infinity" minHeight="90" minWidth="90" prefHeight="90" prefWidth="90">
                 <Circle centerX="45" centerY="45" fill="rgba(201,162,39,0.10)" radius="44" style="-fx-stroke: rgba(201,162,39,0.25); -fx-stroke-width: 1.5;" />
                 <Circle centerX="45" centerY="45" fill="rgba(201,162,39,0.18)" radius="34" />
-                <Label layoutX="28" layoutY="24" style="-fx-text-fill: #c9a227; -fx-font-size: 30px;" text="🔑" AnchorPane.leftAnchor="28.0" AnchorPane.topAnchor="24.0" />
+            <FontAwesomeIcon fill="#ccc30f" glyphName="KEY" layoutX="27.0" layoutY="57.0" size="3em" />
             </AnchorPane>
 
             <!-- TITLE + DESCRIPTION -->
@@ -84,15 +85,18 @@
             <Button fx:id="btnSendOtp" maxWidth="Infinity" onAction="#handleSendOtp" style="-fx-background-color: linear-gradient(to bottom, #d4aa2e, #c9a227); -fx-text-fill: #2b1f12; -fx-font-weight: bold; -fx-font-size: 15px; -fx-background-radius: 10; -fx-padding: 14 0 14 0; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.35), 12, 0, 0, 3);" text="📨   Gửi mã OTP" />
 
             <!-- BACK TO LOGIN -->
-            <Hyperlink onAction="#handleBackToLogin" style="-fx-text-fill: rgba(255,220,160,0.60); -fx-font-size: 13px; -fx-border-width: 0; -fx-underline: true; -fx-cursor: hand;" text="← Quay lại đăng nhập" />
+            <Hyperlink onAction="#handleBackToLogin" style="-fx-text-fill: rgba(255,220,160,0.60); -fx-font-size: 13px; -fx-border-width: 0; -fx-underline: true; -fx-cursor: hand;" text="Quay lại đăng nhập" />
 
             <!-- FOOTER TRUST BADGES -->
             <HBox alignment="CENTER" spacing="14">
-                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 10px;" text="🔒  SECURE" />
+                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 12px;" text="SECURE">
+               <graphic>
+                  <FontAwesomeIcon fill="#d0d719" glyphName="LOCK" size="1.3em" />
+               </graphic></Label>
                 <Label style="-fx-text-fill: rgba(201,162,39,0.22); -fx-font-size: 10px;" text="•" />
-                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 10px;" text="🛡  ENCRYPTED" />
+                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 12px;" text="🛡  ENCRYPTED" />
                 <Label style="-fx-text-fill: rgba(201,162,39,0.22); -fx-font-size: 10px;" text="•" />
-                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 10px;" text="⚡  VERIFIED" />
+                <Label style="-fx-text-fill: rgba(201,162,39,0.38); -fx-font-size: 12px;" text="⚡  VERIFIED" />
             </HBox>
         </VBox>
     </VBox>

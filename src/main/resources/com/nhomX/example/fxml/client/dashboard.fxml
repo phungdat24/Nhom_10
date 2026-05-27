@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.SVGPath?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane prefHeight="700.0" prefWidth="1024.0" styleClass="root-pane" stylesheets="@../../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.MainDashBoardController">
@@ -20,21 +19,17 @@
    <top>
       <HBox fx:id="header" alignment="CENTER_LEFT" spacing="16.0" styleClass="header">
          <padding><Insets bottom="12" left="20" right="20" top="12" /></padding>
-         <HBox alignment="CENTER_LEFT" spacing="14" styleClass="logo-container">
+         <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="logo-container">
             <children>
                <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar" styleClass="btn-hamburger">
                   <graphic>
-                     <SVGPath content="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" styleClass="svg-icon-hamburger" />
+                     <FontAwesomeIcon glyphName="BARS" size="1.5em" />
                   </graphic>
                </Button>
 
                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="brand-box">
                   <children>
-                     <FontAwesomeIcon fill="#00d4c8" glyphName="GAVEL" size="3em">
-                        <font>
-                           <Font size="42.0" />
-                        </font>
-                     </FontAwesomeIcon>
+                     <FontAwesomeIcon fill="RED" glyphName="PAW" size="3em" />
                      <Label styleClass="vibo-logo-text" text="PeakBid" textFill="WHITE">
                         <font>
                            <Font name="Arial" size="4.0" />
@@ -50,7 +45,10 @@
          <Region prefHeight="40.0" prefWidth="60.0" HBox.hgrow="ALWAYS" />
 
                      <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
-         <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="👤  Đăng nhập/Đăng ký" />
+         <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="Đăng nhập/Đăng ký">
+            <graphic>
+               <FontAwesomeIcon fill="WHITE" glyphName="USER" size="1.3em" />
+            </graphic></Button>
 
          <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
          <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" style="-fx-background-color: rgba(201,162,39,0.10);-fx-background-radius: 20;-fx-border-color: rgba(201,162,39,0.28);-fx-border-radius: 20;-fx-border-width: 1;-fx-padding: 6 14 6 8;" visible="false">
@@ -84,13 +82,25 @@
          <padding><Insets bottom="20" left="12" right="12" top="20" /></padding>
 
          <!-- Navigation Buttons -->
-         <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleDashboard" styleClass="nav-btn, nav-btn-active" text="🏠   Dashboard" />
+         <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleDashboard" styleClass="nav-btn, nav-btn-active" text="Dashboard">
+            <graphic>
+               <FontAwesomeIcon fill="WHITE" glyphName="HOME" size="1.3em" text="" />
+            </graphic></Button>
 
-         <Button fx:id="btnLiveAuction" maxWidth="Infinity" onAction="#handleLiveAuction" styleClass="nav-btn" text="🚩   Live Auction" />
+         <Button fx:id="btnLiveAuction" maxWidth="Infinity" onAction="#handleLiveAuction" styleClass="nav-btn" text="Live Auction">
+            <graphic>
+               <FontAwesomeIcon fill="WHITE" glyphName="FIRE" size="1.3em" />
+            </graphic></Button>
 
-         <Button fx:id="btnMyAuction" maxWidth="Infinity" onAction="#handleMyAuctions" styleClass="nav-btn" text="≡   My Auctions" />
+         <Button fx:id="btnMyAuction" maxWidth="Infinity" onAction="#handleMyAuctions" styleClass="nav-btn" text="My Auctions">
+            <graphic>
+               <FontAwesomeIcon fill="WHITE" glyphName="LIST" size="1.3em" />
+            </graphic></Button>
 
-         <Button fx:id="btnSeller" maxWidth="Infinity" onAction="#handleSeller" styleClass="nav-btn" text="🏷   Seller" />
+         <Button fx:id="btnSeller" maxWidth="Infinity" onAction="#handleSeller" styleClass="nav-btn" text="Seller">
+            <graphic>
+               <FontAwesomeIcon fill="WHITE" glyphName="TAG" size="1.3em" />
+            </graphic></Button>
       </VBox>
    </left>
 

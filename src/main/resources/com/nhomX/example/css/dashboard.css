@@ -256,7 +256,7 @@
 
 .featured-tag {
     -fx-text-fill: #c9a227;
-    -fx-font-size: 12px;
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
 }
 
@@ -645,4 +645,36 @@
     -fx-effect: dropshadow(three-pass-box, rgba(46, 125, 50, 0.35), 8, 0, 0, 3);
 }
 
-/*---ItemCard---*/
+/*dashboard*/
+/* ---- Nút Đấu giá ngay (Cam lửa) ---- */
+.btn-bid-now {
+    -fx-background-color: #FF5722; /* Màu cam lửa đậm */
+    -fx-text-fill: white;          /* Chữ màu trắng để nổi bật */
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 5px;    /* Bo góc nút */
+    -fx-cursor: hand;              /* Hiển thị con trỏ chuột dạng bàn tay */
+    -fx-padding: 8px 15px;         /* Tăng khoảng trống để nút nhìn cân đối hơn */
+}
+
+/* Hiệu ứng khi di chuột vào nút Đấu giá */
+.btn-bid-now:hover {
+    -fx-background-color: #E64A19; /* Chuyển màu cam sậm hơn một chút */
+}
+
+
+/* ---- Nút Xem chi tiết (Xanh lá) ---- */
+.btn-view-details {
+    -fx-background-color: #4CAF50; /* Màu xanh lá cây dịu mắt */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 15px;
+}
+
+/* Hiệu ứng khi di chuột vào nút Xem chi tiết */
+.btn-view-details:hover {
+    -fx-background-color: #388E3C; /* Chuyển màu xanh sậm hơn */
+}

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
@@ -12,17 +13,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.shape.SVGPath?>
-<StackPane styleClass="main-root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="@../../css/login.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.shared.RegisterController">
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" styleClass="main-root" stylesheets="@../../css/login.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.shared.RegisterController">
     <children>
         <HBox alignment="TOP_LEFT" pickOnBounds="false" StackPane.alignment="TOP_LEFT">
             <children>
                 <HBox alignment="CENTER" maxHeight="100.0" onMouseClicked="#handleBackToHome" styleClass="vibo-home-btn">
                     <children>
-                        <SVGPath content="M17.5 2.5L21.5 6.5L13.5 14.5L12 13L13 12L7 6L8 5L6.5 3.5L10.5 0.5L12 2L11 3L17.5 2.5ZM2 22L10 14L12 16L4 24L2 22Z"
-                                 styleClass="brand-gavel-svg" />
-                        <Label styleClass="vibo-logo-text" text="Vibo" />
+                  <FontAwesomeIcon fill="RED" glyphName="PAW" size="3em" />
+                        <Label styleClass="vibo-logo-text" text="PeakBid" />
                     </children>
                     <HBox.margin>
                         <Insets right="30.0" top="30.0" />
