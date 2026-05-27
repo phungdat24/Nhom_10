@@ -5,10 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+
 import com.nhomX.example.repository.AuctionRepository;
 import com.nhomX.example.repository.AuctionRepositoryImpl;
 import com.nhomX.example.repository.BidRepository;
@@ -39,31 +37,40 @@ public class AuctionServer {
 
 
     private AuctionScheduler auctionScheduler;
+    private volatile ServerSocket serverSocket;
 
     public void start() {
         // Đăng ký Shutdown Hook. Khi tắt app đoạn code này sẽ chạy để đóng sạch luồng.
         registerShutdownHook();
 
-        // BUG FIX: Scheduler được tạo nhưng start() không bao giờ được gọi trong code gốc
-        // → phiên đấu giá hết hạn không bao giờ tự đóng
-        AuctionScheduler scheduler = new AuctionScheduler(this);
-        scheduler.start();
+        this.auctionScheduler = new AuctionScheduler(this); // ✅ Gán vào field
+        this.auctionScheduler.start();
 
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+        try {
+            serverSocket = new ServerSocket(PORT);
             System.out.println("SERVER: Đang đợi kết nối tại cổng " + PORT + "...");
-            while (true) {
-                Socket socket = serverSocket.accept();
-                System.out.println("SERVER: Có kết nối mới từ " + socket.getInetAddress());
-                ClientHandler handler = new ClientHandler(socket, this, itemRepository,
-                        userRepository, bidRepository, auctionRepository);
-                clients.add(handler);
-                serverExecutor.execute(handler);
-                // [THÊM MỚI] Báo cho tất cả client biết có người mới vào
-                broadcastOnlineCount();
+            while (!serverExecutor.isShutdown()) {
+                try {
+                    Socket socket = serverSocket.accept();
+                    System.out.println("SERVER: Có kết nối mới từ " + socket.getInetAddress());
+                    ClientHandler handler = new ClientHandler(socket, this, itemRepository,
+                            userRepository, bidRepository, auctionRepository);
+                    clients.add(handler);
+                    serverExecutor.execute(handler);
+                    // [THÊM MỚI] Báo cho tất cả client biết có người mới vào
+                    broadcastOnlineCount();
+                } catch (IOException e) {
+                    if (serverSocket == null || serverSocket.isClosed()
+                            || serverExecutor.isShutdown()) {
+                        break;
+                    }
+                    System.err.println("SERVER ERROR: " + e.getMessage());
+                }
             }
         } catch (IOException e) {
             System.err.println("SERVER ERROR: " + e.getMessage());
         } finally {
+            closeServerSocket();
             // Đề phòng trường hợp vòng lặp văng lỗi, chặn luôn luồng ở đây
             if (!serverExecutor.isShutdown()) {
                 serverExecutor.shutdown();
@@ -75,10 +82,27 @@ public class AuctionServer {
     private void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("SERVER: Đang dọn dẹp trước khi tắt...");
+            closeServerSocket();
+            if (auctionScheduler != null) auctionScheduler.shutdown(); // ✅ Dọn Scheduler
             if (!serverExecutor.isShutdown()) {
                 serverExecutor.shutdown();
+                try {
+                    serverExecutor.awaitTermination(10, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }, "shutdown-hook"));
+    }
+
+    private void closeServerSocket() {
+        try {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                serverSocket.close();
+            }
+        } catch (IOException e) {
+            System.err.println("SERVER: Lỗi đóng ServerSocket - " + e.getMessage());
+        }
     }
 
     // Client gọi hàm này khi bấm vào xem chi tiết một món hàng

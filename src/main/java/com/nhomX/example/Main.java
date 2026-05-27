@@ -26,6 +26,15 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    @Override
+    public void stop() throws Exception {
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.disconnect();
+        }
+        super.stop();
+    }
+
     public static void main(String[] args) {
         launch();
     }

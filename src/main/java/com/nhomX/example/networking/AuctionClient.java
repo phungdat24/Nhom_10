@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +22,7 @@ import javafx.application.Platform;
 
 public class AuctionClient {
 
-    private String username;
+    private volatile String username;
     // Đưa socket lên làm thuộc tính class để chống Leak
     private Socket socket;
     // Thêm volatile để chống Race Condition khi đọc/ghi đa luồng:
@@ -30,7 +32,14 @@ public class AuctionClient {
     private volatile ServerEventListener listener;
     // THÊM MỚI: Cache ảnh tại Client — tránh request trùng lặp
     // Key: fileName, Value: byte[]
-    private final ConcurrentHashMap<String, byte[]> imageCache = new ConcurrentHashMap<>();
+    private static final int IMAGE_CACHE_LIMIT = 50;
+    private final Map<String, byte[]> imageCache = Collections.synchronizedMap(
+            new LinkedHashMap<>(IMAGE_CACHE_LIMIT, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, byte[]> eldest) {
+                    return size() > IMAGE_CACHE_LIMIT;
+                }
+            });
 
 
     // Cung cấp hàm để các Controller sử dụng:
@@ -48,6 +57,7 @@ public class AuctionClient {
             // Khởi tạo luồng (Out trước, In sau chống Deadlock)
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
+
 
             // LUỒNG NGẦM: Luôn lắng nghe cập nhật từ Server để không làm treo UI
             Thread listenerThread = new Thread(this::listenToServer, "client-listener");
@@ -80,8 +90,9 @@ public class AuctionClient {
      */
     public void requestImage(String fileName, Consumer<byte[]> onReceived) {
         // Kiểm tra cache trước
-        if (imageCache.containsKey(fileName)) {
-            runOnUiThread(() -> onReceived.accept(imageCache.get(fileName)));
+        byte[] cachedImage = imageCache.get(fileName);
+        if (cachedImage != null) {
+            runOnUiThread(() -> onReceived.accept(cachedImage));
             return;
         }
         // Lưu callback tạm để gọi khi nhận được IMAGE_RESULT

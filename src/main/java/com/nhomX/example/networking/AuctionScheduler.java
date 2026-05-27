@@ -27,7 +27,7 @@ public class AuctionScheduler {
     public void start() {
         System.out.println("SCHEDULER: Khoi dong, kiem tra "
                 + CHECK_INTERVAL_SECONDS + "s/lan...");
-        scheduler.scheduleAtFixedRate(() -> {
+        scheduler.scheduleWithFixedDelay(() -> {
             try {
                 processAuctionStates();
             } catch (Exception e) {
@@ -56,18 +56,11 @@ public class AuctionScheduler {
 
         if (activeAuctions != null) {
             for (Auction auction : activeAuctions) {
-                if (auction.getEndTime() == null || now.isBefore(auction.getEndTime())) {
-                    continue;
-                }
-
                 auction.closeAuction();
-
                 boolean saved = server.getAuctionRepository().updateAuctionStatus(auction);
-
                 if (saved) {
                     String winnerId =
                             (auction.getWinner() != null) ? auction.getWinner().getId() : null;
-
                     server.broadcastToAuction(auction.getId(),
                             Message.auctionClosed(auction.getId(), winnerId));
 

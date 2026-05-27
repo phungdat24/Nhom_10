@@ -48,10 +48,10 @@ public class ClientHandler implements Runnable {
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
     // Lưu thông tin user dùng trong logging
-    private User currentUser;
-    private Object[] tempRegisterData;
-    private String tempOtpCode;
-    private LocalDateTime otpCreationTime;
+    private volatile User currentUser;
+    private volatile Object[] tempRegisterData;
+    private volatile String tempOtpCode;
+    private volatile LocalDateTime otpCreationTime;
 
     private volatile boolean cleaned = false;
     // THAY ĐỔI 1: Lưu ảnh ra ngoài JAR, vào thư mục tuyệt đối bên cạnh file chạy
@@ -77,6 +77,7 @@ public class ClientHandler implements Runnable {
             // Khởi tạo luồng vào/ra dữ liệu
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
+            in.setObjectInputFilter(NetworkObjectFilter.create());
 
             Message msgFromClient;
             while ((msgFromClient = (Message) in.readObject()) != null) {
@@ -393,9 +394,16 @@ public class ClientHandler implements Runnable {
         String[] otpPayload = (String[]) msg.getData();
         // otpPayload[0] là email, ta có thể bỏ qua nếu đăng ký đang dùng tempRegisterData
         String clientOtp = otpPayload[1]; // Lấy đúng mã OTP ở vị trí số 1
+        Object[] registerData = this.tempRegisterData;
+        String expectedOtp = this.tempOtpCode;
+        LocalDateTime createdAt = this.otpCreationTime;
+        if (registerData == null || expectedOtp == null || createdAt == null) {
+            this.sendToClient(new Message("REGISTER_FAIL",
+                    "Phiên đăng ký không hợp lệ. Vui lòng đăng ký lại!"));
+            return;
+        }
         // 1. Kiểm tra xem mã đã quá hạn 5 phút chưa
-        if (this.otpCreationTime == null || Duration
-                .between(this.otpCreationTime, LocalDateTime.now()).toMinutes() > 5) {
+        if (Duration.between(createdAt, LocalDateTime.now()).toMinutes() > 5) {
 
             this.sendToClient(new Message("REGISTER_FAIL",
                     "Mã xác thực OTP đã hết hạn (Quá 5 phút). Vui lòng gửi lại mã mới!"));
@@ -405,10 +413,10 @@ public class ClientHandler implements Runnable {
             this.otpCreationTime = null;
             return;
         }
-        if (this.tempOtpCode != null && this.tempOtpCode.equals(clientOtp)) {
-            String regEmail = (String) tempRegisterData[0];
-            String regPass = (String) tempRegisterData[1];
-            String regName = (String) tempRegisterData[2];
+        if (expectedOtp.equals(clientOtp)) {
+            String regEmail = (String) registerData[0];
+            String regPass = (String) registerData[1];
+            String regName = (String) registerData[2];
             RegularUser newUser = new RegularUser(UUID.randomUUID().toString(),
                     regEmail, regPass, regName, 0L);
             newUser.addRole(Role.BIDDER);
@@ -438,23 +446,34 @@ public class ClientHandler implements Runnable {
         // 1. Tạo mã OTP mới (Dùng chung cho cả 2 luồng)
         String newOtpCode = String.format("%06d", new java.util.Random().nextInt(999999));
 
-        // [TỐI ƯU]: Kiểm tra xem có phiên làm việc hợp lệ không
-        boolean isSessionValid = false;
+        OtpData forgotPasswordOtp = null;
         if ("FORGOT_PASSWORD".equals(flow)) {
-            otpStorage.put(targetEmail, new OtpData(newOtpCode));
+            forgotPasswordOtp = new OtpData(newOtpCode);
+            otpStorage.put(targetEmail, forgotPasswordOtp);
         } else {
             // Luồng Đăng ký: cập nhật biến cục bộ
+            Object[] registerData = this.tempRegisterData;
+            if (registerData == null || registerData.length == 0
+                    || !targetEmail.equals(registerData[0])) {
+                this.sendToClient(new Message("REGISTER_FAIL",
+                        "Phiên đăng ký không hợp lệ. Vui lòng đăng ký lại!"));
+                return;
+            }
             this.tempOtpCode = newOtpCode;
             this.otpCreationTime = LocalDateTime.now();
         }
         System.out.println("SERVER: Đang gửi lại mã OTP [" + newOtpCode + "] tới " + targetEmail);
         EmailService resendService = new GmailServiceImpl();
+        OtpData otpToRemoveOnFailure = forgotPasswordOtp;
         resendService.sendOtp(targetEmail, newOtpCode).thenAccept(isSuccess -> {
             if (isSuccess) {
                 // Gửi thành công, báo cho Client biết (Mặc dù Client không cần
                 // chuyển cảnh nữa)
                 System.out.println("SERVER: Đã gửi lại thư thành công!");
             } else {
+                if (otpToRemoveOnFailure != null) {
+                    otpStorage.remove(targetEmail, otpToRemoveOnFailure);
+                }
                 this.sendToClient(new Message("REGISTER_FAIL",
                             "Lỗi đường truyền, không thể gửi lại email!"));
             }
@@ -531,8 +550,8 @@ public class ClientHandler implements Runnable {
     }
 
     public static class OtpData {
-        public String code;
-        public LocalDateTime expireTime;
+        public final String code;
+        public final LocalDateTime expireTime;
 
         public OtpData(String code) {
             this.code = code;
@@ -555,13 +574,13 @@ public class ClientHandler implements Runnable {
 
                 // 1. KIỂM TRA HẠN SỬ DỤNG
                 if (LocalDateTime.now().isAfter(storedOtpData.expireTime)) {
-                    otpStorage.remove(email); // Hết hạn thì xé nháp ngay
+                    otpStorage.remove(email, storedOtpData); // Hết hạn thì xé nháp ngay
                     System.out.println("SERVER: Mã OTP ĐÃ HẾT HẠN cho email " + email);
                     response = new Message("FORGOT_PASSWORD_RESULT", new String[]{"false", "Mã OTP đã hết hạn (quá 5 phút). Vui lòng gửi lại mã mới!"});
                 }
                 // 2. KIỂM TRA TÍNH CHÍNH XÁC
                 else if (storedOtpData.code.equals(clientOtp)) {
-                    otpStorage.remove(email); // Dùng xong cũng xé nháp (Bảo mật 1 lần)
+                    otpStorage.remove(email, storedOtpData); // Dùng xong cũng xé nháp (Bảo mật 1 lần)
                     System.out.println("SERVER: Mã OTP HỢP LỆ cho email " + email);
                     response = new Message("FORGOT_PASSWORD_RESULT", new String[]{"true", "Xác thực OTP thành công!"});
                 }// 3. NHẬP SAI
@@ -617,7 +636,8 @@ public class ClientHandler implements Runnable {
 
             if (isEmailExist) {
                 String otpCode = String.format("%06d", new java.util.Random().nextInt(999999));
-                otpStorage.put(email, new OtpData(otpCode));
+                OtpData forgotPasswordOtp = new OtpData(otpCode);
+                otpStorage.put(email, forgotPasswordOtp);
                 System.out.println("SERVER: Đã tạo OTP [" + otpCode + "] cho quên mật khẩu.");
                 EmailService emailService = new GmailServiceImpl();
                 emailService.sendOtp(email, otpCode).thenAccept(isSuccess -> {
@@ -626,7 +646,7 @@ public class ClientHandler implements Runnable {
                         sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
                     } else {
                         // Lỗi mạng hoặc email rác -> Xóa OTP vừa tạo đi và báo lỗi
-                        otpStorage.remove(email);
+                        otpStorage.remove(email, forgotPasswordOtp);
                         String[] responseData = {"false", "Hệ thống không thể gửi email lúc này. Vui lòng thử lại!"};
                         sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
                     }
@@ -748,6 +768,8 @@ public class ClientHandler implements Runnable {
     }
 
     private void cleanup() {
+        if (cleaned) return; // ✅ Idempotent guard
+        cleaned = true;
         server.removeClient(this);
         try {
             if (socket != null && !socket.isClosed())
