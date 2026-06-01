@@ -84,7 +84,7 @@ public class DatabaseConnection {
 
     // Bảng Auto_Bids (Bảng mới): Hỗ trợ tính năng đấu giá tự động
     String createAutoBidsTable = "CREATE TABLE IF NOT EXISTS auto_bids (" + "id TEXT PRIMARY KEY, "
-        + "max_limit INTEGER, " + "increment INTEGER, " + "created_at TEXT, " + "user_id TEXT, "
+        + "max_price INTEGER, " + "step_price INTEGER, " + "is_active INTEGER DEFAULT 1, "+ "created_at TEXT, " + "user_id TEXT, "
         + "auction_id TEXT, " + "FOREIGN KEY(user_id) REFERENCES users(id), "
         + "FOREIGN KEY(auction_id) REFERENCES auctions(id), " + "UNIQUE(user_id, auction_id));";
 

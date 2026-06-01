@@ -16,6 +16,7 @@ import com.nhomX.example.model.BidTransaction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.User;
+import com.nhomX.example.utils.AlertUtils;
 import javafx.application.Platform;
 
 public class AuctionClient {
@@ -449,6 +450,44 @@ public class AuctionClient {
                         listener.onDepositResult(isDepositSuccess, newBalance);
                     }
                 });
+                break;
+            case "AUTO_BID_SUCCESS":
+                runOnUiThread(() -> {
+                    // Gọi hàm AlertUtils để báo tin vui cho người dùng
+                    AlertUtils.showSuccess(
+                            "Thành công",
+                            "Đã lưu cấu hình Đấu giá tự động (Auto-bid) thành công!"
+                    );
+                });
+                break;
+
+            case "AUTO_BID_FAIL":
+                runOnUiThread(() -> {
+                    String failReason = msg.getData() != null ? (String) msg.getData() : "Lỗi không xác định!";
+                    // Báo lỗi cho người dùng biết
+                    AlertUtils.showError(
+                            "Cảnh báo",
+                            "Thiết lập Auto-bid thất bại: " + failReason
+                    );
+                });
+                break;
+            // TÌM ĐẾN VÀ THÊM VÀO TRONG VÒNG SWITCH CỦA AuctionClient.java
+
+            case "AUTO_BID_STOPPED":
+                Object[] stopData = (Object[]) msg.getData();
+                String stoppedAuctionId = (String) stopData[0];
+                String targetUserId = (String) stopData[1];
+                String stopReason = (String) stopData[2];
+
+                // CHỈ XỬ LÝ NẾU TIN NHẮN NÀY DÀNH CHO CHÍNH USER ĐANG ĐĂNG NHẬP Ở MÁY NÀY
+                User currentUser = SessionManager.getInstance().getCurrentUser();
+                if (currentUser != null && currentUser.getId().equals(targetUserId)) {
+                    runOnUiThread(() -> {
+                        if (listener != null) {
+                            listener.onAutoBidStopped(stoppedAuctionId, stopReason);
+                        }
+                    });
+                }
                 break;
 
             default:

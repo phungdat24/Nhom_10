@@ -19,19 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.nhomX.example.exception.AuctionClosedException;
 import com.nhomX.example.exception.AuthenticationException;
 import com.nhomX.example.exception.InvalidBidException;
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.BidTransaction;
-import com.nhomX.example.model.ItemImage;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.model.MyAuctionDTO;
-import com.nhomX.example.model.RegularUser;
-import com.nhomX.example.model.Role;
-import com.nhomX.example.model.User;
-import com.nhomX.example.repository.AuctionRepository;
-import com.nhomX.example.repository.BidRepository;
-import com.nhomX.example.repository.ItemRepository;
-import com.nhomX.example.repository.UserRepository;
+import com.nhomX.example.model.*;
+import com.nhomX.example.repository.*;
 import com.nhomX.example.service.AuctionService;
 import com.nhomX.example.service.EmailService;
 import com.nhomX.example.service.GmailServiceImpl;
@@ -47,6 +36,7 @@ public class ClientHandler implements Runnable {
     private final UserRepository userRepository;
     private final BidRepository bidRepository;
     private final AuctionRepository auctionRepository;
+    private final AutoBidRepository autoBidRepository;
     // Lưu thông tin user dùng trong logging
     private User currentUser;
     private Object[] tempRegisterData;
@@ -62,13 +52,14 @@ public class ClientHandler implements Runnable {
     public static final ConcurrentHashMap<String,OtpData> otpStorage = new ConcurrentHashMap<>();
 
     public ClientHandler(Socket socket, AuctionServer server, ItemRepository itemRepo,
-            UserRepository userRepo, BidRepository bidRepo, AuctionRepository auctionRepo) {
+            UserRepository userRepo, BidRepository bidRepo, AuctionRepository auctionRepo, AutoBidRepository autoBidRepo) {
         this.socket = socket;
         this.server = server;
         this.itemRepository = itemRepo;
         this.userRepository = userRepo;
         this.bidRepository = bidRepo;
         this.auctionRepository = auctionRepo;
+        this.autoBidRepository = autoBidRepo;
     }
 
     @Override
@@ -498,6 +489,11 @@ public class ClientHandler implements Runnable {
         if (isSuccess) {
             Auction updatedAuction = auctionRepository.findById(auctionId);
             server.broadcastToAll(new Message("AUCTION_APPROVED_ALERT", updatedAuction));
+            // THÊM MỚI: Nếu phiên lên sàn ngay (OPEN), broadcast thêm AUCTION_STARTED
+            // để LiveAuctionContent tự thêm thẻ mà không cần F5
+            if (updatedAuction != null && updatedAuction.getStatus() == AuctionStatus.OPEN) {
+                server.broadcastToAll(new Message("AUCTION_STARTED", updatedAuction));
+            }
         }
         sendToClient(new Message("APPROVE_RESULT",
                 new Object[]{isSuccess, isSuccess ? "Đã duyệt sản phẩm." : "Duyệt thất bại!"}));
@@ -664,6 +660,9 @@ public class ClientHandler implements Runnable {
                                 : msg.getUsername();
                 server.broadcastToAll(Message.updatePrice(bidderFullName, auctionId, bidAmount));
                 sendToClient(Message.bidSuccess());
+                // [THÊM MỚI] Kích hoạt Auto-bid ngay sau khi Bid thủ công thành công
+                // Chạy trên luồng riêng để không làm chậm phản hồi cho người vừa bid
+                triggerAutoBid(auctionId, userId, bidAmount);
             }
         } catch (InvalidBidException | AuthenticationException | AuctionClosedException e) {
             // BẮT LỖI NGHIỆP VỤ: Gửi chính xác thông báo lỗi về cho người dùng
@@ -674,8 +673,73 @@ public class ClientHandler implements Runnable {
             sendToClient(Message.error("Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!"));
         }
     }
+    /**
+     * Kích hoạt chuỗi Auto-bid sau một lượt bid thủ công thành công.
+     *
+     * THIẾT KẾ AN TOÀN:
+     * - Chạy trên Virtual Thread riêng → không block luồng xử lý chính
+     * - Mỗi vòng lặp tái sử dụng executeBidTransaction() đã có Lock + Transaction
+     *   → đảm bảo atomic, tránh Race Condition và Deadlock
+     * - Khi auto-bid thành công, lại gọi đệ quy triggerAutoBid() để xử lý
+     *   trường hợp nhiều người cùng bật Auto-bid (chuỗi phản ứng)
+     */
+    private void triggerAutoBid(String auctionId, String triggerUserId, long currentPrice) {
+        Thread.ofVirtual().name("auto-bid-" + auctionId).start(() -> {
+            try {
+                // Lấy danh sách Auto-bid còn hoạt động, loại trừ người vừa bid
+                List<AutoBidConfig> configs =
+                        ((AutoBidRepositoryImpl) autoBidRepository)
+                                .findActiveByAuctionId(auctionId, triggerUserId);
 
-    private void handleWatchItem(Message msg) {
+                if (configs.isEmpty()) return;
+                // Chỉ xử lý người đầu tiên (max_price cao nhất) để tránh vòng lặp vô hạn
+                // Vòng tiếp theo sẽ tự kích hoạt khi bid này thành công
+                AutoBidConfig config = configs.get(0);
+                String autoUserId = config.getBidder().getId();
+                long   autoBidAmount = currentPrice + config.getIncrement();
+
+                // Kiểm tra không vượt giới hạn
+                if (autoBidAmount > config.getMaxLimit()) {
+                    System.out.println("AUTO-BID: User " + autoUserId
+                            + " đã chạm giới hạn " + config.getMaxLimit() + ", tắt auto-bid.");
+                    ((AutoBidRepositoryImpl) autoBidRepository)
+                            .deactivateByUserAndAuction(autoUserId, auctionId);
+                    // Thông báo cho Client biết Auto-bid của họ đã bị ngắt
+                    String reason = "Đã vượt ngưỡng tối đa (" + config.getMaxLimit() + " VNĐ). Auto-bid đã tự động tắt.";
+                    Object[] stopPayload = {auctionId, autoUserId, reason};
+                    server.broadcastToAll(new Message("AUTO_BID_STOPPED", "System", auctionId, 0, stopPayload));
+                    return;
+                }
+
+                // Tái sử dụng executeBidTransaction() — đã có Lock + Transaction bên trong
+                String autoBidId = UUID.randomUUID().toString();
+                boolean success = bidRepository.executeBidTransaction(
+                        autoUserId, auctionId, autoBidAmount, autoBidId);
+
+                if (success) {
+                    System.out.println("AUTO-BID: ✅ User " + autoUserId
+                            + " tự động bid " + autoBidAmount);
+
+                    User autoUser = userRepository.findById(autoUserId);
+                    String displayName = (autoUser != null) ? autoUser.getFullName() : "Ẩn danh";
+                    // Broadcast giá mới cho Clienta
+                    server.broadcastToAll(Message.updatePrice(displayName, auctionId, autoBidAmount));
+
+                    // Đệ quy: Kích hoạt Auto-bid tiếp theo nếu có người khác cũng bật
+                    // Thêm delay nhỏ 500ms để tránh flood message
+                    Thread.sleep(500);
+                    triggerAutoBid(auctionId, autoUserId, autoBidAmount);
+                }
+
+            } catch (InvalidBidException | AuctionClosedException e) {
+                System.out.println("AUTO-BID: Dừng vì nghiệp vụ - " + e.getMessage());
+            } catch (Exception e) {
+                System.err.println("AUTO-BID: Lỗi không xác định - " + e.getMessage());
+            }
+        });
+    }
+
+                    private void handleWatchItem(Message msg) {
         server.watchAuction(msg.getAuctionId(), this);
     }
 
@@ -718,13 +782,53 @@ public class ClientHandler implements Runnable {
         }
         Object[] data = (Object[]) msg.getData();
         String auctionId = (String) data[0];
-        long maxLimit = (Long) data[1];
-        long increment = (Long) data[2];
-        String userId = currentUser.getId();
+        long maxPrice = (Long) data[1];
+        long stepPrice = (Long) data[2];
+        // Người dùng gửi maxPrice=0 nghĩa là muốn TẮT auto-bid
+        if (maxPrice == 0) {
+            ((AutoBidRepositoryImpl) autoBidRepository)
+                    .deactivateByUserAndAuction(currentUser.getId(), auctionId);
+            sendToClient(Message.autoBidSuccess());
+            return;
+        }
 
-        boolean isSuccess = bidRepository.saveAutoBidConfig(userId, auctionId, maxLimit, increment);
-        sendToClient(isSuccess ? Message.autoBidSuccess()
-                : Message.autoBidFail("Không thể thiết lập Auto-Bid. Vui lòng thử lại!"));
+        AutoBidConfig config = new AutoBidConfig();
+        config.setId(UUID.randomUUID().toString());
+        config.setMaxLimit(maxPrice);
+        config.setIncrement(stepPrice);
+
+        RegularUser bidder = new RegularUser();
+        bidder.setId(currentUser.getId());
+        config.setBidder(bidder);
+
+        Auction auction = new Auction();
+        auction.setId(auctionId);
+        config.setAuction(auction);
+        config.setAuction(auction);
+
+        boolean ok = autoBidRepository.save(config);
+        sendToClient(ok ? Message.autoBidSuccess()
+                : Message.autoBidFail("Không thể lưu cấu hình Auto-bid!"));
+        if (ok) {
+            try {
+                // 1. Lấy thông tin phiên đấu giá mới nhất từ DB để xem ai đang dẫn đầu
+                Auction currentAuction = auctionRepository.findById(auctionId);
+                if (currentAuction != null) {
+                    String currentWinnerId = currentAuction.getWinner() != null ? currentAuction.getWinner().getId() : null;
+                    long currentPrice = currentAuction.getHighestBid();
+
+                    // 2. Nếu người vừa cài Auto-bid KHÔNG PHẢI là người đang dẫn đầu
+                    if (!currentUser.getId().equals(currentWinnerId)) {
+                        System.out.println("SERVER: Khởi động nóng Auto-bid cho user " + currentUser.getId());
+                        // Đánh lừa hệ thống rằng người dẫn đầu cũ vừa bid,
+                        // để hàm triggerAutoBid chạy và tự động đè giá của người dẫn đầu cũ.
+                        triggerAutoBid(auctionId, currentWinnerId, currentPrice);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("SERVER: Lỗi khi khởi động nóng Auto-bid - " + e.getMessage());
+            }
+        }
     }
 
     /**

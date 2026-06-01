@@ -678,6 +678,75 @@
 .btn-view-details:hover {
     -fx-background-color: #388E3C; /* Chuyển màu xanh sậm hơn */
 }
+/* --- THẺ AUTO-BID TỔNG THỂ --- */
+.autobid-card {
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.02), 5, 0, 0, 2); /* Đổ bóng cực nhẹ tạo chiều sâu */
+}
+
+/* --- HEADER NỀN TỐI --- */
+.autobid-header {
+    -fx-background-color: #1a202c; /* Màu xanh đen sang trọng */
+    -fx-padding: 12px 15px;
+    -fx-background-radius: 8px 8px 0 0; /* Bo tròn 2 góc trên */
+}
+
+.autobid-header-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.autobid-header-text {
+    -fx-text-fill: #a0aec0;
+    -fx-font-size: 12px;
+    -fx-padding: 0 10px 0 0;
+}
+
+/* --- PHẦN THÂN (BODY) --- */
+.autobid-body {
+    -fx-padding: 15px;
+}
+
+/* --- THANH TRẠNG THÁI (STATUS FEEDBACK) --- */
+.autobid-status-box {
+    -fx-background-color: #fefcbf; /* Màu vàng nhạt cảnh báo/thông tin */
+    -fx-padding: 10px;
+    -fx-background-radius: 4px;
+}
+
+.autobid-status-icon {
+    -fx-text-fill: #d69e2e;
+    -fx-font-weight: bold;
+}
+
+.autobid-status-text {
+    -fx-text-fill: #b7791f;
+    -fx-font-size: 12px;
+}
+
+/* --- NÚT ACTION AUTO-BID --- */
+.btn-autobid-setup {
+    -fx-background-color: #bfa173; /* Màu vàng Gold đặc trưng của hàng xa xỉ */
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.btn-autobid-setup:hover {
+    -fx-background-color: #d4b483; /* Sáng hơn khi hover */
+}
+
+.btn-autobid-setup:disabled {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #a0aec0;
+}
 
 /*profile*/
 /* ---- Nút Thoát / Quay lại ---- */

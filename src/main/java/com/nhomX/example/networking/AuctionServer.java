@@ -9,14 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.nhomX.example.repository.AuctionRepository;
-import com.nhomX.example.repository.AuctionRepositoryImpl;
-import com.nhomX.example.repository.BidRepository;
-import com.nhomX.example.repository.BidRepositoryImpl;
-import com.nhomX.example.repository.ItemRepository;
-import com.nhomX.example.repository.ItemRepositoryImpl;
-import com.nhomX.example.repository.UserRepository;
-import com.nhomX.example.repository.UserRepositoryImpl;
+
+import com.nhomX.example.repository.*;
 
 public class AuctionServer {
     private static final int PORT = 8080;
@@ -36,6 +30,7 @@ public class AuctionServer {
     private final UserRepository userRepository = new UserRepositoryImpl();
     private final BidRepository bidRepository = new BidRepositoryImpl();
     private final AuctionRepository auctionRepository = new AuctionRepositoryImpl();
+    private final AutoBidRepository autoBidRepository = new AutoBidRepositoryImpl();
 
 
     private AuctionScheduler auctionScheduler;
@@ -55,7 +50,7 @@ public class AuctionServer {
                 Socket socket = serverSocket.accept();
                 System.out.println("SERVER: Có kết nối mới từ " + socket.getInetAddress());
                 ClientHandler handler = new ClientHandler(socket, this, itemRepository,
-                        userRepository, bidRepository, auctionRepository);
+                        userRepository, bidRepository, auctionRepository, autoBidRepository);
                 clients.add(handler);
                 serverExecutor.execute(handler);
                 // [THÊM MỚI] Báo cho tất cả client biết có người mới vào

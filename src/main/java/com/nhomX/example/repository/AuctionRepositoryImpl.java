@@ -21,34 +21,37 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   // Formatter chuẩn để lưu/đọc thời gian nhất quán
   private static final DateTimeFormatter DB_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+  // Khởi tạo và lưu một phiên đấu giá mới vào cơ sở dữ liệu với kết nối độc lập
   @Override
   public void save(Auction auction) {
+    // Câu lệnh SQL với tham số ẩn (?) để tránh SQL Injection
     String sql =
         "INSERT INTO auctions (id, starting_price, highest_bid, start_time, end_time, status, item_id, winner_id, approved_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // Xin một kết nối tử Singleton:
     Connection conn = DatabaseConnection.getInstance().getConnection();
+    // Sử dụng try-with-resources để tự động đóng Statement sau khi dùng xong
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
+      // Truyền dữ liệu số và chuỗi cơ bản
       pstmt.setString(1, auction.getId());
       pstmt.setLong(2, auction.getStartingPrice());
       pstmt.setLong(3, auction.getHighestBid());
 
-      // Lưu start_time đúng định dạng:
+      // Lưu start_time đúng định dạng: ép kiểu LocalDatetime sang String theo định dạng DB_Formatter
       pstmt.setString(4,
           auction.getStartTime() != null ? auction.getStartTime().format(DB_FORMATTER) : null);
       pstmt.setString(5,
           auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
 
-      // Xử lý Enum
+      // Xử lý Enum lấy ở dạng chỗi, null thì gán mặc định là enum
       pstmt.setString(6,
           auction.getStatus() != null ? auction.getStatus().name() : AuctionStatus.PENDING.name());
-
+      // Lây ID của khóa ngoại (Item và winner), đề phòng NullPointerException
       pstmt.setString(7, auction.getItem() != null ? auction.getItem().getId() : null);
       pstmt.setString(8, auction.getWinner() != null ? auction.getWinner().getId() : null);
 
       // Lưu thông tin người duyệt (approved_by)
       pstmt.setString(9, auction.getApprovedBy());
-
+      // Thực thi lệnh ghi xuống database:
       pstmt.executeUpdate();
       System.out.println("✅ Đã lưu phiên đấu giá: " + auction.getId());
     } catch (SQLException e) {
