@@ -123,7 +123,7 @@
                            <FontAwesomeIcon fill="WHITE" glyphName="PLUS_CIRCLE" />
                         </graphic>
                      </Button>
-                     <Button fx:id="btnWithDraw" layoutX="10.0" layoutY="10.0" maxWidth="Infinity" onAction="#handleWithDraw" prefHeight="44.0" prefWidth="288.0" style="-fx-background-color: #2e7d32; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-padding: 13 0 13 0; -fx-cursor: hand;" text="Rút tiền" HBox.hgrow="ALWAYS">
+                     <Button fx:id="btnWithDraw" layoutX="10.0" layoutY="10.0" maxWidth="Infinity" onAction="#handleWithDraw" prefHeight="44.0" prefWidth="288.0" style="-fx-background-color: #BB0000; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-padding: 13 0 13 0; -fx-cursor: hand;" text="Rút tiền" HBox.hgrow="ALWAYS">
                         <graphic>
                            <FontAwesomeIcon fill="WHITE" glyphName="MINUS_CIRCLE" />
                         </graphic>

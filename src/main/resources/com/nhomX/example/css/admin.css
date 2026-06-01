@@ -5,7 +5,7 @@
 
 /* ── ROOT ── */
 .root-pane {
-    -fx-background-color: #484848;
+    -fx-background-color: #0E0E0E;
     -fx-font-family: "Segoe UI", "Arial", sans-serif;
 }
 
@@ -13,7 +13,7 @@
    SIDEBAR
    ============================================= */
 .sidebar {
-    -fx-background-color:#242424;
+    -fx-background-color:#111111;
     -fx-border-color: #252220;
     -fx-border-width: 0 1 0 0;
     -fx-pref-width: 220;
@@ -28,14 +28,14 @@
 }
 
 .logo-title {
-    -fx-text-fill: #ffd700;
+    -fx-text-fill: #C9A84C;
     -fx-font-size: 20px;
     -fx-font-weight: bold;
     -fx-letter-spacing: 2;
 }
 
 .logo-subtitle {
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: #888070;
     -fx-font-size: 10px;
     -fx-letter-spacing: 1;
 }
@@ -47,7 +47,7 @@
 }
 
 .nav-section-label {
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: #888070;
     -fx-font-size: 9px;
     -fx-font-weight: bold;
     -fx-padding: 16 24 6 24;
@@ -56,7 +56,7 @@
 
 .nav-item {
     -fx-background-color: transparent;
-    -fx-text-fill: #b7aaaa;
+    -fx-text-fill: #B7AAAA;
     -fx-font-size: 15px;
     -fx-font-weight: normal;
     -fx-alignment: CENTER_LEFT;
@@ -134,7 +134,7 @@
 }
 
 .topbar {
-    -fx-background-color: #212121;
+    -fx-background-color: #161616;
     -fx-padding: 18 36 18 36;
     -fx-border-color: #252220;
     -fx-border-width: 0 0 1 0;
@@ -170,13 +170,13 @@
 
 .search-icon {
     -fx-font-size: 14px;
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: #888070;
 }
 
 .search-input {
     -fx-background-color: transparent;
     -fx-text-fill: #F0EAD6;
-    -fx-prompt-text-fill: #4A4540;
+    -fx-prompt-text-fill: #888070;
     -fx-font-size: 13px;
     -fx-border-color: transparent;
     -fx-pref-width: 230;
@@ -206,12 +206,12 @@
    CONTENT AREA (vùng chèn màn hình con)
    ============================================= */
 .content-area {
-    -fx-background-color:#1A1A1A;
+    -fx-background-color:#0E0E0E;
     -fx-padding: 32 36 32 36;
 }
 
 .loading-label {
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: #888070;
     -fx-font-size: 14px;
 }
 
@@ -275,7 +275,7 @@
 }
 
 .stat-label {
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: #888070;
     -fx-font-size: 10px;
     -fx-letter-spacing: 1;
 }
@@ -287,7 +287,7 @@
 }
 
 .stat-sub {
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: #888070;
     -fx-font-size: 11px;
 }
 
@@ -315,12 +315,12 @@
 }
 
 .product-seller {
-    -fx-text-fill:#ccbebe;
+    -fx-text-fill:#B7AAAA;
     -fx-font-size: 14px;
 }
 
 .price-label {
-    -fx-text-fill: #b6bc40;
+    -fx-text-fill: #C9A84C;
     -fx-font-size: 12px;
     -fx-letter-spacing: 1;
 }
@@ -371,8 +371,8 @@
 /* --- STYLE CHO NÚT DUYỆT (APPROVE) --- */
 .badge-approved {
     /* Nút Duyệt ở hình mẫu là dạng khối đặc màu vàng thương hiệu */
-    -fx-background-color: #F1C40F;
-    -fx-border-color: #F1C40F;
+    -fx-background-color: #C9A84C;
+    -fx-border-color: #C9A84C;
 
     -fx-border-radius: 6;
     -fx-background-radius: 6;
@@ -389,8 +389,8 @@
     -fx-background-insets: 0;
 }
 .badge-approved:hover {
-    -fx-background-color: #F39C12;
-    -fx-border-color: #F39C12;
+    -fx-background-color: #E8C76A;
+    -fx-border-color: #E8C76A;
 }
 
 /* =============================================
@@ -443,7 +443,7 @@
 }
 
 .btn-cancel:hover {
-    -fx-border-color: #4A4540;
+    -fx-border-color: #888070;
     -fx-text-fill: #F0EAD6;
 }
 
@@ -525,13 +525,449 @@
    ========================================================================== */
 /* Container chính */
 .product-detail{
-    -fx-background-color: #282828;
+    -fx-background-color: #161616;
     -fx-border-radius:12;
     -fx-background-radius: 12;
-    -fx-border-color: #B8B8B8;
+    -fx-border-color: #2A2724;
 }
 
 .title-rectangle{
      -fx-font-weight: bold;
      -fx-font-size: 13px;
+}
+
+
+/* =============================================
+   DASHBOARD DARK REFINEMENT
+   Giữ tone đen chủ đạo, làm card mềm và hiện đại hơn
+   ============================================= */
+.dashboard-root {
+    -fx-background-color: #0E0E0E;
+}
+.dashboard-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #2A2724;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);
+}
+.dashboard-title {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-weight: bold;
+}
+.dashboard-muted {
+    -fx-text-fill: #9CA3AF;
+}
+.dashboard-value {
+    -fx-text-fill: #C9A84C;
+    -fx-font-weight: bold;
+}
+.dashboard-success {
+    -fx-text-fill: #2ECC71;
+}
+.dashboard-chip {
+    -fx-background-color: rgba(201,168,76,0.15);
+    -fx-background-radius: 999;
+    -fx-text-fill: #C9A84C;
+}
+
+/* ==================================================
+   USER MANAGEMENT
+   ================================================== */
+
+.user-filter-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #252220;
+    -fx-border-radius: 18;
+    -fx-padding: 18 22 18 22;
+
+    -fx-effect: dropshadow(
+        gaussian,
+        rgba(0,0,0,0.35),
+        18,
+        0.15,
+        0,
+        6
+    );
+}
+
+.user-table-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #252220;
+    -fx-border-radius: 18;
+
+    -fx-effect: dropshadow(
+        gaussian,
+        rgba(0,0,0,0.35),
+        18,
+        0.15,
+        0,
+        6
+    );
+}
+.user-search-input {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 12;
+
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 12;
+
+    -fx-text-fill: #F0EAD6;
+    -fx-prompt-text-fill: #888070;
+
+    -fx-padding: 12 16 12 16;
+}
+.user-combo {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: #2F2F2F;
+
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.user-combo .list-cell {
+    -fx-text-fill: #F0EAD6;
+}
+.user-btn-add {
+    -fx-background-color: #C9A84C;
+    -fx-background-radius: 12;
+
+    -fx-text-fill: #111111;
+    -fx-font-weight: bold;
+
+    -fx-padding: 12 22 12 22;
+}
+
+.user-btn-add:hover {
+    -fx-background-color: #E8C76A;
+}
+.user-btn-export {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: #2F2F2F;
+
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+
+    -fx-text-fill: #F0EAD6;
+    -fx-font-weight: bold;
+}
+
+.user-btn-export:hover {
+    -fx-border-color: #C9A84C;
+}
+.user-table-header {
+    -fx-background-color: #1B1B1B;
+    -fx-padding: 20;
+}
+
+.user-header-label {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+.user-row {
+    -fx-background-color: #161616;
+
+    -fx-border-color:
+        transparent
+        transparent
+        #252220
+        transparent;
+
+    -fx-border-width: 0 0 1 0;
+
+    -fx-padding: 18;
+}
+
+.user-row:hover {
+    -fx-background-color: #1E1E1E;
+}
+.user-status-active {
+    -fx-background-color: rgba(46,204,113,0.15);
+    -fx-background-radius: 20;
+
+    -fx-text-fill: #2ECC71;
+    -fx-font-weight: bold;
+
+    -fx-padding: 6 14 6 14;
+}
+
+.user-status-locked {
+    -fx-background-color: rgba(231,76,60,0.15);
+    -fx-background-radius: 20;
+
+    -fx-text-fill: #E74C3C;
+    -fx-font-weight: bold;
+
+    -fx-padding: 6 14 6 14;
+}
+.user-page-active {
+    -fx-background-color: #C9A84C;
+    -fx-background-radius: 10;
+
+    -fx-text-fill: #111111;
+    -fx-font-weight: bold;
+}
+
+.user-page-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F0EAD6;
+}
+
+/* ==================================================
+   USER MANAGEMENT PAGE — DARK LUXURY
+   Dùng cho: fxml/admin/UserManagement.fxml
+   ================================================== */
+
+.user-management-root {
+    -fx-background-color: #0E0E0E;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+/* ---------- Filter bar ---------- */
+
+.user-management-filter-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #252220;
+    -fx-border-radius: 18;
+    -fx-padding: 18 22 18 22;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.15, 0, 6);
+}
+
+.user-management-filter-icon {
+    -fx-text-fill: #AEB7C4;
+    -fx-font-size: 14px;
+}
+
+.user-management-filter-title {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.user-management-field-label {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 13px;
+}
+
+.user-management-combo {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 10;
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 10;
+    -fx-mark-color: #AEB7C4;
+}
+
+.user-management-combo .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F0EAD6;
+}
+
+.user-management-combo .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.user-management-search-input {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 12;
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 12;
+    -fx-text-fill: #F0EAD6;
+    -fx-prompt-text-fill: #888070;
+    -fx-padding: 12 16 12 16;
+    -fx-font-size: 13px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.user-management-primary-button {
+    -fx-background-color: #C9A84C;
+    -fx-background-radius: 12;
+    -fx-text-fill: #111111;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 22 12 22;
+    -fx-cursor: hand;
+}
+
+.user-management-primary-button:hover {
+    -fx-background-color: #E8C76A;
+}
+
+.user-management-outline-button {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 12;
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 12;
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 18 12 18;
+    -fx-cursor: hand;
+}
+
+.user-management-outline-button:hover {
+    -fx-border-color: #C9A84C;
+}
+
+/* ---------- Table card ---------- */
+
+.user-management-table-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #252220;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.15, 0, 6);
+}
+
+.user-management-table-header {
+    -fx-background-color: #181818;
+    -fx-background-radius: 18 18 0 0;
+    -fx-border-color: transparent transparent #252220 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 22 26 22 26;
+}
+
+.user-management-header-cell {
+    -fx-text-fill: #AEB7C4;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.user-management-table-row {
+    -fx-background-color: #161616;
+    -fx-border-color: transparent transparent #252220 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 18 26 18 26;
+    -fx-min-height: 72;
+}
+
+.user-management-table-row:hover {
+    -fx-background-color: #1E1E1E;
+}
+
+.user-management-body-cell {
+    -fx-text-fill: #E5E7EB;
+    -fx-font-size: 14px;
+}
+
+.user-management-name-cell {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.user-management-money-cell {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* ---------- Avatar ---------- */
+
+.user-management-avatar-blue,
+.user-management-avatar-gray,
+.user-management-avatar-orange {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-min-width: 38;
+    -fx-min-height: 38;
+    -fx-max-width: 38;
+    -fx-max-height: 38;
+    -fx-background-radius: 19;
+}
+
+.user-management-avatar-blue {
+    -fx-background-color: #0F6BFF;
+}
+
+.user-management-avatar-gray {
+    -fx-background-color: #6B7280;
+    -fx-text-fill: #111827;
+}
+
+.user-management-avatar-orange {
+    -fx-background-color: #E85D12;
+}
+
+/* ---------- Status ---------- */
+
+.user-management-status-active {
+    -fx-background-color: rgba(46,204,113,0.15);
+    -fx-background-radius: 20;
+    -fx-text-fill: #2ECC71;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 14 7 14;
+}
+
+.user-management-status-locked {
+    -fx-background-color: rgba(231,76,60,0.15);
+    -fx-background-radius: 20;
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 14 7 14;
+}
+
+/* ---------- Action icons ---------- */
+
+.user-management-action-view {
+    -fx-text-fill: #2678FF;
+    -fx-font-size: 17px;
+}
+
+.user-management-action-lock {
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 17px;
+}
+
+/* ---------- Footer / Pagination ---------- */
+
+.user-management-table-footer {
+    -fx-background-color: #181818;
+    -fx-background-radius: 0 0 18 18;
+    -fx-padding: 20 26 20 26;
+}
+
+.user-management-footer-text {
+    -fx-text-fill: #AEB7C4;
+    -fx-font-size: 14px;
+}
+
+.user-management-page-active {
+    -fx-background-color: #C9A84C;
+    -fx-background-radius: 9;
+    -fx-text-fill: #111111;
+    -fx-font-weight: bold;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-cursor: hand;
+}
+
+.user-management-page-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F0EAD6;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-cursor: hand;
+}
+
+.user-management-page-button:hover {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 9;
+}
+
+.user-management-page-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: #AEB7C4;
+    -fx-font-size: 18px;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-cursor: hand;
 }
