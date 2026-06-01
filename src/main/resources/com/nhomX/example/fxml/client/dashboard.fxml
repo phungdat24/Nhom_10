@@ -44,7 +44,7 @@
          <!-- Spacer -->
          <Region prefHeight="40.0" prefWidth="60.0" HBox.hgrow="ALWAYS" />
 
-                     <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
+         <!-- [CHƯA ĐĂNG NHẬP] Nút Đăng nhập -->
          <Button fx:id="btnLogin" onAction="#handleLogin" styleClass="btn-login" text="Đăng nhập/Đăng ký">
             <graphic>
                <FontAwesomeIcon fill="WHITE" glyphName="USER" size="1.3em" />
@@ -101,6 +101,41 @@
             <graphic>
                <FontAwesomeIcon fill="WHITE" glyphName="TAG" size="1.3em" />
             </graphic></Button>
+
+         <Region VBox.vgrow="ALWAYS" />
+
+         <!-- USER MINI PROFILE + BALANCE PANEL -->
+         <VBox fx:id="sidebarUserArea" spacing="10" styleClass="sidebar-user-area">
+
+            <!-- Panel sẽ trượt lên/xuống khi bấm vào user card -->
+            <VBox fx:id="walletPanel" managed="false" spacing="8" styleClass="wallet-panel" visible="false">
+               <HBox alignment="CENTER_LEFT">
+                  <Label styleClass="wallet-label" text="Số dư hiện tại" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <FontAwesomeIcon fill="#C9A227" glyphName="EYE" size="1em" />
+               </HBox>
+               <Label fx:id="lblCurrentBalance" styleClass="wallet-balance" text="2.500.000 đ" />
+               <HBox spacing="8">
+                  <Button styleClass="wallet-action-btn" text="Nạp tiền" />
+                  <Button styleClass="wallet-secondary-btn" text="Rút tiền" />
+               </HBox>
+            </VBox>
+
+            <!-- Card người dùng ở góc dưới trái -->
+            <HBox fx:id="sidebarUserCard" alignment="CENTER_LEFT" onMouseClicked="#toggleWalletPanel" spacing="12" styleClass="sidebar-user-card">
+               <StackPane styleClass="sidebar-user-avatar">
+                  <FontAwesomeIcon fill="#2B1F12" glyphName="USER" size="1.2em" />
+               </StackPane>
+
+               <VBox spacing="2">
+                  <Label fx:id="lblSidebarUserName" styleClass="sidebar-user-name" text="Tên" />
+                  <Label styleClass="sidebar-user-role" text="Số dư" />
+               </VBox>
+
+               <Region HBox.hgrow="ALWAYS" />
+               <FontAwesomeIcon fx:id="walletArrowIcon" fill="#C9A227" glyphName="ANGLE_UP" size="1.1em" />
+            </HBox>
+         </VBox>
       </VBox>
    </left>
 
