@@ -73,7 +73,7 @@
         <VBox spacing="0" styleClass="main-area">
 
             <HBox alignment="CENTER_LEFT" spacing="0" styleClass="topbar">
-                <Label fx:id="topbarTitle" text="Quản lý sản phẩm" styleClass="topbar-title" />
+                <Label fx:id="topbarTitle" styleClass="topbar-title" text="Quản lý sản phẩm" />
                 <Region HBox.hgrow="ALWAYS" />
 
                 <HBox fx:id="searchBox" alignment="CENTER_LEFT" spacing="10" styleClass="search-box">
@@ -87,11 +87,7 @@
                </graphic></Button>
             </HBox>
 
-            <StackPane fx:id="contentArea" styleClass="content-area" VBox.vgrow="ALWAYS">
-
-                <Label alignment="CENTER" styleClass="loading-label" text="Đang tải nội dung..." />
-
-            </StackPane>
+            <StackPane fx:id="contentArea" alignment="TOP_LEFT" styleClass="content-area" VBox.vgrow="ALWAYS" />
 
         </VBox>
     </center>
