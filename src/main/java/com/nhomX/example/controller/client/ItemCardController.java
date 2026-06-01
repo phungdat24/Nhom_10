@@ -63,45 +63,16 @@ public class ItemCardController extends BaseController {
         if (auction.getEndTime() != null) {
             lblEndTime.setText(auction.getEndTime().format(formatter));
         }
+        // Load ảnh bằng Utils
         List<ItemImage> images = item.getImages();
         if (images != null && !images.isEmpty() && images.get(0).getImagePath() != null) {
             String fileName = images.get(0).getImagePath().trim();
             ImageLoader.loadAsync(fileName, itemImageView);
         } else {
-            // Cứ ném null vào, ImageLoader sẽ tự động lôi file default_item.png ra hiển thị
             ImageLoader.loadAsync(null, itemImageView);
         }
 
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime end = auction.getEndTime();
-        LocalDateTime start = auction.getStartTime();
-        if (start != null && now.isBefore(start)) {
-            // Trạng thái 1: Chưa đến giờ mở bán
-            java.time.format.DateTimeFormatter formatter =
-                    java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM");
-            lblTimeLeft.setText("Sắp mở lúc: " + start.format(formatter));
-            lblTimeLeft.setStyle("-fx-text-fill: #d35400;"); // Chữ màu cam
-
-        } else if (end != null && now.isBefore(end)) {
-            // Trạng thái 2: Đang diễn ra -> Đếm ngược thời gian kết thúc
-            Duration duration = Duration.between(now, end);
-            long days = duration.toDays();
-            long hours = duration.toHoursPart();
-            long minutes = duration.toMinutesPart();
-
-            if (days > 0) {
-                lblTimeLeft.setText(String.format("Còn lại: %d ngày %d giờ", days, hours));
-            } else {
-                lblTimeLeft.setText(String.format("Còn lại: %d giờ %d phút", hours, minutes));
-            }
-            lblTimeLeft.setStyle("-fx-text-fill: #27ae60;"); // Chữ màu xanh lá
-
-        } else {
-            // Trạng thái 3: Quá hạn end_time
-            lblTimeLeft.setText("Đã kết thúc");
-            lblTimeLeft.setStyle("-fx-text-fill: #c0392b;"); // Chữ màu đỏ
-        }
+        // Tối ưu: Bỏ qua việc tính toán tĩnh, giao toàn quyền cho Timer đếm ngược xử lý UI
         startRealtimeCountdown();
     }
 

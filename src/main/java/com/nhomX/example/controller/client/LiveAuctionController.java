@@ -74,10 +74,9 @@ public class LiveAuctionController extends BaseController
         // Bước 1: Lọc dữ liệu bằng Stream
         List<Auction> filteredList = originalAuctions.stream()
                 .filter(auction -> {
-                    // 1.1 Lọc theo từ khóa Tìm kiếm (Khớp tên sản phẩm hoặc mô tả)
+                    // 1.1 Lọc theo từ khóa Tìm kiếm (Khớp tên sản phẩm )
                     String title = auction.getItem().getTitle().toLowerCase();
-                    String desc = auction.getItem().getDescription() != null ? auction.getItem().getDescription().toLowerCase() : "";
-                    return title.contains(searchKeyword) || desc.contains(searchKeyword);
+                    return title.contains(searchKeyword);
                 })
                 .filter(auction -> {
                     // 1.2 Lọc theo Danh mục sản phẩm (Category)
