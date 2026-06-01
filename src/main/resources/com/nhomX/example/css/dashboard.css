@@ -767,3 +767,89 @@
     -fx-background-color: #8c7b6e;     /* Đổ nền màu xám nâu */
     -fx-text-fill: white;              /* Chuyển chữ sang màu trắng */
 }
+
+/* ========================================================
+   SIDEBAR USER QUICK WALLET
+   ======================================================== */
+
+.sidebar-user-area {
+    -fx-padding: 0 0 0 0;
+}
+
+.sidebar-user-card {
+    -fx-background-color: rgba(255,255,255,0.08);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(201,162,39,0.22);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 12 14 12 14;
+    -fx-cursor: hand;
+}
+
+.sidebar-user-card:hover {
+    -fx-background-color: rgba(255,255,255,0.13);
+    -fx-border-color: rgba(201,162,39,0.55);
+}
+
+.sidebar-user-avatar {
+    -fx-background-color: #C9A227;
+    -fx-background-radius: 22;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+}
+
+.sidebar-user-name {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.sidebar-user-role {
+    -fx-text-fill: rgba(255,255,255,0.72);
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.wallet-panel {
+    -fx-background-color: rgba(15, 10, 4, 0.88);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(201,162,39,0.28);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 10, 0, 0, 4);
+}
+
+.wallet-label {
+    -fx-text-fill: rgba(255,255,255,0.72);
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.wallet-balance {
+    -fx-text-fill: #C9A227;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.wallet-action-btn {
+    -fx-background-color: #2E7D32;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 7 12 7 12;
+    -fx-cursor: hand;
+}
+
+.wallet-secondary-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-color: rgba(201,162,39,0.45);
+    -fx-border-radius: 8;
+    -fx-text-fill: #E8C96A;
+    -fx-font-weight: bold;
+    -fx-padding: 7 12 7 12;
+    -fx-cursor: hand;
+}
