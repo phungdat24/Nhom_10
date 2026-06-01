@@ -98,7 +98,7 @@
                     </children>
                 </VBox>
 
-                <Button fx:id="btnCreateQr" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateQr" prefHeight="45.0" style="-fx-background-color: #111111; -fx-background-radius: 6;" text="Tạo mã thanh toán" textFill="white">
+                <Button fx:id="btnCreateQr" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateQr" prefHeight="45.0" style="-fx-background-color: #111111; -fx-background-radius: 6; -fx-cursor: hand;" text="Tạo mã thanh toán" textFill="white">
                     <font>
                         <Font name="System Bold" size="14.0" />
                     </font>
@@ -251,7 +251,7 @@
                     </children>
                 </HBox>
 
-                <Button fx:id="btnConfirm" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmPayment" prefHeight="48.0" style="-fx-background-color: #0b7285; -fx-background-radius: 8;" text="Đã chuyển khoản thành công" textFill="white">
+                <Button fx:id="btnConfirm" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleConfirmPayment" prefHeight="48.0" style="-fx-background-color: #0b7285; -fx-background-radius: 8; -fx-cursor: hand;" text="Đã chuyển khoản thành công" textFill="white">
                     <font>
                         <Font name="System Bold" size="15.0" />
                     </font>

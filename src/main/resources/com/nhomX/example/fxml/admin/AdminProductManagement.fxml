@@ -8,7 +8,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <ScrollPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="800.0" styleClass="scroll-pane" stylesheets="@../../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.admin.AdminProductManagementController">
    <content>
       <VBox prefHeight="698.0" prefWidth="798.0" spacing="10.0" styleClass="content-area">
@@ -19,7 +18,7 @@
                </font>
             </Label>
             <Separator prefHeight="14.0" prefWidth="754.0" styleClass="tab-item" />
-            <FlowPane fx:id="flowPaneContainer" prefHeight="200.0" prefWidth="200.0" hgap="15" vgap="15"/>
+            <FlowPane fx:id="flowPaneContainer" hgap="15" prefHeight="200.0" prefWidth="200.0" vgap="15" />
          </children>
          <padding>
             <Insets left="15.0" top="10.0" />

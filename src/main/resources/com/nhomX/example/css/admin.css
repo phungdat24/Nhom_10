@@ -122,7 +122,7 @@
 }
 
 .footer-role {
-    -fx-text-fill: #4A4540;
+    -fx-text-fill: white;
     -fx-font-size: 11px;
 }
 
@@ -511,4 +511,27 @@
 .separator .line {
     -fx-border-color: #252220;
     -fx-border-width: 1 0 0 0;
+}
+.tab-item{
+     -fx-background-color: #C9A84C; /* Đổ màu đặc toàn bộ khối */
+     -fx-pref-height: 2px;         /* Ép chiều cao xuống còn 2 pixel */
+     -fx-min-height: 2px;
+     -fx-max-height: 2px;
+     -fx-border-width: 0;
+}
+
+/* ==========================================================================
+   2. DASHBOARD HOME CONTENT (Dán phần code mới vào đây)
+   ========================================================================== */
+/* Container chính */
+.product-detail{
+    -fx-background-color: #282828;
+    -fx-border-radius:12;
+    -fx-background-radius: 12;
+    -fx-border-color: #B8B8B8;
+}
+
+.title-rectangle{
+     -fx-font-weight: bold;
+     -fx-font-size: 13px;
 }

@@ -678,3 +678,23 @@
 .btn-view-details:hover {
     -fx-background-color: #388E3C; /* Chuyển màu xanh sậm hơn */
 }
+
+/*profile*/
+/* ---- Nút Thoát / Quay lại ---- */
+.btn-thoat {
+    -fx-background-color: transparent; /* Nền trong suốt */
+    -fx-border-color: #8c7b6e;         /* Viền màu xám nâu (hợp với màu nền be) */
+    -fx-border-radius: 5px;            /* Bo góc cho viền */
+    -fx-border-width: 1.5px;           /* Độ dày của viền */
+    -fx-text-fill: #5a4f46;            /* Chữ màu xám nâu đậm để dễ đọc */
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 6px 15px;             /* Khoảng cách chữ tới viền */
+}
+
+/* Hiệu ứng khi di chuột vào (Hover) */
+.btn-thoat:hover {
+    -fx-background-color: #8c7b6e;     /* Đổ nền màu xám nâu */
+    -fx-text-fill: white;              /* Chuyển chữ sang màu trắng */
+}
