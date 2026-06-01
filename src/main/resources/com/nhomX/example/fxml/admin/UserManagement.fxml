@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="720.0" prefWidth="1400.0" styleClass="user-management-root" stylesheets="@../../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+
+    <VBox spacing="16" AnchorPane.leftAnchor="28" AnchorPane.rightAnchor="28" AnchorPane.topAnchor="28">
+
+        <!-- FILTER + ACTION BAR -->
+        <HBox alignment="CENTER_LEFT" spacing="18" styleClass="user-management-filter-card">
+            <Label styleClass="user-management-filter-icon" text="▾" />
+            <Label styleClass="user-management-filter-title" text="Bộ lọc thông minh:" />
+
+            <Label styleClass="user-management-field-label" text="Trạng thái:" />
+            <ComboBox prefWidth="130" promptText="Tất cả" styleClass="user-management-combo" />
+
+            <Label styleClass="user-management-field-label" text="Vai trò:" />
+            <ComboBox prefWidth="160" promptText="Người dùng" styleClass="user-management-combo" />
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <TextField prefWidth="300" promptText="Tìm kiếm theo Tên/Email..." styleClass="user-management-search-input" />
+
+            <Button styleClass="user-management-primary-button" text="+  Thêm người dùng" />
+            <Button styleClass="user-management-outline-button" text="⇩  Xuất Excel" />
+        </HBox>
+
+        <!-- TABLE-LIKE CARD -->
+        <VBox styleClass="user-management-table-card">
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" styleClass="user-management-table-header">
+                <Label prefWidth="130" styleClass="user-management-header-cell" text="ID" />
+                <Label prefWidth="300" styleClass="user-management-header-cell" text="Họ tên" />
+                <Label prefWidth="320" styleClass="user-management-header-cell" text="Email" />
+                <Label prefWidth="220" styleClass="user-management-header-cell" text="Số dư" />
+                <Label prefWidth="230" styleClass="user-management-header-cell" text="Trạng thái" />
+                <Label prefWidth="140" styleClass="user-management-header-cell" text="Thao tác" />
+            </HBox>
+
+            <!-- Row 1 -->
+            <HBox alignment="CENTER_LEFT" styleClass="user-management-table-row">
+                <Label prefWidth="130" styleClass="user-management-body-cell" text="#12904" />
+                <HBox alignment="CENTER_LEFT" prefWidth="300" spacing="12">
+                    <Label styleClass="user-management-avatar-blue" text="NV" />
+                    <Label styleClass="user-management-name-cell" text="Nguyễn Văn A" />
+                </HBox>
+                <Label prefWidth="320" styleClass="user-management-body-cell" text="nva.user@gmail.com" />
+                <Label prefWidth="220" styleClass="user-management-money-cell" text="2,500,000 đ" />
+                <HBox alignment="CENTER_LEFT" prefWidth="230">
+                    <Label styleClass="user-management-status-active" text="• ĐANG HOẠT ĐỘNG" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" prefWidth="140" spacing="16">
+               <FontAwesomeIcon fill="#074fed" glyphName="SHIELD" size="1.5em" />
+               <FontAwesomeIcon fill="#e13838" glyphName="TRASH" size="1.5em" />
+                </HBox>
+            </HBox>
+
+            <!-- Row 2 -->
+            <HBox alignment="CENTER_LEFT" styleClass="user-management-table-row">
+                <Label prefWidth="130" styleClass="user-management-body-cell" text="#12903" />
+                <HBox alignment="CENTER_LEFT" prefWidth="300" spacing="12">
+                    <Label styleClass="user-management-avatar-gray" text="TT" />
+                    <Label styleClass="user-management-name-cell" text="Trần Thị B" />
+                </HBox>
+                <Label prefWidth="320" styleClass="user-management-body-cell" text="ttb_99@hotmail.com" />
+                <Label prefWidth="220" styleClass="user-management-money-cell" text="0 đ" />
+                <HBox alignment="CENTER_LEFT" prefWidth="230">
+                    <Label styleClass="user-management-status-locked" text="• BỊ KHÓA" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" prefWidth="140" spacing="16">
+               <FontAwesomeIcon fill="#074fed" glyphName="SHIELD" size="1.3em" />
+               <FontAwesomeIcon fill="#e13838" glyphName="TRASH" size="1.5em" />
+                </HBox>
+            </HBox>
+
+            <!-- Row 3 -->
+            <HBox alignment="CENTER_LEFT" styleClass="user-management-table-row">
+                <Label prefWidth="130" styleClass="user-management-body-cell" text="#12902" />
+                <HBox alignment="CENTER_LEFT" prefWidth="300" spacing="12">
+                    <Label styleClass="user-management-avatar-orange" text="LH" />
+                    <Label styleClass="user-management-name-cell" text="Lê Hoàng" />
+                </HBox>
+                <Label prefWidth="320" styleClass="user-management-body-cell" text="lehoang.dev@outlook.com" />
+                <Label prefWidth="220" styleClass="user-management-money-cell" text="15,800,000 đ" />
+                <HBox alignment="CENTER_LEFT" prefWidth="230">
+                    <Label styleClass="user-management-status-active" text="• ĐANG HOẠT ĐỘNG" />
+                </HBox>
+                <HBox alignment="CENTER_LEFT" prefWidth="140" spacing="16">
+               <FontAwesomeIcon fill="#074fed" glyphName="SHIELD" size="1.3em" />
+               <FontAwesomeIcon fill="#e13838" glyphName="TRASH" size="1.5em" />
+                </HBox>
+            </HBox>
+
+            <!-- Footer -->
+            <HBox alignment="CENTER_LEFT" styleClass="user-management-table-footer">
+                <Label styleClass="user-management-footer-text" text="Đang xem 1 - 3 của 1,240 người dùng" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button styleClass="user-management-page-ghost" text="‹" />
+                <Button styleClass="user-management-page-active" text="1" />
+                <Button styleClass="user-management-page-button" text="2" />
+                <Button styleClass="user-management-page-button" text="3" />
+                <Button styleClass="user-management-page-ghost" text="..." />
+                <Button styleClass="user-management-page-ghost" text="›" />
+            </HBox>
+
+        </VBox>
+    </VBox>
+</AnchorPane>
