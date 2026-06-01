@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="720.0" prefWidth="1400.0" styleClass="auction-session-root" stylesheets="@../../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.admin.AuctionSessionController">
+
+    <VBox spacing="22" AnchorPane.leftAnchor="28" AnchorPane.rightAnchor="28" AnchorPane.topAnchor="28">
+
+        <!-- HEADER -->
+        <HBox alignment="CENTER_LEFT" spacing="16">
+            <VBox spacing="6">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label styleClass="auction-live-badge" text="● Live: 42 Sessions" />
+                </HBox>
+                <Label styleClass="auction-page-subtitle" text="Giám sát và điều phối các phiên đấu giá trực tiếp theo thời gian thực" />
+            </VBox>
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <TextField prefWidth="360" promptText="Tìm kiếm phiên hoặc sản phẩm..." styleClass="auction-search-input" />
+        </HBox>
+
+        <!-- STATS -->
+        <HBox spacing="18">
+            <VBox prefWidth="255" spacing="10" styleClass="auction-stat-card">
+                <Label styleClass="auction-stat-label" text="Tổng doanh thu" />
+                <Label styleClass="auction-stat-value" text="2.4 tỷ VNĐ" />
+                <Label styleClass="auction-stat-success" text="↗ +12% hôm nay" />
+            </VBox>
+
+            <VBox prefWidth="255" spacing="10" styleClass="auction-stat-card">
+                <Label styleClass="auction-stat-label" text="Lượt đấu giá" />
+                <Label styleClass="auction-stat-value" text="1,284" />
+                <Label styleClass="auction-stat-muted" text="Trung bình 30 lượt/phiên" />
+            </VBox>
+
+            <VBox prefWidth="255" spacing="10" styleClass="auction-stat-card">
+                <Label styleClass="auction-stat-label" text="Tỉ lệ thành công" />
+                <Label styleClass="auction-stat-value" text="94.2%" />
+                <StackPane prefHeight="6" styleClass="auction-progress-track">
+                    <Region prefWidth="185" styleClass="auction-progress-fill" StackPane.alignment="CENTER_LEFT" />
+                </StackPane>
+            </VBox>
+
+            <VBox prefWidth="255" spacing="10" styleClass="auction-stat-card">
+                <Label styleClass="auction-stat-label" text="Yêu cầu hỗ trợ" />
+                <Label styleClass="auction-stat-danger" text="5 Đang chờ" />
+                <Label styleClass="auction-link" text="Xem chi tiết" />
+            </VBox>
+        </HBox>
+
+        <!-- AUCTION TABLE -->
+        <VBox styleClass="auction-table-card">
+
+            <HBox alignment="CENTER_LEFT" styleClass="auction-table-header">
+                <Label prefWidth="145" styleClass="auction-header-cell" text="MÃ PHIÊN" />
+                <Label prefWidth="370" styleClass="auction-header-cell" text="TÊN SẢN PHẨM" />
+                <Label prefWidth="230" styleClass="auction-header-cell" text="GIÁ TRẦN HIỆN TẠI" />
+                <Label prefWidth="220" styleClass="auction-header-cell" text="NGƯỜI GIỮ TOP 1" />
+                <Label prefWidth="150" styleClass="auction-header-cell" text="THỜI GIAN" />
+                <Label prefWidth="150" styleClass="auction-header-cell" text="THAO TÁC" />
+            </HBox>
+
+            <!-- Row 1 -->
+            <HBox alignment="CENTER_LEFT" styleClass="auction-table-row">
+                <Label prefWidth="145" styleClass="auction-code-cell" text="#AUC-29384" />
+                <HBox alignment="CENTER_LEFT" prefWidth="370" spacing="14">
+                    <StackPane styleClass="auction-product-thumb-dark">
+                        <Label styleClass="auction-thumb-icon" text="⌚" textFill="WHITE" />
+                    </StackPane>
+                    <Label styleClass="auction-product-name" text="Đồng hồ Rolex&#10;Datejust 41" />
+                </HBox>
+                <Label prefWidth="230" styleClass="auction-money-cell" text="320.000.000 đ" />
+                <VBox prefWidth="220" spacing="2">
+                    <Label styleClass="auction-bidder-name" text="Nguyễn Văn An" />
+                    <Label styleClass="auction-bidder-id" text="ID: 8821" />
+                </VBox>
+                <Label prefWidth="150" styleClass="auction-time-danger" text="⏱ 04:22" />
+                <Button styleClass="auction-cancel-button" text="⊘  Hủy phiên" />
+            </HBox>
+
+            <!-- Row 2 -->
+            <HBox alignment="CENTER_LEFT" styleClass="auction-table-row">
+                <Label prefWidth="145" styleClass="auction-code-cell" text="#AUC-29385" />
+                <HBox alignment="CENTER_LEFT" prefWidth="370" spacing="14">
+                    <StackPane styleClass="auction-product-thumb-red">
+                        <Label styleClass="auction-thumb-icon" text="👟" textFill="WHITE" />
+                    </StackPane>
+                    <Label styleClass="auction-product-name" text="Nike Air Max Limited&#10;Ed." />
+                </HBox>
+                <Label prefWidth="230" styleClass="auction-money-cell" text="12.500.000 đ" />
+                <VBox prefWidth="220" spacing="2">
+                    <Label styleClass="auction-bidder-name" text="Trần Thị Bích" />
+                    <Label styleClass="auction-bidder-id" text="ID: 4432" />
+                </VBox>
+                <Label prefWidth="150" styleClass="auction-time-normal" text="⏱ 12:45" />
+                <Button styleClass="auction-cancel-button" text="⊘  Hủy phiên" />
+            </HBox>
+
+            <!-- Row 3 -->
+            <HBox alignment="CENTER_LEFT" styleClass="auction-table-row">
+                <Label prefWidth="145" styleClass="auction-code-cell" text="#AUC-29386" />
+                <HBox alignment="CENTER_LEFT" prefWidth="370" spacing="14">
+                    <StackPane styleClass="auction-product-thumb-gold">
+                        <Label styleClass="auction-thumb-icon" text="🎧" textFill="WHITE" />
+                    </StackPane>
+                    <Label styleClass="auction-product-name" text="Tai nghe Sony WH-&#10;1000XM5" />
+                </HBox>
+                <Label prefWidth="230" styleClass="auction-money-cell" text="8.200.000 đ" />
+                <VBox prefWidth="220" spacing="2">
+                    <Label styleClass="auction-bidder-name" text="Lê Hoàng Nam" />
+                    <Label styleClass="auction-bidder-id" text="ID: 9910" />
+                </VBox>
+                <Label prefWidth="150" styleClass="auction-time-danger" text="⏱ 01:05" />
+                <Button styleClass="auction-cancel-button" text="⊘  Hủy phiên" />
+            </HBox>
+
+            <!-- Row 4 -->
+            <HBox alignment="CENTER_LEFT" styleClass="auction-table-row">
+                <Label prefWidth="145" styleClass="auction-code-cell" text="#AUC-29387" />
+                <HBox alignment="CENTER_LEFT" prefWidth="370" spacing="14">
+                    <StackPane styleClass="auction-product-thumb-blue">
+                        <Label styleClass="auction-thumb-icon" text="📱" textFill="WHITE" />
+                    </StackPane>
+                    <Label styleClass="auction-product-name" text="iPhone 15 Pro Max&#10;512GB" />
+                </HBox>
+                <Label prefWidth="230" styleClass="auction-money-cell" text="35.900.000 đ" />
+                <VBox prefWidth="220" spacing="2">
+                    <Label styleClass="auction-bidder-name" text="Phạm Minh Tuấn" />
+                    <Label styleClass="auction-bidder-id" text="ID: 1024" />
+                </VBox>
+                <Label prefWidth="150" styleClass="auction-time-normal" text="⏱ 45:10" />
+                <Button styleClass="auction-cancel-button" text="⊘  Hủy phiên" />
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" styleClass="auction-table-footer">
+                <Label styleClass="auction-footer-text" text="Hiển thị 1-4 trong số 42 phiên" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button styleClass="auction-page-button" text="‹" />
+                <Button styleClass="auction-page-active" text="1" />
+                <Button styleClass="auction-page-button" text="2" />
+                <Button styleClass="auction-page-button" text="3" />
+                <Button styleClass="auction-page-button" text="›" />
+            </HBox>
+
+        </VBox>
+    </VBox>
+</AnchorPane>

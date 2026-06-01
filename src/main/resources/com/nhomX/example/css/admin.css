@@ -971,3 +971,515 @@
     -fx-min-height: 36;
     -fx-cursor: hand;
 }
+
+/* ==================================================
+   ADMIN ITEM DETAIL PAGE — DARK LUXURY V2
+   Dùng cho: fxml/admin/AdminItemDetail.fxml
+   ================================================== */
+
+.admin-item-detail-page {
+    -fx-background-color: #0E0E0E;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.admin-item-detail-back-button {
+    -fx-background-color: #161616;
+    -fx-background-radius: 12;
+    -fx-border-color: #252220;
+    -fx-border-radius: 12;
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18 10 18;
+    -fx-cursor: hand;
+}
+
+.admin-item-detail-back-button:hover {
+    -fx-border-color: #C9A84C;
+    -fx-text-fill: #C9A84C;
+}
+
+.admin-item-detail-container {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #252220;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 28, 0.18, 0, 10);
+}
+
+.admin-item-detail-left-pane {
+    -fx-background-color: #111111;
+    -fx-background-radius: 18 0 0 18;
+    -fx-border-color: transparent #252220 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 28;
+}
+
+.admin-item-detail-right-pane {
+    -fx-background-color: #161616;
+    -fx-background-radius: 0 18 18 0;
+    -fx-padding: 38 40 38 40;
+}
+
+.admin-item-detail-image-frame {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #242424, #0E0E0E);
+    -fx-background-radius: 14;
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 14;
+    -fx-min-height: 420;
+}
+
+.admin-item-detail-main-image-view {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 8);
+}
+
+.admin-item-detail-auth-badge {
+    -fx-background-color: #0B57D0;
+    -fx-background-radius: 999;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20 10 20;
+    -fx-translate-x: 20;
+    -fx-translate-y: 20;
+}
+
+.admin-item-detail-thumb-frame,
+.admin-item-detail-thumb-frame-active {
+    -fx-min-width: 92;
+    -fx-min-height: 92;
+    -fx-max-width: 92;
+    -fx-max-height: 92;
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.admin-item-detail-thumb-frame {
+    -fx-border-color: #2F2F2F;
+}
+
+.admin-item-detail-thumb-frame-active {
+    -fx-border-color: #0B57D0;
+    -fx-border-width: 2;
+}
+
+.admin-item-detail-title {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 27px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-code {
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #AEB7C4;
+    -fx-font-size: 30px;
+    -fx-cursor: hand;
+}
+
+.admin-item-detail-close-button:hover {
+    -fx-text-fill: #F0EAD6;
+}
+
+.admin-item-detail-seller-box {
+    -fx-background-color: rgba(201,168,76,0.08);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(201,168,76,0.32);
+    -fx-border-radius: 14;
+    -fx-padding: 18;
+}
+
+.admin-item-detail-avatar {
+    -fx-background-color: #2F2F2F;
+    -fx-background-radius: 28;
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-max-width: 56;
+    -fx-max-height: 56;
+}
+
+.admin-item-detail-avatar-text {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-seller-name {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-seller-sub {
+    -fx-text-fill: #D7D7D7;
+    -fx-font-size: 14px;
+}
+
+.admin-item-detail-muted {
+    -fx-text-fill: #9C8D68;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-date {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-section-title {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-description {
+    -fx-text-fill: #E5E7EB;
+    -fx-font-size: 15px;
+    -fx-line-spacing: 5;
+}
+
+.admin-item-detail-info-card {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 14;
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 14;
+    -fx-padding: 18 20 18 20;
+}
+
+.admin-item-detail-price {
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-time {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-reason-label {
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.admin-item-detail-reason-area {
+    -fx-background-color: #161616;
+    -fx-background-radius: 12;
+    -fx-border-color: #E74C3C;
+    -fx-border-radius: 12;
+    -fx-text-fill: #F0EAD6;
+    -fx-prompt-text-fill: #888070;
+    -fx-font-size: 14px;
+}
+
+.admin-item-detail-reason-area .content {
+    -fx-background-color: #161616;
+    -fx-background-radius: 12;
+}
+
+.admin-item-detail-reject-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 12;
+    -fx-border-color: #E74C3C;
+    -fx-border-radius: 12;
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 16;
+    -fx-cursor: hand;
+}
+
+.admin-item-detail-reject-btn:hover {
+    -fx-background-color: rgba(231,76,60,0.12);
+}
+
+.admin-item-detail-approve-btn {
+    -fx-background-color: #0F7A35;
+    -fx-background-radius: 12;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 16;
+    -fx-cursor: hand;
+}
+
+.admin-item-detail-approve-btn:hover {
+    -fx-background-color: #15803D;
+}
+
+/* ==================================================
+   AUCTION SESSION PAGE — DARK LUXURY
+   Dùng cho: fxml/admin/AuctionSession.fxml
+   ================================================== */
+
+.auction-session-root {
+    -fx-background-color: #0E0E0E;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.auction-page-title {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.auction-page-subtitle {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 14px;
+}
+
+.auction-live-badge {
+    -fx-background-color: rgba(46,204,113,0.14);
+    -fx-background-radius: 999;
+    -fx-text-fill: #2ECC71;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 12 6 12;
+}
+
+.auction-search-input {
+    -fx-background-color: #161616;
+    -fx-background-radius: 13;
+    -fx-border-color: #252220;
+    -fx-border-radius: 13;
+    -fx-text-fill: #F0EAD6;
+    -fx-prompt-text-fill: #888070;
+    -fx-padding: 13 18 13 18;
+    -fx-font-size: 13px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.auction-search-input:focused {
+    -fx-border-color: #C9A84C;
+}
+
+.auction-stat-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 16;
+    -fx-border-color: #252220;
+    -fx-border-radius: 16;
+    -fx-padding: 22 24 22 24;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.15, 0, 6);
+}
+
+.auction-stat-label {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.auction-stat-value {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.auction-stat-muted {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 12px;
+}
+
+.auction-stat-success {
+    -fx-text-fill: #2ECC71;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.auction-stat-danger {
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 23px;
+    -fx-font-weight: bold;
+}
+
+.auction-link {
+    -fx-text-fill: #C9A84C;
+    -fx-font-size: 12px;
+    -fx-underline: true;
+}
+
+.auction-progress-track {
+    -fx-background-color: #252220;
+    -fx-background-radius: 999;
+}
+
+.auction-progress-fill {
+    -fx-background-color: #C9A84C;
+    -fx-background-radius: 999;
+}
+
+/* ---------- Table ---------- */
+
+.auction-table-card {
+    -fx-background-color: #161616;
+    -fx-background-radius: 18;
+    -fx-border-color: #252220;
+    -fx-border-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.15, 0, 6);
+}
+
+.auction-table-header {
+    -fx-background-color: #181818;
+    -fx-background-radius: 18 18 0 0;
+    -fx-border-color: transparent transparent #252220 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 18 24 18 24;
+}
+
+.auction-header-cell {
+    -fx-text-fill: #AEB7C4;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.auction-table-row {
+    -fx-background-color: #161616;
+    -fx-border-color: transparent transparent #252220 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 24 16 24;
+    -fx-min-height: 78;
+}
+
+.auction-table-row:hover {
+    -fx-background-color: #1E1E1E;
+}
+
+.auction-code-cell {
+    -fx-text-fill: #5B9DFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.auction-product-name {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-line-spacing: 3;
+}
+
+.auction-money-cell {
+    -fx-text-fill: #D7D7D7;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.auction-bidder-name {
+    -fx-text-fill: #F0EAD6;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.auction-bidder-id {
+    -fx-text-fill: #888070;
+    -fx-font-size: 11px;
+}
+
+.auction-time-danger {
+    -fx-text-fill: #E74C3C;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.auction-time-normal {
+    -fx-text-fill: #D7D7D7;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.auction-cancel-button {
+    -fx-background-color: #B91C1C;
+    -fx-background-radius: 9;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 18 10 18;
+    -fx-cursor: hand;
+}
+
+.auction-cancel-button:hover {
+    -fx-background-color: #DC2626;
+}
+
+/* ---------- Product thumbnails ---------- */
+
+.auction-product-thumb-dark,
+.auction-product-thumb-red,
+.auction-product-thumb-gold,
+.auction-product-thumb-blue {
+    -fx-min-width: 45;
+    -fx-min-height: 45;
+    -fx-max-width: 45;
+    -fx-max-height: 45;
+    -fx-background-radius: 8;
+    -fx-border-color: #252220;
+    -fx-border-radius: 8;
+}
+
+.auction-product-thumb-dark {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #111111, #2A2A2A);
+}
+
+.auction-product-thumb-red {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #2A1212, #7F1D1D);
+}
+
+.auction-product-thumb-gold {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #241A0A, #8B6D2F);
+}
+
+.auction-product-thumb-blue {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #0F172A, #1D4ED8);
+}
+
+.auction-thumb-icon {
+    -fx-font-size: 20px;
+}
+
+/* ---------- Footer / Pagination ---------- */
+
+.auction-table-footer {
+    -fx-background-color: #181818;
+    -fx-background-radius: 0 0 18 18;
+    -fx-padding: 18 24 18 24;
+}
+
+.auction-footer-text {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-size: 13px;
+}
+
+.auction-page-active {
+    -fx-background-color: #C9A84C;
+    -fx-background-radius: 8;
+    -fx-text-fill: #111111;
+    -fx-font-weight: bold;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-cursor: hand;
+}
+
+.auction-page-button {
+    -fx-background-color: #1E1E1E;
+    -fx-background-radius: 8;
+    -fx-border-color: #2F2F2F;
+    -fx-border-radius: 8;
+    -fx-text-fill: #D7D7D7;
+    -fx-font-weight: bold;
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-cursor: hand;
+}
+
+.auction-page-button:hover {
+    -fx-border-color: #C9A84C;
+    -fx-text-fill: #F0EAD6;
+}

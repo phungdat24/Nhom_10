@@ -46,12 +46,6 @@
                </graphic>
                 </Button>
 
-                <Button fx:id="btnSettings" maxWidth="Infinity" onAction="#handleNavSettings" styleClass="nav-item" text="Cài đặt">
-               <graphic>
-                  <FontAwesomeIcon fill="#b7aaaa" glyphName="GEAR" size="2em" />
-               </graphic>
-                </Button>
-
                 <Region VBox.vgrow="ALWAYS" />
             </VBox>
 
