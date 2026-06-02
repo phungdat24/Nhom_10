@@ -815,10 +815,16 @@ public class ClientHandler implements Runnable {
                     // Mượn tạm gói tin DEPOSIT_RESULT (vì Client đã có sẵn logic cập nhật số dư cho gói này)
                     sendToClient(new Message("DEPOSIT_RESULT", new Object[]{true, updatedUser.getBalance()}));
                 }
+                // Hoàn tiền cho người thua
                 notifyRefundToOldWinner(oldWinnerId, userId);
                 // [THÊM MỚI] Kích hoạt Auto-bid ngay sau khi Bid thủ công thành công
                 // Chạy trên luồng riêng để không làm chậm phản hồi cho người vừa bid
                 triggerAutoBid(auctionId, userId, bidAmount);
+            }else {
+                // ===== [BỔ SUNG NHÁNH ELSE Ở ĐÂY] =====
+                // Nhánh này bắt các trường hợp Repository return false (Thường do lỗi kỹ thuật của Database)
+                System.err.println("SERVER LỖI: Giao dịch từ chối không rõ nguyên nhân (DB return false) cho user " + userId);
+                sendToClient(Message.bidFail("Giao dịch thất bại do lỗi máy chủ cơ sở dữ liệu. Vui lòng thử lại sau!"));
             }
         } catch (InvalidBidException | AuthenticationException | AuctionClosedException e) {
             // BẮT LỖI NGHIỆP VỤ: Gửi chính xác thông báo lỗi về cho người dùng

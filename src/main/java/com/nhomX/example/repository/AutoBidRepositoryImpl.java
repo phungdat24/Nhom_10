@@ -26,8 +26,9 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
                 + "(id, user_id, auction_id, max_price, step_price, is_active, created_at) "
                 + "VALUES (COALESCE((SELECT id FROM auto_bids "
                 + "WHERE user_id=? AND auction_id=?), ?), ?, ?, ?, ?, 1, ?)";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, config.getBidder().getId());
       pstmt.setString(2, config.getAuction().getId());
@@ -68,8 +69,9 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
             : "SELECT * FROM auto_bids "
             + "WHERE auction_id=? AND is_active=1 "
             + "ORDER BY max_price DESC";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
 
       ps.setString(1, auctionId);
       if (excludeUserId != null) ps.setString(2, excludeUserId);
@@ -89,8 +91,9 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
   @Override
   public void deactivate(String configId) {
     String sql = "UPDATE auto_bids SET is_active=0 WHERE id=?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, configId);
       ps.executeUpdate();
     } catch (SQLException e) {
@@ -103,8 +106,9 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
   public void deactivateByUserAndAuction(String userId, String auctionId) {
     String sql = "UPDATE auto_bids SET is_active=0 "
             + "WHERE user_id=? AND auction_id=?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, userId);
       ps.setString(2, auctionId);
       ps.executeUpdate();
@@ -118,8 +122,9 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
   public AutoBidConfig findByUserAndAuction(String userId, String auctionId) {
     String sql = "SELECT * FROM auto_bids "
             + "WHERE user_id=? AND auction_id=?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, userId);
       ps.setString(2, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
@@ -134,8 +139,9 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
   @Override
   public void delete(String configId) {
     String sql = "DELETE FROM auto_bids WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, configId);
       pstmt.executeUpdate();

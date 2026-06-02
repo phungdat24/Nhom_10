@@ -59,16 +59,16 @@ public class AdminLayoutController implements Initializable {
 
     @FXML
     void handleNavHome(ActionEvent event) {
-        // topbarTitle.setText("Trang chủ");
-        // setActiveButton(btnHome);
-        // loadView("/com/nhomX/example/fxml/admin/AdminHome.fxml");
+         topbarTitle.setText("Trang chủ");
+         setActiveButton(btnHome);
+         loadView("/com/nhomX/example/fxml/admin/AdminDashboard.fxml");
     }
 
     @FXML
     void handleNavUsers(ActionEvent event) {
-        // topbarTitle.setText("Quản lý Người dùng");
-        // setActiveButton(btnUsers);
-        // loadView("/com/nhomX/example/fxml/admin/AdminUserManagement.fxml");
+        topbarTitle.setText("Quản lý Người dùng");
+        setActiveButton(btnUsers);
+        loadView("/com/nhomX/example/fxml/admin/UserManagement.fxml");
     }
 
     @FXML

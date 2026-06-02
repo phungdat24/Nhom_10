@@ -11,7 +11,6 @@ public class DatabaseConnection {
   private static final String DEFAULT_URL = "jdbc:sqlite:auction.db";
   // 1. Biến static lưu trữ instance duy nhất (Singleton)
   private static DatabaseConnection instance;
-  private Connection connection;
 
   // Đường dẫn tới file database SQLite
   private static String getConfiguredUrl() {
@@ -20,13 +19,8 @@ public class DatabaseConnection {
 
   // 2. Constructor private để ngăn bên ngoài dùng từ khóa 'new'
   private DatabaseConnection() {
-    try {
-      connection = DriverManager.getConnection(getConfiguredUrl());
-      System.out.println("✅ Kết nối cơ sở dữ liệu SQLite thành công!");
+    // Chỉ khởi tạo cấu trúc bảng một lần
       createTables();
-    } catch (SQLException e) {
-      System.err.println("❌ Lỗi kết nối database: " + e.getMessage());
-    }
   }
 
   // 3. Phương thức public static để cung cấp instance duy nhất
@@ -36,24 +30,29 @@ public class DatabaseConnection {
     }
     return instance;
   }
+  // Factory Method - Trả về một kết nối MỚI mỗi lần gọi
+  // Giúp tầng Repository thoải mái dùng try-with-resources để close()
+  public Connection getConnection() throws SQLException {
+    Connection conn = DriverManager.getConnection(getConfiguredUrl());
 
-  public static synchronized void resetForTests() {
-    if (instance != null && instance.connection != null) {
-      try {
-        instance.connection.close();
-      } catch (SQLException e) {
-        System.err.println("Error closing test database: " + e.getMessage());
-      }
+    // BẮT BUỘC BẬT CHẾ ĐỘ KIỂM TRA KHÓA NGOẠI CỦA SQLITE
+    try (Statement stmt = conn.createStatement()) {
+      stmt.execute("PRAGMA foreign_keys = ON;");
     }
-    instance = null;
+    return conn;
   }
 
-  public Connection getConnection() {
-    return connection;
+  public static synchronized void resetForTests() {
+    // Vì không còn giữ connection tĩnh, chỉ cần hủy instance
+    instance = null;
+    System.out.println("🔄 Đã reset Database Connection instance.");
   }
 
   // 4. Hàm khởi tạo cấu trúc các bảng theo sơ đồ ERD mới nhất
   private void createTables() {
+    // Lấy 1 kết nối tạm thời chỉ để tạo bảng
+    try (Connection conn = getConnection();
+         Statement stmt = conn.createStatement()) {
     // Bảng Users: Quản lý người dùng và số dư
     String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" + "id TEXT PRIMARY KEY, "
         + "username TEXT UNIQUE NOT NULL, " + "password TEXT NOT NULL, " + "fullname TEXT, "
@@ -89,7 +88,6 @@ public class DatabaseConnection {
         + "auction_id TEXT, " + "FOREIGN KEY(user_id) REFERENCES users(id), "
         + "FOREIGN KEY(auction_id) REFERENCES auctions(id), " + "UNIQUE(user_id, auction_id));";
 
-    try (Statement stmt = connection.createStatement()) {
       stmt.execute(createUsersTable);
       stmt.execute(createItemsTable);
       stmt.execute(createItemImagesTable);

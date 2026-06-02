@@ -31,10 +31,10 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     // Câu lệnh SQL với tham số ẩn (?) để tránh SQL Injection
     String sql =
         "INSERT INTO auctions (id, starting_price, highest_bid, start_time, end_time, status, item_id, winner_id, approved_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    // Xin một kết nối tử Singleton:
-    Connection conn = DatabaseConnection.getInstance().getConnection();
+
     // Sử dụng try-with-resources để tự động đóng Statement sau khi dùng xong
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       // Truyền dữ liệu số và chuỗi cơ bản
       pstmt.setString(1, auction.getId());
       pstmt.setLong(2, auction.getStartingPrice());
@@ -86,8 +86,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public void updateStatus(String auctionId, AuctionStatus status) {
     String sql = "UPDATE auctions SET status = ? WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, status.name());
       pstmt.setString(2, auctionId);
@@ -102,8 +103,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId) {
     String sql =
             "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING' WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setLong(1, newPrice);
       pstmt.setString(2, winnerId);
@@ -117,8 +119,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public void updateEndTime(String auctionId, LocalDateTime newEndTime) {
     String sql = "UPDATE auctions SET end_time = ? WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, newEndTime.format(DB_FORMATTER));
       pstmt.setString(2, auctionId);
       pstmt.executeUpdate();
@@ -132,8 +135,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public boolean updateAuctionStatus(Auction auction) {
     // Cập nhật cả status và end_time (phòng trường hợp gia hạn do Anti-sniping)
     String sql = "UPDATE auctions SET status = ?, end_time = ?, approved_by = ? WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auction.getStatus().name());
       pstmt.setString(2,
@@ -156,8 +160,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   @Override
   public Auction findById(String id) {
     String sql = "SELECT * FROM auctions WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -175,8 +180,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * " + "FROM auctions " + "WHERE status IN('OPEN', 'RUNNING') "
         + "AND start_time <= ? " + "AND end_time > ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       String now = LocalDateTime.now().format(DB_FORMATTER);
 
       pstmt.setString(1, now); // start_time <= now
@@ -197,8 +203,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String now = LocalDateTime.now().format(DB_FORMATTER);
     String sql = "SELECT * FROM auctions WHERE status IN ('OPEN', 'RUNNING') AND end_time <= ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, now);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -219,8 +226,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     // Join với bảng items để lọc theo seller_id
     String sql = "SELECT a.* FROM auctions a " + "JOIN items i ON a.item_id = i.id "
         + "WHERE i.seller_id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, sellerId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
@@ -240,8 +248,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE status = 'UP_COMING' AND start_time <= ?";
 
     // Sử dụng try-with-resources để tự động đóng kết nối, chuẩn Checkstyle
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try ( Connection conn = DatabaseConnection.getInstance().getConnection();
+          PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       String now = java.time.LocalDateTime.now().format(DB_FORMATTER);
       pstmt.setString(1, now);
@@ -262,8 +271,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus) {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * FROM auctions WHERE status = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionStatus.name());
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -292,8 +302,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         + "JOIN bids b ON a.id = b.auction_id " + "WHERE b.user_id = ? " + "GROUP BY a.id "
         + "ORDER BY a.end_time DESC";
 
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, userId);
 
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -342,8 +353,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') AND end_time > ? "
             + "ORDER BY end_time ASC LIMIT ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       // Dấu ? số 1 là thời gian hiện tại (Format chuẩn DB của nhóm bạn)
       pstmt.setString(1, java.time.LocalDateTime.now().format(DB_FORMATTER));
@@ -365,8 +377,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT a.* FROM auctions a " + "LEFT JOIN bids b ON a.id = b.auction_id "
             + "WHERE a.status = 'RUNNING' " + "GROUP BY a.id " + "ORDER BY COUNT(b.id) DESC LIMIT ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setInt(1, limit);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -385,8 +398,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
   public int countActiveAuctions() {
     int count = 0;
     String sql = "SELECT COUNT(*) FROM auctions WHERE status IN ('OPEN', 'RUNNING')";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql);
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql);
          ResultSet rs = pstmt.executeQuery()) {
 
       if (rs.next())
@@ -402,8 +416,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     int count = 0;
     String sql = "SELECT COUNT(*) FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') "
             + "AND end_time > ? AND end_time <= ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       LocalDateTime now = java.time.LocalDateTime.now();
       LocalDateTime tomorrow = now.plusHours(24); // Sắp kết thúc trong 24h
