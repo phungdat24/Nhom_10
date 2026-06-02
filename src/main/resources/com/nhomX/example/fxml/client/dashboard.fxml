@@ -51,7 +51,7 @@
             </graphic></Button>
 
          <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
-         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" style="-fx-background-color: rgba(201,162,39,0.10);-fx-background-radius: 20;-fx-border-color: rgba(201,162,39,0.28);-fx-border-radius: 20;-fx-border-width: 1;-fx-padding: 6 14 6 8;" visible="false">
+         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" style="-fx-background-color: linear-gradient(to bottom, #5A3A1E, #3C2A1A);              -fx-background-radius: 20;              -fx-border-color: #C9A227;              -fx-border-radius: 20;              -fx-border-width: 1.5;              -fx-padding: 6 14 6 8;              -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.25), 10, 0.2, 0, 2);" visible="false">
 
             <!-- Avatar circle -->
             <StackPane minHeight="30" minWidth="30" style="-fx-background-color: #c9a227;                       -fx-background-radius: 15;">
@@ -62,10 +62,10 @@
             <Label fx:id="lblUserName" style="-fx-text-fill: #ffffff; -fx-font-size: 13px; -fx-font-weight: bold;" text="" />
 
             <!-- Dropdown arrow + menu -->
-            <MenuButton fx:id="menuUser" mnemonicParsing="false" style="-fx-background-color: transparent;                        -fx-text-fill: rgba(201,162,39,0.70);                        -fx-font-size: 13px;                        -fx-padding: 0 0 0 0;                        -fx-border-width: 0;                        -fx-cursor: hand;" text="▾">
+            <MenuButton fx:id="menuUser" mnemonicParsing="false" style="-fx-background-color: linear-gradient(to bottom, #F4D35E, #C9A227);                    -fx-background-radius: 10;                    -fx-border-color: #E8C96A;                    -fx-border-radius: 10;                    -fx-border-width: 1;                    -fx-text-fill: #2B1F12;                    -fx-font-size: 13px;                    -fx-font-weight: bold;                    -fx-padding: 4 10 4 10;                    -fx-cursor: hand;" text="▾">
                <items>
                   <MenuItem fx:id="menuProfile" mnemonicParsing="false" onAction="#handleProfile" text="👤  Hồ sơ của tôi" />
-                  <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="🚪  Đăng xuất" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleLogout" style="-fx-background-color: #C9A227; " text="🚪  Đăng xuất" />
                </items>
             </MenuButton>
          </HBox>
@@ -115,10 +115,7 @@
                   <FontAwesomeIcon fill="#C9A227" glyphName="EYE" size="1em" />
                </HBox>
                <Label fx:id="lblCurrentBalance" styleClass="wallet-balance" text="2.500.000 đ" />
-               <HBox spacing="8">
-                  <Button styleClass="wallet-action-btn" text="Nạp tiền" />
-                  <Button styleClass="wallet-secondary-btn" text="Rút tiền" />
-               </HBox>
+
             </VBox>
 
             <!-- Card người dùng ở góc dưới trái -->
