@@ -5,12 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.nhomX.example.model.Auction;
-import com.nhomX.example.model.AuctionStatus;
-import com.nhomX.example.model.GeneralItem;
-import com.nhomX.example.model.Items;
-import com.nhomX.example.model.RegularUser;
-import com.nhomX.example.model.Role;
+import com.nhomX.example.model.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -33,9 +29,11 @@ class ConcurrentBidTest extends DatabaseBackedTest {
     RegularUser seller = regularUser("seller-3", "seller3@example.com", 0, Role.SELLER);
     RegularUser lowBidder = regularUser("bidder-low", "low@example.com", 1_000, Role.BIDDER);
     RegularUser highBidder = regularUser("bidder-high", "high@example.com", 1_000, Role.BIDDER);
+    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0);
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(lowBidder));
     assertTrue(userRepository.register(highBidder));
+    assertTrue(userRepository.register(admin));
 
     Items item = new GeneralItem("item-3", "Headphones", "Studio headphones", seller);
     itemRepository.save(item);
@@ -98,9 +96,12 @@ class ConcurrentBidTest extends DatabaseBackedTest {
     RegularUser seller = regularUser("seller-4", "seller4@example.com", 0, Role.SELLER);
     RegularUser firstBidder = regularUser("bidder-a", "a@example.com", 1_000, Role.BIDDER);
     RegularUser secondBidder = regularUser("bidder-b", "b@example.com", 1_000, Role.BIDDER);
+    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0);
+
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(firstBidder));
     assertTrue(userRepository.register(secondBidder));
+    assertTrue(userRepository.register(admin));
 
     Items item = new GeneralItem("item-4", "Speaker", "Portable speaker", seller);
     itemRepository.save(item);

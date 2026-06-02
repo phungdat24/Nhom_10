@@ -42,12 +42,14 @@ class AuctionFlowTest extends DatabaseBackedTest {
     BidRepository bidRepository = new BidRepositoryImpl();
     AuctionService auctionService = new AuctionService(); // KHỞI TẠO SERVICE
 
-    // Arrange: tạo dữ liệu giống luồng app: user, item, phiên đấu giá đang mở.
+    // Arrange: Đăng ký đầy đủ người bán, người mua và cả ADMIN duyệt phiên
     RegularUser seller = regularUser("seller-1", "seller@example.com", 0, Role.SELLER);
     RegularUser bidder = regularUser("bidder-1", "bidder@example.com", 1_000, Role.BIDDER);
+    Admin admin = new Admin("admin-1", "admin@example.com", SecurityUtils.hashPassword("password"), "Admin Tester", 0);
+
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(bidder));
-
+    assertTrue(userRepository.register(admin));
 
     // Login kiểm tra đúng tài khoản bidder được lấy ra từ database.
     User loggedIn = userRepository.login(
@@ -113,7 +115,9 @@ class AuctionFlowTest extends DatabaseBackedTest {
 
     // Arrange: một phiên đã hết giờ và một phiên vẫn còn thời gian.
     RegularUser seller = regularUser("seller-2", "seller2@example.com", 0, Role.SELLER);
+    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0);
     assertTrue(userRepository.register(seller));
+    assertTrue(userRepository.register(admin));
 
     Items item = new GeneralItem("item-2", "Camera", "Film camera", seller);
     itemRepository.save(item);
