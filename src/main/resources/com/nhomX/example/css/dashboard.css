@@ -160,9 +160,6 @@
     -fx-background-color: white;
     -fx-background-radius: 12;
     -fx-padding: 14;
-    -fx-pref-width: 210;
-    -fx-max-width: 220;
-    -fx-min-width: 190;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 10, 0, 0, 4);
     -fx-alignment: TOP_LEFT;
     -fx-cursor: hand;
@@ -853,3 +850,176 @@
     -fx-padding: 7 12 7 12;
     -fx-cursor: hand;
 }
+/*Popup Auction*/
+.auction-popup {
+    -fx-background-color: linear-gradient(to bottom,
+        #FFFDF8,
+        #FFF8E7);
+    -fx-background-radius: 18;
+    -fx-border-color: #D4AF37;
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
+
+    -fx-effect: dropshadow(
+        gaussian,
+        rgba(184,134,11,0.35),
+        20,
+        0.3,
+        0,
+        4
+    );
+}
+.auction-popup-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5C3A00;
+}
+.auction-popup-close {
+    -fx-background-color: #F5E6B8;
+    -fx-border-color: #D4AF37;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.auction-popup-close:hover {
+    -fx-background-color: #E5C96A;
+}
+.auction-popup-item-name {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3E2723;
+}
+.bidTransaction-price {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #C67C00;
+}
+.auction-popup-note-box {
+    -fx-background-color: #FFF3CD;
+    -fx-padding: 12;
+    -fx-background-radius: 10;
+    -fx-border-color: #E6C45D;
+    -fx-border-radius: 10;
+}
+.auction-popup-section-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #8B6508;
+}
+.auction-popup-hint {
+    -fx-text-fill: #6B4E00;
+}
+.auction-popup-input {
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+
+    -fx-border-color: #D4AF37;
+    -fx-border-width: 1.5;
+
+    -fx-font-size: 15px;
+}
+.auction-popup-input:focused {
+    -fx-border-color: #B8860B;
+
+    -fx-effect: dropshadow(
+        gaussian,
+        rgba(184,134,11,0.35),
+        10,
+        0.2,
+        0,
+        0
+    );
+}
+.auction-popup-chip {
+    -fx-background-color: #FFF8E1;
+    -fx-border-color: #D4AF37;
+
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.auction-popup-chip:hover {
+    -fx-background-color: #F4D35E;
+}
+.auction-popup-submit {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #D4AF37,
+        #B8860B
+    );
+
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+.auction-popup-submit {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #D4AF37,
+        #B8860B
+    );
+
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+.auction-popup-cancel {
+    -fx-background-color: #EAEAEA;
+    -fx-text-fill: #555;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+.btn-bidTransaction{
+    -fx-background-color: linear-gradient(
+            to bottom,
+            #4CAF50,
+            #2E7D32
+        );
+
+        -fx-text-fill: white;
+        -fx-font-size: 15px;
+        -fx-font-weight: bold;
+
+        -fx-background-radius: 8;
+        -fx-border-radius: 8;
+
+        -fx-cursor: hand;
+
+        -fx-effect: dropshadow(
+            gaussian,
+            rgba(46,125,50,0.35),
+            8,
+            0.2,
+            0,
+            2
+        );
+}
+.btn-bidTransaction:hover {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        #66BB6A,
+        #388E3C
+    );
+
+    -fx-effect: dropshadow(
+        gaussian,
+        rgba(46,125,50,0.5),
+        12,
+        0.3,
+        0,
+        3
+    );
+}
+.btn-bidTransaction:pressed {
+    -fx-background-color: #1B5E20;
+
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+

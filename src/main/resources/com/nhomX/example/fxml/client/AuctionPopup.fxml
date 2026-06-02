@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="12"
+      styleClass="auction-popup"
+      stylesheets="@../../css/dashboard.css"
+      xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.nhomX.example.controller.client.AuctionPopupController">
+
+    <padding>
+        <Insets top="18" right="18" bottom="18" left="18"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="Đặt giá đấu" styleClass="auction-popup-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnClose"
+                text="✕"
+                onAction="#handleCloseAction"
+                styleClass="auction-popup-close"/>
+    </HBox>
+
+    <Separator opacity="0.3"/>
+
+    <!-- Product info -->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <ImageView fx:id="popupItemImageView"
+                   fitWidth="82"
+                   fitHeight="82"
+                   preserveRatio="true"
+                   pickOnBounds="true"
+                   styleClass="auction-popup-image"/>
+
+        <VBox spacing="5">
+            <Label fx:id="lblPopupItemName"
+                   text="Chuột Razer DeathAdder"
+                   wrapText="true"
+                   maxWidth="260"
+                   styleClass="auction-popup-item-name"/>
+
+            <HBox spacing="6">
+                <Label text="Giá cao nhất:" styleClass="label-caption"/>
+                <Label fx:id="lblPopupCurrentPrice"
+                       text="15.000 VNĐ"
+                       styleClass="bidTransaction-price"/>
+            </HBox>
+
+            <HBox spacing="6">
+                <Label text="Còn lại:" styleClass="label-caption"/>
+                <Label fx:id="lblPopupTimeLeft"
+                       text="577 ngày 01:06:54"
+                       styleClass="time-left"/>
+            </HBox>
+        </VBox>
+    </HBox>
+
+    <Separator opacity="0.3"/>
+
+    <!-- Bid rule -->
+    <VBox spacing="5" styleClass="auction-popup-note-box">
+        <Label text="Điều kiện đặt giá" styleClass="auction-popup-section-title"/>
+        <Label fx:id="lblMinimumBidHint"
+               text="Giá đấu của bạn phải lớn hơn hoặc bằng 20.000 VNĐ."
+               wrapText="true"
+               styleClass="auction-popup-hint"/>
+    </VBox>
+
+    <!-- Input -->
+    <VBox spacing="6">
+        <Label text="Nhập giá đấu của bạn" styleClass="auction-popup-section-title"/>
+        <TextField fx:id="txtBidAmount"
+                   promptText="Ví dụ: 20000"
+                   styleClass="auction-popup-input"/>
+    </VBox>
+
+    <!-- Quick prices -->
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Button fx:id="btnQuickBid1"
+                text="+5.000"
+                onAction="#handleQuickBid1"
+                styleClass="auction-popup-chip"/>
+
+        <Button fx:id="btnQuickBid2"
+                text="+10.000"
+                onAction="#handleQuickBid2"
+                styleClass="auction-popup-chip"/>
+
+        <Button fx:id="btnQuickBid3"
+                text="+20.000"
+                onAction="#handleQuickBid3"
+                styleClass="auction-popup-chip"/>
+    </HBox>
+
+    <Label fx:id="lblBidMessage"
+           text=""
+           wrapText="true"
+           styleClass="auction-popup-message"/>
+
+    <!-- Actions -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="btnCancelBid"
+                text="Hủy"
+                onAction="#handleCloseAction"
+                styleClass="auction-popup-cancel"/>
+
+        <Button fx:id="btnSubmitBid"
+                text="Xác nhận đấu giá"
+                onAction="#handleSubmitBidAction"
+                styleClass="auction-popup-submit"/>
+    </HBox>
+
+</VBox>

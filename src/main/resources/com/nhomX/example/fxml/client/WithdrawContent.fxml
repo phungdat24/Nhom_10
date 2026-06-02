@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<HBox alignment="CENTER" spacing="30.0" style="-fx-background-color: #f8f9fa;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.WithdrawMoneyController">
+
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+
+    <VBox prefWidth="470.0" spacing="20.0" style="-fx-background-color: white;                  -fx-border-color: #e0e0e0;                  -fx-border-radius: 8;                  -fx-background-radius: 8;">
+
+        <padding>
+            <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+        </padding>
+
+        <!-- Header -->
+        <VBox spacing="5.0">
+            <Label text="Khởi tạo lệnh rút tiền" textFill="#222222">
+                <font>
+                    <Font name="System Bold" size="20.0" />
+                </font>
+            </Label>
+
+            <Label text="Vui lòng nhập số tiền cần rút và thông tin tài khoản thụ hưởng." textFill="#666666" wrapText="true" />
+        </VBox>
+
+        <!-- Amount -->
+        <VBox spacing="8.0">
+            <Label text="SỐ TIỀN RÚT (VND)" textFill="#555555">
+                <font>
+                    <Font name="System Bold" size="11.0" />
+                </font>
+            </Label>
+
+            <HBox alignment="CENTER_LEFT" style="-fx-border-color: #cccccc;                          -fx-border-radius: 6;                          -fx-background-radius: 6;">
+                <TextField fx:id="txtWithdrawAmount" prefHeight="45.0" promptText="Nhập số tiền cần rút" style="-fx-background-color: transparent;                                   -fx-box-border: transparent;" HBox.hgrow="ALWAYS">
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                </TextField>
+
+                <Label text="đ" textFill="#999999">
+                    <padding>
+                        <Insets right="15.0" />
+                    </padding>
+                    <font>
+                        <Font size="16.0" />
+                    </font>
+                </Label>
+            </HBox>
+
+            <Label fx:id="lblWithdrawAmountText" text="Bằng chữ: Chưa xác định" textFill="#0d8a5f">
+                <font>
+                    <Font name="System Italic" size="13.0" />
+                </font>
+            </Label>
+
+            <FlowPane hgap="10.0" vgap="10.0">
+                <Button mnemonicParsing="false" onAction="#handleQuickWithdrawAmount" text="100.000đ" />
+
+                <Button mnemonicParsing="false" onAction="#handleQuickWithdrawAmount" text="200.000đ" />
+
+                <Button mnemonicParsing="false" onAction="#handleQuickWithdrawAmount" text="500.000đ" />
+
+                <Button mnemonicParsing="false" onAction="#handleQuickWithdrawAmount" text="1.000.000đ" />
+            </FlowPane>
+        </VBox>
+
+        <!-- Bank -->
+        <VBox spacing="8.0">
+            <Label text="NGÂN HÀNG THỤ HƯỞNG" textFill="#555555">
+                <font>
+                    <Font name="System Bold" size="11.0" />
+                </font>
+            </Label>
+
+            <ComboBox fx:id="cbBank" maxWidth="1.7976931348623157E308" prefHeight="45.0" promptText="Chọn ngân hàng" style="-fx-background-color: white;                              -fx-background-radius: 6;                              -fx-border-radius: 6;                              -fx-border-color: #cccccc;                              -fx-font-size: 14px;" />
+        </VBox>
+
+        <!-- Account number -->
+        <VBox spacing="8.0">
+            <Label text="SỐ TÀI KHOẢN THỤ HƯỞNG" textFill="#555555">
+                <font>
+                    <Font name="System Bold" size="11.0" />
+                </font>
+            </Label>
+
+            <TextField fx:id="txtBeneficiaryAccount" prefHeight="45.0" promptText="Nhập số tài khoản nhận tiền" style="-fx-border-color: #cccccc;                               -fx-border-radius: 6;                               -fx-background-radius: 6;                               -fx-background-color: white;">
+                <font>
+                    <Font size="15.0" />
+                </font>
+            </TextField>
+        </VBox>
+
+        <!-- Notice -->
+        <VBox spacing="4.0" style="-fx-background-color: #fff3cd;                      -fx-background-radius: 6;">
+            <padding>
+                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+            </padding>
+
+            <Label text="💡 Rút tối thiểu 50.000 VNĐ, tối đa theo số dư khả dụng." textFill="#6c757d">
+                <font>
+                    <Font name="System Italic" size="12.0" />
+                </font>
+            </Label>
+
+            <Label text="💡 Vui lòng nhập đúng thông tin tài khoản thụ hưởng." textFill="#6c757d">
+                <font>
+                    <Font name="System Italic" size="12.0" />
+                </font>
+            </Label>
+
+            <Label text="📞 Hotline hỗ trợ sự cố: 1900 1234." textFill="#6c757d">
+                <font>
+                    <Font name="System Italic" size="12.0" />
+                </font>
+            </Label>
+        </VBox>
+
+        <!-- Submit -->
+        <Button fx:id="btnCreateWithdrawRequest" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleCreateWithdrawRequest" prefHeight="45.0" style="-fx-background-color: #111111;                        -fx-background-radius: 6;                        -fx-cursor: hand;" text="Tạo lệnh rút tiền" textFill="white">
+            <font>
+                <Font name="System Bold" size="14.0" />
+            </font>
+        </Button>
+
+        <!-- Info box -->
+        <HBox spacing="10.0" style="-fx-background-color: #eef6ff;                      -fx-background-radius: 6;">
+            <padding>
+                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+            </padding>
+
+            <FontAwesomeIcon glyphName="INFO_CIRCLE" />
+
+            <Label text="Sau khi tạo lệnh, hệ thống sẽ kiểm tra thông tin và xử lý yêu cầu rút tiền." textFill="#333333" wrapText="true" />
+        </HBox>
+
+        <Hyperlink onAction="#handleBack" text="Quay lại">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Hyperlink>
+
+    </VBox>
+</HBox>
