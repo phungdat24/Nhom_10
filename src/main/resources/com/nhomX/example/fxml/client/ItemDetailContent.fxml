@@ -29,15 +29,14 @@
         <HBox alignment="TOP_CENTER" spacing="30.0" VBox.vgrow="ALWAYS">
 
             <VBox prefWidth="380.0" spacing="20" HBox.hgrow="NEVER">
-                <VBox alignment="CENTER" spacing="15.0" styleClass="product-card">
+                <VBox spacing="15.0" styleClass="product-card" VBox.vgrow="NEVER">
                     <padding>
                         <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
                     </padding>
 
-                    <StackPane fx:id="imageContainer" maxHeight="300.0" maxWidth="300.0" minHeight="300.0" minWidth="300.0" prefHeight="300.0" prefWidth="300.0" style="-fx-background-color: transparent;">
-                        <children>
-                            <ImageView fx:id="imgItem" preserveRatio="true" smooth="true" />
-                        </children>
+                    <StackPane fx:id="imageContainer" maxWidth="Infinity" prefHeight="300.0" style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
+
+                        <ImageView fx:id="imgItem" preserveRatio="true" smooth="true" StackPane.alignment="CENTER" />
                     </StackPane>
 
                     <ScrollPane fitToHeight="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent;">
@@ -59,7 +58,7 @@
                         <font><Font size="22.0" /></font>
                     </Label>
 
-                    <VBox spacing="10" style="-fx-background-color: rgba(0,0,0,0.05); -fx-padding: 15; -fx-background-radius: 10;">
+                    <VBox spacing="10" style="-fx-background-color: transparent;-fx-background-color: rgba(191,161,115,0.25);-fx-border-width: 1; -fx-padding: 15; -fx-background-radius: 10; -fx-border-radius: 10;">
                         <Label styleClass="label-caption" text="Nhập số tiền bạn muốn đấu giá:" />
                         <TextField fx:id="txtBidAmount" prefHeight="40" promptText="Ví dụ: 500000" styleClass="search-field" />
                         <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" prefHeight="50" styleClass="btn-bidTransaction" text="ĐẶT GIÁ NGAY" />

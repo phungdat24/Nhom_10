@@ -150,7 +150,7 @@ public class MyAuctionCardController {
 
             // 3. Gọi "Quản gia" MainDashBoardController để đổi khung hình trung tâm
             if (MainDashBoardController.instance != null) {
-                MainDashBoardController.instance.setCenterContent(root);
+                MainDashBoardController.instance.saveCurrentViewAndNavigate(root);
             }
 
         } catch (java.io.IOException e) {

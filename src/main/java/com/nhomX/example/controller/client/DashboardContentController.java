@@ -150,7 +150,7 @@ public class DashboardContentController extends BaseController implements Server
             detailController.setAuctionData(freshAuction);
 
             if (MainDashBoardController.instance != null) {
-                MainDashBoardController.instance.setCenterContent(root);
+                MainDashBoardController.instance.saveCurrentViewAndNavigate(root);
             }
         } catch (IOException e) {
             System.err.println("Lỗi chuyển hướng trang chi tiết: " + e.getMessage());

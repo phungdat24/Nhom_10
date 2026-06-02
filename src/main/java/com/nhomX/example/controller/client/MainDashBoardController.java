@@ -58,6 +58,8 @@ public class MainDashBoardController extends BaseController implements Initializ
     @FXML
     private FontAwesomeIcon walletArrowIcon;
 
+    private Node previousNode;
+
     private boolean isWalletOpen = false; // Biến cờ theo dõi trạng thái đóng/mở ví
 
     private AuctionClient auctionClient;
@@ -187,12 +189,6 @@ public class MainDashBoardController extends BaseController implements Initializ
             System.err.println("Lỗi không thể tải trang con: " + fxmlPath);
         }
     }
-
-    // 5. Hàm nhận một Node đã có sẵn dữ liệu (Dùng cho ItemDetail)
-    public void setCenterContent(Node node) {
-        mainContentArea.getChildren().clear();
-        mainContentArea.getChildren().add(node);
-    }
     @FXML
     public void toggleWalletPanel(MouseEvent mouseEvent) {
         isWalletOpen = !isWalletOpen;
@@ -244,6 +240,35 @@ public class MainDashBoardController extends BaseController implements Initializ
             isWalletOpen = false;
             walletPanel.setVisible(false);
             walletPanel.setManaged(false);
+        }
+    }
+    /**
+     * Cất View hiện tại vào bộ đệm và chuyển sang màn hình Chi tiết mới.
+     */
+    public void saveCurrentViewAndNavigate(Node newDetailNode) {
+        // Kiểm tra xem hiện tại đang có màn hình nào không
+        if (!mainContentArea.getChildren().isEmpty()) {
+            previousNode = mainContentArea.getChildren().get(0); // Lưu lại Node gốc (VD: Dashboard, LiveAuction)
+        }
+
+        // Gắn Node chi tiết mới vào
+        mainContentArea.getChildren().clear();
+        mainContentArea.getChildren().add(newDetailNode);
+    }
+
+    /**
+     * Khôi phục lại View trước đó từ bộ đệm (Không tốn chi phí Load FXML lại).
+     */
+    public void restorePreviousView() {
+        if (previousNode != null) {
+            mainContentArea.getChildren().clear();
+            mainContentArea.getChildren().add(previousNode);
+
+            // Giải phóng tham chiếu để tránh Rò rỉ bộ nhớ (Memory Leak) nếu chuyển sang luồng khác
+            previousNode = null;
+        } else {
+            // Fallback: Trở về an toàn nếu lịch sử bị rỗng
+            loadView("/com/nhomX/example/fxml/client/DashboardContent.fxml");
         }
     }
 }
