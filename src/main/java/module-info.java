@@ -4,6 +4,7 @@ module com.nhomX.example {
     requires java.sql;
     requires java.desktop;
     requires java.mail;
+    requires fontawesomefx;
 
     opens com.nhomX.example to javafx.fxml;
 

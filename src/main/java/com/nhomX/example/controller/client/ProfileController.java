@@ -172,12 +172,14 @@ public class ProfileController extends BaseController implements Initializable, 
     public void onDepositResult(boolean isSuccess, long newBalance) {
         Platform.runLater(() -> {
             if (isSuccess) {
-                AlertUtils.showSuccess("Thành công", "Nạp tiền thành công!");
                 currentUser.setBalance(newBalance);
                 lblBalance.setText(CurrencyFormatter.formatVND(newBalance).replace(" VNĐ", ""));
             } else {
-                AlertUtils.showError("Thất bại", "Giao dịch nạp tiền thất bại, vui lòng thử lại.");
+                AlertUtils.showError("Thất bại", "Update số dư thất bại");
             }
         });
+    }
+
+    public void handleWithDraw(ActionEvent event) {
     }
 }

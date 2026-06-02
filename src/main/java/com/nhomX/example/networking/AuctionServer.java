@@ -138,6 +138,20 @@ public class AuctionServer {
             }
         }
     }
+    // ===== THÊM VÀO AuctionServer.java =====
+    /**
+     * Hàm gửi tin nhắn riêng (Private Message) cho một User cụ thể đang online
+     */
+    public void sendToUser(String targetUserId, Message msg) {
+        // Duyệt qua toàn bộ client đang kết nối
+        for (ClientHandler client : clients) {
+            // Kiểm tra xem client đó đã đăng nhập chưa và có khớp ID không
+            if (client.getCurrentUser() != null && client.getCurrentUser().getId().equals(targetUserId)) {
+                client.sendToClient(msg);
+                return; // Tìm thấy rồi thì gửi và thoát hàm luôn cho nhẹ máy
+            }
+        }
+    }
 
     // ĐÃ SỬA: Dọn dẹp triệt để khi Client ngắt kết nối (tắt app)
     public void removeClient(ClientHandler client) {

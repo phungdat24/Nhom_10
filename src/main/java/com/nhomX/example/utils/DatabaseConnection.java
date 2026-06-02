@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class DatabaseConnection {
+
   public static final String URL_PROPERTY = "auction.db.url";
   private static final String DEFAULT_URL = "jdbc:sqlite:auction.db";
   // 1. Biến static lưu trữ instance duy nhất (Singleton)
