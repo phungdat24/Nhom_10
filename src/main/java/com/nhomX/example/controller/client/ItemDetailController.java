@@ -123,10 +123,35 @@ public class ItemDetailController extends BaseController implements ServerEventL
             // Bật tự động căn chỉnh khoảng cách để đồ thị luôn đẹp
             yAxis.setAutoRanging(true);
         }
-        // GIẢI QUYẾT TRIỆT ĐỂ: Ràng buộc kích thước ảnh theo đúng khuôn khổ của Container
-        if (imgItem != null && imageContainer != null) {
-            imgItem.fitWidthProperty().bind(imageContainer.widthProperty());
-            imgItem.fitHeightProperty().bind(imageContainer.heightProperty());
+        if (imageContainer != null) {
+            /*
+             * Tạo Rectangle clip KHÔNG có kích thước cố định.
+             * Bind width/height vào imageContainer để clip co giãn cùng container.
+             * Bind arcWidth/arcHeight cố định để góc bo luôn đồng đều.
+             */
+            javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
+
+            // Bind kích thước clip theo container — tự động cập nhật khi layout thay đổi
+            clip.widthProperty().bind(imageContainer.widthProperty());
+            clip.heightProperty().bind(imageContainer.heightProperty());
+
+            // Bo góc cố định 16px — không phụ thuộc kích thước
+            clip.setArcWidth(16);
+            clip.setArcHeight(16);
+
+            imageContainer.setClip(clip);
+
+            /*
+             * Bind fitWidth và fitHeight của ImageView vào container.
+             * - subtract(4): trừ 4px padding để ảnh không sát viền clip
+             * - preserveRatio=true trong FXML đảm bảo ảnh không bị méo dù width != height
+             */
+            if (imgItem != null) {
+                imgItem.fitWidthProperty().bind(
+                        imageContainer.widthProperty().subtract(4));
+                imgItem.fitHeightProperty().bind(
+                        imageContainer.heightProperty().subtract(4));
+            }
         }
         // TỐI ƯU UX AUTO-BID
         if (chkAutoBidToggle != null) {
@@ -235,8 +260,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             auctionClient.unwatchAuction(currentAuctionId);
         }
         if (MainDashBoardController.instance != null) {
-            MainDashBoardController.instance
-                    .loadView("/com/nhomX/example/fxml/client/LiveAuctionContent.fxml");
+            // 🛠 KIẾN TRÚC MỚI: Bật ngược lại màn hình cũ từ RAM
+            MainDashBoardController.instance.restorePreviousView();
         } else {
             System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
         }

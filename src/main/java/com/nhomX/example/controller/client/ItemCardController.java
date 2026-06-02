@@ -98,7 +98,7 @@ public class ItemCardController extends BaseController {
             // 3. THAY ĐỔI QUAN TRỌNG: Thay vì setScene đập đi xây lại,
             // ta nhờ "Quản gia" MainDashBoardController nhét cái giao diện này vào giữa màn hình
             if (MainDashBoardController.instance != null) {
-                MainDashBoardController.instance.setCenterContent(root);
+                MainDashBoardController.instance.saveCurrentViewAndNavigate(root);
             } else {
                 System.err.println("Lỗi: MainController chưa được khởi tạo!");
             }
