@@ -33,7 +33,7 @@ public class DashboardRepository {
         DashboardDataDTO dto = new DashboardDataDTO();
         dto.onlineUsers = onlineUsers;
 
-        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try(Connection conn = DatabaseConnection.getInstance().getConnection()){
 
         // 1. KPI — Tổng user
         dto.totalUsers = queryInt(conn,
@@ -65,6 +65,10 @@ public class DashboardRepository {
         // 7. Recent Transactions — 5 phiên FINISHED gần nhất
         dto.recentTransactions = queryRecentTransactions(conn, 5);
 
+        } catch (SQLException e) {
+            System.err.println("❌ Lỗi khi khởi tạo kết nối tải Dashboard: " + e.getMessage());
+        }
+
         return dto;
     }
 
@@ -89,7 +93,7 @@ public class DashboardRepository {
                         + "ORDER BY day ASC";
 
         try (PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 // Parse "yyyy-MM-dd" → label "dd/MM"
                 LocalDate date = LocalDate.parse(rs.getString("day"), DB_DATE_FMT);

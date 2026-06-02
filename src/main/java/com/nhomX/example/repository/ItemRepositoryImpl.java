@@ -20,10 +20,13 @@ public class ItemRepositoryImpl implements ItemRepository {
   @Override
   public List<Items> findAll() {
     List<Items> itemsList = new ArrayList<>();
-    String sql = "SELECT * FROM items";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
+    // Dùng JOIN để lấy luôn thông tin User chỉ trong 1 lần query
+    String sql = "SELECT i.*, u.fullname AS seller_name, u.username AS seller_email " +
+            "FROM items i LEFT JOIN users u ON i.seller_id = u.id";
+
     // Xử lý đóng kết nối an toàn (try-with-resources)
-    try (PreparedStatement pstmt = conn.prepareStatement(sql);
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
 
       while (rs.next()) {
@@ -40,10 +43,13 @@ public class ItemRepositoryImpl implements ItemRepository {
   @Override
   public List<Items> findByCategory(String category) {
     List<Items> itemsList = new ArrayList<>();
-    String sql = "SELECT * FROM items WHERE category = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
+    String sql = "SELECT i.*, u.fullname AS seller_name, u.username AS seller_email " +
+            "FROM items i LEFT JOIN users u ON i.seller_id = u.id " +
+            "WHERE i.category = ?";
+
     // ✅ Nhiệm vụ 4: try-with-resources
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       // Truyền tham số category vào dấu ?
       pstmt.setString(1, category);
 
@@ -62,9 +68,12 @@ public class ItemRepositoryImpl implements ItemRepository {
   @Override
   public List<Items> findBySellerId(String sellerId) {
     List<Items> itemsList = new ArrayList<>();
-    String sql = "SELECT * FROM items WHERE seller_id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    String sql = "SELECT i.*, u.fullname AS seller_name, u.username AS seller_email " +
+            "FROM items i LEFT JOIN users u ON i.seller_id = u.id " +
+            "WHERE i.seller_id = ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, sellerId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
@@ -95,10 +104,13 @@ public class ItemRepositoryImpl implements ItemRepository {
   @Override
   public Items findById(String id) {
     // 1. Triển khai logic truy vấn: Câu lệnh SQL tìm 1 bản ghi theo ID
-    String sql = "SELECT * FROM items WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
+    String sql = "SELECT i.*, u.fullname AS seller_name, u.username AS seller_email " +
+            "FROM items i LEFT JOIN users u ON i.seller_id = u.id " +
+            "WHERE i.id = ?";
+
     // 2 & 3. Xử lý đóng tài nguyên bằng try-with-resources cho PreparedStatement
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       // Truyền ID người dùng muốn tìm vào dấu ?
       pstmt.setString(1, id);
 
@@ -125,45 +137,39 @@ public class ItemRepositoryImpl implements ItemRepository {
         "UPDATE items SET title = ?, description = ?, category = ?, seller_id = ? WHERE id = ?";
     String sqlDeleteImages = "DELETE FROM item_images WHERE item_id = ?";
     String sqlInsertImages = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()){
       // ✅ FIX BUG 2: Bật Giao dịch
       conn.setAutoCommit(false);
       // 1. Cập nhật thông tin bảng items
-      try (PreparedStatement pstmtItem = conn.prepareStatement(sqlItem)) {
-        pstmtItem.setString(1, item.getTitle());
-        pstmtItem.setString(2, item.getDescription());
-        pstmtItem.setString(3, item.getCategory());
-        pstmtItem.setString(4, item.getSeller().getId());
-        pstmtItem.setString(5, item.getId());
-        pstmtItem.executeUpdate();
-      }
+      try{
+        try (PreparedStatement pstmtItem = conn.prepareStatement(sqlItem)) {
+          pstmtItem.setString(1, item.getTitle());
+          pstmtItem.setString(2, item.getDescription());
+          pstmtItem.setString(3, item.getCategory());
+          pstmtItem.setString(4, item.getSeller().getId());
+          pstmtItem.setString(5, item.getId());
+          pstmtItem.executeUpdate();
+        }
 
       // 2. Xóa sạch ảnh cũ của sản phẩm này
-      try (PreparedStatement pstmtDel = conn.prepareStatement(sqlDeleteImages)) {
-        pstmtDel.setString(1, item.getId());
-        pstmtDel.executeUpdate();
-      }
+        try (PreparedStatement pstmtDel = conn.prepareStatement(sqlDeleteImages)) {
+          pstmtDel.setString(1, item.getId());
+          pstmtDel.executeUpdate();
+        }
       insertImages(item, conn, sqlInsertImages);
       // 4. Chốt giao dịch
       conn.commit();
       System.out.println("✅ Đã cập nhật thành công sản phẩm: " + item.getTitle());
 
+      } catch (SQLException e) {
+        System.err.println("❌ Lỗi Giao dịch Cập Nhật Sản Phẩm! Đang Rollback... " + e.getMessage());
+        rollbackSilently(conn);
+      } finally {
+        restoreAutoCommit(conn);
+      }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi Giao dịch Cập Nhật Sản Phẩm! Đang Rollback... " + e.getMessage());
-      try {
-        if (conn != null) {
-          conn.rollback();
-        }
-      } catch (SQLException ex) {
-        System.err.println("❌ Lỗi Rollback: " + ex.getMessage());
-      }
-    } finally {
-      try {
-        conn.setAutoCommit(true);
-      } catch (SQLException ex) {
-        System.err.println("❌ Lỗi khôi phục AutoCommit: " + ex.getMessage());
-      }
+      System.err.println("❌ Lỗi mở kết nối DB khi cập nhật sản phẩm: " + e.getMessage());
     }
   }
 
@@ -173,17 +179,19 @@ public class ItemRepositoryImpl implements ItemRepository {
         "INSERT INTO items (id, title, description, category, seller_id) VALUES (?, ?, ?, ?, ?)";
     String sqlImage = "INSERT INTO item_images (id, image_path, item_id) VALUES (?, ?, ?)";
 
-    Connection conn = DatabaseConnection.getInstance().getConnection();
+    // ĐƯA CONNECTION VÀO TRY ĐỂ CHỐNG LEAK
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+      conn.setAutoCommit(false);
     // ✅ FIX BUG 2: Bật chế độ Giao dịch
     try {
-      conn.setAutoCommit(false);
       // 1. Lưu Sản phẩm vào bảng items
       try (PreparedStatement pstmtItem = conn.prepareStatement(sqlItem)) {
         pstmtItem.setString(1, item.getId());
         pstmtItem.setString(2, item.getTitle());
         pstmtItem.setString(3, item.getDescription());
         pstmtItem.setString(4, item.getCategory());
-        pstmtItem.setString(5, item.getSeller() != null ? item.getSeller().getId() : null);;
+        pstmtItem.setString(5, item.getSeller() != null ? item.getSeller().getId() : null);
+        ;
         pstmtItem.executeUpdate();
       }
 
@@ -195,20 +203,12 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     } catch (SQLException e) {
       System.err.println("❌ Lỗi Giao dịch Lưu Sản Phẩm! Đang Rollback... " + e.getMessage());
-      try {
-        if (conn != null)
-          conn.rollback();
-        System.out.println("🔄 Đã hoàn tác an toàn.");
-      } catch (SQLException ex) {
-        System.err.println("❌ Lỗi nghiêm trọng khi Rollback: " + ex.getMessage());
-      }
+      rollbackSilently(conn);
     } finally {
-      try {
-        if (conn != null)
-          conn.setAutoCommit(true);
-      } catch (SQLException e) {
-        System.err.println("❌ Lỗi kết nối DB: " + e.getMessage());
-      }
+      restoreAutoCommit(conn);
+    }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi mở kết nối DB khi lưu sản phẩm: " + e.getMessage());
     }
   }
 
@@ -234,24 +234,28 @@ public class ItemRepositoryImpl implements ItemRepository {
     // [FIX] Xóa ảnh trước, rồi mới xóa item (tránh lỗi foreign key constraint)
     String sqlDeleteImages = "DELETE FROM item_images WHERE item_id = ?";
     String sqlDeleteItem = "DELETE FROM items WHERE id = ?";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try {
+    // ĐƯA CONNECTION VÀO TRY ĐỂ CHỐNG LEAK
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
       conn.setAutoCommit(false);
-      try (PreparedStatement pstmt1 = conn.prepareStatement(sqlDeleteImages)) {
-        pstmt1.setString(1, itemId);
-        pstmt1.executeUpdate();
+      try {
+        try (PreparedStatement pstmt1 = conn.prepareStatement(sqlDeleteImages)) {
+          pstmt1.setString(1, itemId);
+          pstmt1.executeUpdate();
+        }
+        try (PreparedStatement pstmt2 = conn.prepareStatement(sqlDeleteItem)) {
+          pstmt2.setString(1, itemId);
+          pstmt2.executeUpdate();
+        }
+        conn.commit();
+        System.out.println("✅ Đã xóa sản phẩm: " + itemId);
+      } catch (SQLException e) {
+        System.err.println("❌ Lỗi xóa sản phẩm! Đang rollback... " + e.getMessage());
+        rollbackSilently(conn);
+      } finally {
+        restoreAutoCommit(conn);
       }
-      try (PreparedStatement pstmt2 = conn.prepareStatement(sqlDeleteItem)) {
-        pstmt2.setString(1, itemId);
-        pstmt2.executeUpdate();
-      }
-      conn.commit();
-      System.out.println("✅ Đã xóa sản phẩm: " + itemId);
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi xóa sản phẩm! Đang rollback... " + e.getMessage());
-      rollbackSilently(conn);
-    } finally {
-      restoreAutoCommit(conn);
+      System.err.println("❌ Lỗi kết nối DB khi xóa: " + e.getMessage());
     }
   }
 
@@ -289,31 +293,21 @@ public class ItemRepositoryImpl implements ItemRepository {
   }
 
   private Items mapRowToItem(ResultSet rs, Connection conn) throws SQLException {
-    // 1. Trích xuất toàn bộ dữ liệu thô từ Database
     String category = rs.getString("category");
     String id = rs.getString("id");
     String title = rs.getString("title");
     String description = rs.getString("description");
     String sellerId = rs.getString("seller_id");
 
-    // 2. [DEEP FETCHING]: Khai quật thông tin chi tiết của người bán
-    User fullSeller = null;
+    // Khởi tạo User bằng dữ liệu lấy trực tiếp từ cột JOIN (seller_name, seller_email)
+    User fullSeller = new RegularUser();
     if (sellerId != null) {
-      UserRepository userRepo = new UserRepositoryImpl();
-      // Lấy nguyên bộ thông tin (Tên, Email, Số dư...) từ bảng users
-      fullSeller = userRepo.findById(sellerId);
-    }
-
-    // Phòng hờ trường hợp DB bị lỗi hoặc User đã bị xóa khỏi hệ thống
-    if (fullSeller == null) {
-      fullSeller = new RegularUser();
       fullSeller.setId(sellerId);
+      fullSeller.setFullName(rs.getString("seller_name"));
+      fullSeller.setUserName(rs.getString("seller_email"));
     }
 
-    // 3. Giao toàn quyền sinh sát cho Nhà máy với Seller ĐÃ CÓ TÊN
     Items item = ItemFactory.createItem(category, id, title, description, fullSeller);
-
-    // 4. Nhét thêm danh sách ảnh và trả về
     item.setImages(getImagesByItemId(item.getId(), conn));
 
     return item;

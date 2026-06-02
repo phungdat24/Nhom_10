@@ -36,8 +36,9 @@ public class BidRepositoryImpl implements BidRepository {
     // SỬ DỤNG TRY-WITH-RESOURCES ĐỂ TỰ ĐỘNG ĐÓNG KẾT NỐI
     String sql =
             "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, bidTransaction.getId());
       pstmt.setLong(2, bidTransaction.getAmount());
       pstmt.setString(3,
@@ -64,8 +65,9 @@ public class BidRepositoryImpl implements BidRepository {
             "FROM bids b " +
             "JOIN users u ON b.user_id = u.id " +
             "WHERE b.auction_id = ? ORDER BY b.bid_time ASC";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionId);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -84,8 +86,9 @@ public class BidRepositoryImpl implements BidRepository {
   public BidTransaction getHighestBid(String auctionId) {
     // Dùng ORDER BY amount DESC LIMIT 1 để lấy ra người đặt giá cao nhất
     String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY amount DESC LIMIT 1";
-    Connection conn = DatabaseConnection.getInstance().getConnection();
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionId);
 
@@ -104,13 +107,13 @@ public class BidRepositoryImpl implements BidRepository {
   @Override
   public boolean executeBidTransaction(String userId, String auctionId, long bidAmount, String bidId) {
 
-    Connection conn = DatabaseConnection.getInstance().getConnection();
     // [FIX] Dùng lock theo auctionId để đảm bảo thread-safety trong transaction
     ReentrantLock lock = auctionLocks.computeIfAbsent(auctionId, k -> new ReentrantLock());
     lock.lock();
     // Bắt lỗi rollback:
     try {
-      synchronized (conn) {
+
+      try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
         // BƯỚC 2: Tắt chế độ tự động lưu (Bắt đầu gom các lệnh vào 1 Giao dịch)
         conn.setAutoCommit(false);
         try {
@@ -171,13 +174,21 @@ public class BidRepositoryImpl implements BidRepository {
           // =========================================================
           // TRẠM 2: KIỂM TRA SỐ DƯ TÀI KHOẢN NGƯỜI MUA MỚI
           // =========================================================
+          boolean isSelfOutbid = userId.equals(oldWinnerId);
+
+          // 1. Tính toán số tiền THỰC TẾ cần phải trừ thêm
+          long actualRequiredAmount = bidAmount;
+          if (isSelfOutbid) {
+            // Nếu tự nâng giá, chỉ cần nộp thêm phần chênh lệch
+            actualRequiredAmount = bidAmount - currentHighestBid;
+          }
           String sqlCheckBalance = "SELECT balance FROM users WHERE id = ?";
           try (PreparedStatement pstmtCheck = conn.prepareStatement(sqlCheckBalance)) {
             pstmtCheck.setString(1, userId);
             try (ResultSet rs = pstmtCheck.executeQuery()) {
               if (rs.next()) {
                 long currentBalance = rs.getLong("balance");
-                if (currentBalance < bidAmount) {
+                if (currentBalance < actualRequiredAmount) {
                   throw new InvalidBidException("Số dư không đủ để đặt giá!");
                 }
               } else {
@@ -185,30 +196,44 @@ public class BidRepositoryImpl implements BidRepository {
               }
             }
           }
+          // 3. Luân chuyển dòng tiền
+          if (isSelfOutbid) {
+            // KỊCH BẢN A: Tự nâng giá của chính mình
+            // => Không cần hoàn tiền cho ai cả. Chỉ trừ thêm phần chênh lệch của mình.
+            String sqlDeductDiff = "UPDATE users SET balance = balance - ? WHERE id = ?";
+            try (PreparedStatement pstmtDeduct = conn.prepareStatement(sqlDeductDiff)) {
+              pstmtDeduct.setLong(1, actualRequiredAmount);
+              pstmtDeduct.setString(2, userId);
+              pstmtDeduct.executeUpdate();
+            }
+            System.out.println("🔄 User " + userId + " tự nâng giá. Đã trừ thêm phần chênh lệch: " + actualRequiredAmount);
 
-          // =========================================================
-          // TRẠM 3: HOÀN TIỀN CHO NGƯỜI DẪN ĐẦU CŨ (Refund Logic)
-          // =========================================================
-          if (oldWinnerId != null && !oldWinnerId.trim().isEmpty() && currentHighestBid > 0) {
-            String sqlRefund = "UPDATE users SET balance = balance + ? WHERE id = ?";
-            try (PreparedStatement pstmtRefund = conn.prepareStatement(sqlRefund)) {
-              pstmtRefund.setLong(1, currentHighestBid);
-              pstmtRefund.setString(2, oldWinnerId);
-              int rows = pstmtRefund.executeUpdate();
-              if (rows > 0) {
-                System.out.println("💸 Đã hoàn trả " + currentHighestBid + " cho user cũ: " + oldWinnerId);
+          } else {
+
+            // =========================================================
+            // TRẠM 3: HOÀN TIỀN CHO NGƯỜI DẪN ĐẦU CŨ (Refund Logic)
+            // =========================================================
+            if (oldWinnerId != null && !oldWinnerId.trim().isEmpty() && currentHighestBid > 0) {
+              String sqlRefund = "UPDATE users SET balance = balance + ? WHERE id = ?";
+              try (PreparedStatement pstmtRefund = conn.prepareStatement(sqlRefund)) {
+                pstmtRefund.setLong(1, currentHighestBid);
+                pstmtRefund.setString(2, oldWinnerId);
+                int rows = pstmtRefund.executeUpdate();
+                if (rows > 0) {
+                  System.out.println("💸 Đã hoàn trả " + currentHighestBid + " cho user cũ: " + oldWinnerId);
+                }
               }
             }
-          }
 
-          // =========================================================
-          // TRẠM 4: TRỪ TIỀN NGƯỜI DẪN ĐẦU MỚI
-          // =========================================================
-          String sqlDeduct = "UPDATE users SET balance = balance - ? WHERE id = ?";
-          try (PreparedStatement pstmtDeduct = conn.prepareStatement(sqlDeduct)) {
-            pstmtDeduct.setLong(1, bidAmount);
-            pstmtDeduct.setString(2, userId);
-            pstmtDeduct.executeUpdate();
+            // =========================================================
+            // TRẠM 4: TRỪ TIỀN NGƯỜI DẪN ĐẦU MỚI
+            // =========================================================
+            String sqlDeduct = "UPDATE users SET balance = balance - ? WHERE id = ?";
+            try (PreparedStatement pstmtDeduct = conn.prepareStatement(sqlDeduct)) {
+              pstmtDeduct.setLong(1, bidAmount);
+              pstmtDeduct.setString(2, userId);
+              pstmtDeduct.executeUpdate();
+            }
           }
 
           // =========================================================
@@ -265,18 +290,20 @@ public class BidRepositoryImpl implements BidRepository {
           System.err.println("❌ Lỗi SQL! Đã Rollback: " + e.getMessage());
           return false;
         } finally {
-          // MỞ KHÓA VÀ TRẢ LẠI CHẾ ĐỘ AUTO-COMMIT CHO HỆ THỐNG
           conn.setAutoCommit(true);
         }
+      } catch (SQLException e) {
+        // Lỗi khi lấy connection
+        System.err.println("❌ Không thể mở kết nối Database: " + e.getMessage());
+        return false;
       }
-    } catch (Exception e) {
-      // Bắt lỗi tổng (nếu throws từ khối trong ra)
-      if (e instanceof RuntimeException) throw (RuntimeException) e;
-      return false;
     } finally {
+      // LUÔN LUÔN MỞ KHÓA KHI KẾT THÚC
       lock.unlock();
     }
   }
+
+
 
   @Override
   public boolean saveAutoBidConfig(String userId, String auctionId, long maxLimit, long increment) {
