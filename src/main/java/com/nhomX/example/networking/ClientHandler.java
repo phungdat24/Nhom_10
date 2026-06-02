@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.nhomX.example.dto.DashboardDataDTO;
 import com.nhomX.example.exception.AuctionClosedException;
 import com.nhomX.example.exception.AuthenticationException;
 import com.nhomX.example.exception.InvalidBidException;
@@ -162,6 +163,15 @@ public class ClientHandler implements Runnable {
                     break;
                 case "GET_IMAGE":
                     handleGetImage(msg);
+                    break;
+                case "GET_ALL_USERS":
+                    handleGetAllUsers();
+                    break;
+                case "TOGGLE_USER_STATUS":
+                    handleToggleUserStatus(msg);
+                    break;
+                case "DELETE_USER":
+                    handleDeleteUser(msg);
                     break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
@@ -312,6 +322,15 @@ public class ClientHandler implements Runnable {
         }
     }
     private void handleGetDashboardData() {
+        if (isAdminClient()) {
+            DashboardRepository dashRepo = new DashboardRepository();
+            DashboardDataDTO dto = dashRepo.buildDashboardData(server.getOnlineUserCount());
+            // Gửi DTO duy nhất — Controller tự unpack
+            sendToClient(new Message("DASHBOARD_DATA_RESULT", dto));
+            return;
+        }
+
+        // Giữ payload cũ cho Dashboard client thường đang dùng cùng message GET_DASHBOARD_DATA.
         List<Auction> endingSoonlist = auctionRepository.getEndingSoonAuctions(5);
         List<Auction> trendingList = auctionRepository.getTrendingAuctions(10);
         Map<String, Integer> stats = new HashMap<>();
@@ -322,6 +341,132 @@ public class ClientHandler implements Runnable {
         Object[] dashboardPayload = {stats, endingSoonlist, trendingList};
         Message responseMsg = new Message("DASHBOARD_DATA_RESULT", dashboardPayload);
         sendToClient(responseMsg);
+    }
+
+    // ============================================================
+    // ADMIN: Lấy toàn bộ danh sách user
+    // ============================================================
+    private void handleGetAllUsers() {
+        // Chặn ngay nếu không phải Admin
+        if (!isAdminClient()) {
+            sendToClient(new Message("ERROR", "Yêu cầu quyền Admin để xem danh sách user!"));
+            return;
+        }
+
+        try {
+            List<User> allUsers = userRepository.findAll();
+            // Gửi về đúng type "ALL_USERS_RESULT" mà AuctionClient đang lắng nghe
+            sendToClient(new Message("ALL_USERS_RESULT", (java.io.Serializable) allUsers));
+
+            // Controller hiện tại lưu trạng thái ở cache riêng, nên gửi trạng thái từng user
+            // ngay sau danh sách để bảng hiển thị đúng khi Admin mở lại màn hình.
+            for (User user : allUsers) {
+                sendToClient(createUserStatusChangedMessage(
+                        user.getId(), userRepository.isUserActive(user.getId())));
+            }
+            System.out.println("SERVER: Đã gửi " + allUsers.size() + " users về Admin.");
+        } catch (Exception e) {
+            System.err.println("❌ handleGetAllUsers lỗi: " + e.getMessage());
+            sendToClient(new Message("ERROR", "Không thể lấy danh sách người dùng."));
+        }
+    }
+
+    // ============================================================
+    // ADMIN: Toggle trạng thái khóa/mở khóa tài khoản
+    // ============================================================
+    private void handleToggleUserStatus(Message msg) {
+        if (!isAdminClient()) {
+            sendToClient(new Message("ERROR", "Yêu cầu quyền Admin!"));
+            return;
+        }
+
+        String targetUserId = (String) msg.getData();
+        if (targetUserId == null || targetUserId.isBlank()) {
+            sendToClient(new Message("ERROR", "userId không hợp lệ."));
+            return;
+        }
+
+        // Chặn Admin tự khóa chính mình — tránh tình huống hệ thống mất quyền quản trị
+        if (targetUserId.equals(currentUser.getId())) {
+            sendToClient(new Message("ERROR", "Bạn không thể khóa chính tài khoản của mình!"));
+            return;
+        }
+
+        try {
+            // 1. Đọc trạng thái hiện tại từ DB
+            boolean currentActive = userRepository.isUserActive(targetUserId);
+            boolean newActive = !currentActive; // Toggle
+
+            // 2. Ghi trạng thái mới xuống DB
+            boolean isSuccess = userRepository.setUserActiveStatus(targetUserId, newActive);
+
+            if (isSuccess) {
+                // 3. Broadcast realtime tới TẤT CẢ Admin đang online
+                //    để mọi màn hình UserManagement đều cập nhật đồng thời
+                server.broadcastToAdmins(createUserStatusChangedMessage(targetUserId, newActive));
+
+                System.out.println("SERVER: Admin " + currentUser.getUserName()
+                        + (newActive ? " đã MỞ KHÓA" : " đã KHÓA")
+                        + " tài khoản user: " + targetUserId);
+            } else {
+                sendToClient(new Message("ERROR",
+                        "Cập nhật trạng thái thất bại, vui lòng thử lại."));
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ handleToggleUserStatus lỗi: " + e.getMessage());
+            sendToClient(new Message("ERROR", "Lỗi hệ thống khi thay đổi trạng thái user."));
+        }
+    }
+
+    // ============================================================
+    // ADMIN: Xóa vĩnh viễn một user
+    // ============================================================
+    private void handleDeleteUser(Message msg) {
+        if (!isAdminClient()) {
+            sendToClient(new Message("ERROR", "Yêu cầu quyền Admin!"));
+            return;
+        }
+
+        String targetUserId = (String) msg.getData();
+        if (targetUserId == null || targetUserId.isBlank()) {
+            sendToClient(new Message("ERROR", "userId không hợp lệ."));
+            return;
+        }
+
+        // Chặn Admin tự xóa chính mình
+        if (targetUserId.equals(currentUser.getId())) {
+            sendToClient(new Message("ERROR", "Bạn không thể xóa chính tài khoản của mình!"));
+            return;
+        }
+
+        try {
+            boolean isSuccess = userRepository.deleteUser(targetUserId);
+
+            if (isSuccess) {
+                // Broadcast tới tất cả Admin: reload lại danh sách user
+                // Cách đơn giản nhất: gửi lại toàn bộ danh sách sau khi xóa
+                List<User> updatedList = userRepository.findAll();
+                server.broadcastToAdmins(
+                        new Message("ALL_USERS_RESULT", (java.io.Serializable) updatedList));
+
+                System.out.println("SERVER: Admin " + currentUser.getUserName()
+                        + " đã XÓA user: " + targetUserId);
+            } else {
+                sendToClient(new Message("ERROR", "Xóa user thất bại, vui lòng thử lại."));
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ handleDeleteUser lỗi: " + e.getMessage());
+            sendToClient(new Message("ERROR", "Lỗi hệ thống khi xóa user."));
+        }
+    }
+
+    private Message createUserStatusChangedMessage(String userId, boolean isActive) {
+        Map<String, Object> statusPayload = new HashMap<>();
+        statusPayload.put("userId", userId);
+        statusPayload.put("isActive", isActive);
+        return new Message("USER_STATUS_CHANGED", statusPayload);
     }
 
     private void handleGetMyAuctions(Message msg) {

@@ -1,5 +1,6 @@
 package com.nhomX.example.networking;
 
+import com.nhomX.example.dto.DashboardDataDTO;
 import com.nhomX.example.model.*;
 
 import java.util.List;
@@ -32,6 +33,9 @@ public interface ServerEventListener {
     default void onShowOtpDialog() {}
 
     default void onDashboardDataReceived(Map<String, Integer> stats, List<Auction> endingSoon, List<Auction> trending) {}
+
+    // Giữ default để không phá các listener cũ:
+    default void onDashboardDataReceived(DashboardDataDTO dto) {}
 
     default void onMyAuctionsReceived(List<MyAuctionDTO> myAuctionsList) {}
 

@@ -11,6 +11,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import com.nhomX.example.controller.client.MainDashBoardController;
+import com.nhomX.example.dto.DashboardDataDTO;
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -395,6 +396,17 @@ public class AuctionClient {
                 break;
 
             case "DASHBOARD_DATA_RESULT":
+                if (msg.getData() instanceof DashboardDataDTO dto) {
+                    // DTO duy nhất — Controller Admin tự unpack.
+                    runOnUiThread(() -> {
+                        listeners.forEach(currentListener ->
+                                currentListener.onDashboardDataReceived(dto));
+                        if (listener != null && !listeners.contains(listener)) {
+                            listener.onDashboardDataReceived(dto);
+                        }
+                    });
+                    break;
+                }
                 Object[] payload = (Object[]) msg.getData();
                 Map<String, Integer> stats = (Map<String, Integer>) payload[0];
                 List<Auction> endingSoon = (List<Auction>) payload[1];

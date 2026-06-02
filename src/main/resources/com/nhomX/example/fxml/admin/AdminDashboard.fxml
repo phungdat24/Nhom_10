@@ -16,36 +16,46 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="700.0" prefWidth="800.0" style="-fx-background: #0E0E0E; -fx-background-color: #0E0E0E;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.admin.AdminDashboardController">
+<ScrollPane fitToHeight="true" fitToWidth="true" prefHeight="700.0" prefWidth="800.0"
+            style="-fx-background: #0E0E0E; -fx-background-color: #0E0E0E;"
+            xmlns="http://javafx.com/javafx/26"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.nhomX.example.controller.admin.AdminDashboardController">
    <content>
       <VBox prefWidth="800.0" spacing="18.0" style="-fx-background-color: #0E0E0E;">
-         <padding>
-            <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
-         </padding>
-
+         <padding><Insets bottom="24.0" left="24.0" right="24.0" top="24.0" /></padding>
          <children>
+
             <!-- TOP KPI CARDS -->
             <HBox prefHeight="125.0" spacing="18.0">
                <children>
-                  <VBox prefWidth="238.0" spacing="14.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);" HBox.hgrow="ALWAYS">
+                  <!-- Card 1: Tổng User -->
+                  <VBox fx:id="cardUsers" prefWidth="238.0" spacing="14.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);"
+                        HBox.hgrow="ALWAYS">
                      <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                      <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
-                           <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px; -fx-font-weight: bold;" text="TỔNG SỐ USER HOẠT ĐỘNG" />
+                           <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px; -fx-font-weight: bold;" text="TỔNG SỐ USER" />
                            <Region HBox.hgrow="ALWAYS" />
                            <StackPane prefHeight="32.0" prefWidth="32.0" style="-fx-background-color: #C9A84C; -fx-background-radius: 9;">
                               <children><FontAwesomeIcon fill="WHITE" glyphName="USERS" size="1.15em" /></children>
                            </StackPane>
                         </HBox>
                         <HBox alignment="BOTTOM_LEFT" spacing="10.0">
-                           <Label style="-fx-text-fill: #C9A84C; -fx-font-size: 24px; -fx-font-weight: bold;" text="12,842" />
+                           <Label fx:id="labelTotalUsers"
+                                  style="-fx-text-fill: #C9A84C; -fx-font-size: 24px; -fx-font-weight: bold;" text="..." />
                            <Region HBox.hgrow="ALWAYS" />
-                           <Label style="-fx-text-fill: #2ECC71; -fx-font-size: 12px; -fx-font-weight: bold;" text="↗ +12.4%" />
+                           <Label fx:id="labelUserGrowth"
+                                  style="-fx-text-fill: #2ECC71; -fx-font-size: 12px; -fx-font-weight: bold;" text="" />
                         </HBox>
                      </children>
                   </VBox>
 
-                  <VBox prefWidth="238.0" spacing="14.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);" HBox.hgrow="ALWAYS">
+                  <!-- Card 2: Phiên Live -->
+                  <VBox fx:id="cardLive" prefWidth="238.0" spacing="14.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);"
+                        HBox.hgrow="ALWAYS">
                      <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                      <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -56,14 +66,18 @@
                            </StackPane>
                         </HBox>
                         <HBox alignment="BOTTOM_LEFT" spacing="10.0">
-                           <Label style="-fx-text-fill: #C9A84C; -fx-font-size: 24px; -fx-font-weight: bold;" text="342" />
+                           <Label fx:id="labelLiveAuctions"
+                                  style="-fx-text-fill: #C9A84C; -fx-font-size: 24px; -fx-font-weight: bold;" text="..." />
                            <Region HBox.hgrow="ALWAYS" />
                            <Label style="-fx-background-color: rgba(46, 204, 113, 0.16); -fx-background-radius: 8; -fx-text-fill: #2ECC71; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 5 8 5 8;" text="LIVE NOW" />
                         </HBox>
                      </children>
                   </VBox>
 
-                  <VBox prefWidth="238.0" spacing="14.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);" HBox.hgrow="ALWAYS">
+                  <!-- Card 3: Dòng tiền -->
+                  <VBox fx:id="cardRevenue" prefWidth="238.0" spacing="14.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);"
+                        HBox.hgrow="ALWAYS">
                      <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                      <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -74,7 +88,8 @@
                            </StackPane>
                         </HBox>
                         <HBox alignment="BOTTOM_LEFT" spacing="8.0">
-                           <Label style="-fx-text-fill: #C9A84C; -fx-font-size: 22px; -fx-font-weight: bold;" text="2.4B VNĐ" />
+                           <Label fx:id="labelTotalRevenue"
+                                  style="-fx-text-fill: #C9A84C; -fx-font-size: 22px; -fx-font-weight: bold;" text="..." />
                            <Region HBox.hgrow="ALWAYS" />
                            <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;" text="Dữ liệu thời gian&#10;thực" />
                         </HBox>
@@ -86,7 +101,9 @@
             <!-- MAIN ANALYTICS -->
             <HBox prefHeight="280.0" spacing="18.0">
                <children>
-                  <VBox prefWidth="500.0" spacing="12.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);" HBox.hgrow="ALWAYS">
+                  <VBox prefWidth="500.0" spacing="12.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);"
+                        HBox.hgrow="ALWAYS">
                      <padding><Insets bottom="14" left="18" right="18" top="18" /></padding>
                      <children>
                         <HBox alignment="CENTER_LEFT">
@@ -95,40 +112,77 @@
                            <Label style="-fx-background-color: #252220; -fx-background-radius: 13; -fx-text-fill: #D1D5DB; -fx-font-size: 11px; -fx-padding: 6 14 6 14;" text="7 ngày" />
                            <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px; -fx-padding: 6 10 6 10;" text="30 ngày" />
                         </HBox>
-                        <AreaChart animated="false" createSymbols="false" legendVisible="false" prefHeight="218.0" style="-fx-background-color: transparent;">
-                           <xAxis><CategoryAxis side="BOTTOM" tickLabelFill="#9CA3AF" tickLength="0.0" /></xAxis>
-                           <yAxis><NumberAxis opacity="0.0" side="LEFT" /></yAxis>
+                        <!-- AreaChart cần fx:id để inject series từ code -->
+                        <AreaChart fx:id="revenueChart" animated="false" createSymbols="true"
+                                   legendVisible="false" prefHeight="218.0"
+                                   style="-fx-background-color: transparent;">
+                           <xAxis><CategoryAxis fx:id="chartXAxis" side="BOTTOM" tickLabelFill="#9CA3AF" tickLength="0.0" /></xAxis>
+                           <yAxis><NumberAxis fx:id="chartYAxis" opacity="0.0" side="LEFT" /></yAxis>
                         </AreaChart>
                      </children>
                   </VBox>
 
-                  <VBox prefWidth="235.0" spacing="15.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);">
+                  <!-- Category breakdown -->
+                  <VBox prefWidth="235.0" spacing="15.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);">
                      <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                      <children>
-                        <Label style="-fx-text-fill: #F0EAD6; -fx-font-size: 17px; -fx-font-weight: bold;" text="Số lượng đấu giá&#10;thành công" wrapText="true" />
+                        <Label style="-fx-text-fill: #F0EAD6; -fx-font-size: 17px; -fx-font-weight: bold;"
+                               text="Số lượng đấu giá&#10;thành công" wrapText="true" />
 
+                        <!-- Trang sức -->
                         <VBox spacing="7.0">
                            <children>
-                              <HBox><Label style="-fx-font-size: 11px; -fx-text-fill: #D1D5DB;" text="Đồng hồ" /><Region HBox.hgrow="ALWAYS" /><Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="1,240" /></HBox>
-                              <HBox prefHeight="8" style="-fx-background-color: #2A2A2A; -fx-background-radius: 99;"><Region prefWidth="172" style="-fx-background-color: #F0EAD6; -fx-background-radius: 99;" /></HBox>
+                              <HBox>
+                                 <Label style="-fx-font-size: 11px; -fx-text-fill: #D1D5DB;" text="Trang sức" />
+                                 <Region HBox.hgrow="ALWAYS" />
+                                 <Label fx:id="labelCatJewelry" style="-fx-font-size: 11px; -fx-font-weight: bold;" text="0" />
+                              </HBox>
+                              <HBox fx:id="barBgJewelry" prefHeight="8"
+                                    style="-fx-background-color: #2A2A2A; -fx-background-radius: 99;">
+                                 <Region fx:id="barFillJewelry" prefWidth="0"
+                                         style="-fx-background-color: #F0EAD6; -fx-background-radius: 99;" />
+                              </HBox>
                            </children>
                         </VBox>
+
+                        <!-- Điện tử -->
                         <VBox spacing="7.0">
                            <children>
-                              <HBox><Label style="-fx-font-size: 11px; -fx-text-fill: #D1D5DB;" text="Điện tử" /><Region HBox.hgrow="ALWAYS" /><Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="850" /></HBox>
-                              <HBox prefHeight="8" style="-fx-background-color: #2A2A2A; -fx-background-radius: 99;"><Region prefWidth="125" style="-fx-background-color: #C9A84C; -fx-background-radius: 99;" /></HBox>
+                              <HBox>
+                                 <Label style="-fx-font-size: 11px; -fx-text-fill: #D1D5DB;" text="Điện tử" />
+                                 <Region HBox.hgrow="ALWAYS" />
+                                 <Label fx:id="labelCatElec" style="-fx-font-size: 11px; -fx-font-weight: bold;" text="0" />
+                              </HBox>
+                              <HBox fx:id="barBgElec" prefHeight="8"
+                                    style="-fx-background-color: #2A2A2A; -fx-background-radius: 99;">
+                                 <Region fx:id="barFillElec" prefWidth="0"
+                                         style="-fx-background-color: #C9A84C; -fx-background-radius: 99;" />
+                              </HBox>
                            </children>
                         </VBox>
+
+                        <!-- Nghệ thuật -->
                         <VBox spacing="7.0">
                            <children>
-                              <HBox><Label style="-fx-font-size: 11px; -fx-text-fill: #D1D5DB;" text="Nghệ thuật" /><Region HBox.hgrow="ALWAYS" /><Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="430" /></HBox>
-                              <HBox prefHeight="8" style="-fx-background-color: #2A2A2A; -fx-background-radius: 99;"><Region prefWidth="78" style="-fx-background-color: #E74C3C; -fx-background-radius: 99;" /></HBox>
+                              <HBox>
+                                 <Label style="-fx-font-size: 11px; -fx-text-fill: #D1D5DB;" text="Nghệ thuật" />
+                                 <Region HBox.hgrow="ALWAYS" />
+                                 <Label fx:id="labelCatArt" style="-fx-font-size: 11px; -fx-font-weight: bold;" text="0" />
+                              </HBox>
+                              <HBox fx:id="barBgArt" prefHeight="8"
+                                    style="-fx-background-color: #2A2A2A; -fx-background-radius: 99;">
+                                 <Region fx:id="barFillArt" prefWidth="0"
+                                         style="-fx-background-color: #E74C3C; -fx-background-radius: 99;" />
+                              </HBox>
                            </children>
                         </VBox>
+
                         <HBox alignment="CENTER_LEFT" spacing="6.0">
                            <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;" text="Hiệu suất tổng thể" />
                            <Region HBox.hgrow="ALWAYS" />
-                           <Label style="-fx-text-fill: #2ECC71; -fx-font-size: 13px; -fx-font-weight: bold;" text="+18.5%" />
+                           <Label fx:id="labelOverallGrowth"
+                                  style="-fx-text-fill: #2ECC71; -fx-font-size: 13px; -fx-font-weight: bold;" text="+0%" />
                         </HBox>
                      </children>
                   </VBox>
@@ -138,18 +192,36 @@
             <!-- LOWER CARDS -->
             <HBox prefHeight="255.0" spacing="18.0">
                <children>
-                  <VBox prefWidth="235.0" spacing="12.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);">
+                  <!-- PieChart -->
+                  <VBox prefWidth="235.0" spacing="12.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);">
                      <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                      <children>
                         <Label style="-fx-text-fill: #F0EAD6; -fx-font-size: 17px; -fx-font-weight: bold;" text="Tỉ lệ trạng thái phiên" />
-                        <PieChart labelsVisible="false" legendVisible="false" prefHeight="145.0" />
-                        <HBox><Label style="-fx-text-fill: #F0EAD6; -fx-font-size: 11px;" text="● Live" /><Region HBox.hgrow="ALWAYS" /><Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="55%" /></HBox>
-                        <HBox><Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;" text="● Chờ Duyệt" /><Region HBox.hgrow="ALWAYS" /><Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="25%" /></HBox>
-                        <HBox><Label style="-fx-text-fill: #888070; -fx-font-size: 11px;" text="● Đã Đóng" /><Region HBox.hgrow="ALWAYS" /><Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="20%" /></HBox>
+                        <PieChart fx:id="statusPieChart" labelsVisible="false"
+                                  legendVisible="false" prefHeight="145.0" />
+                        <HBox>
+                           <Label style="-fx-text-fill: #F0EAD6; -fx-font-size: 11px;" text="● Live" />
+                           <Region HBox.hgrow="ALWAYS" />
+                           <Label fx:id="labelPieLive" style="-fx-font-size: 11px; -fx-font-weight: bold;" text="0%" />
+                        </HBox>
+                        <HBox>
+                           <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 11px;" text="● Chờ Duyệt" />
+                           <Region HBox.hgrow="ALWAYS" />
+                           <Label fx:id="labelPiePending" style="-fx-font-size: 11px; -fx-font-weight: bold;" text="0%" />
+                        </HBox>
+                        <HBox>
+                           <Label style="-fx-text-fill: #888070; -fx-font-size: 11px;" text="● Đã Đóng" />
+                           <Region HBox.hgrow="ALWAYS" />
+                           <Label fx:id="labelPieClosed" style="-fx-font-size: 11px; -fx-font-weight: bold;" text="0%" />
+                        </HBox>
                      </children>
                   </VBox>
 
-                  <VBox prefWidth="500.0" spacing="12.0" style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);" HBox.hgrow="ALWAYS">
+                  <!-- Recent Transactions GridPane -->
+                  <VBox prefWidth="500.0" spacing="12.0"
+                        style="-fx-background-color: #161616; -fx-background-radius: 18; -fx-border-color: #2A2724; -fx-border-radius: 18; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 7);"
+                        HBox.hgrow="ALWAYS">
                      <padding><Insets bottom="18" left="18" right="18" top="18" /></padding>
                      <children>
                         <HBox alignment="CENTER_LEFT">
@@ -158,7 +230,8 @@
                            <Label style="-fx-text-fill: #F0EAD6; -fx-font-size: 10px; -fx-font-weight: bold;" text="Xem tất cả" />
                         </HBox>
 
-                        <GridPane hgap="12" vgap="12">
+                        <!-- fx:id trên GridPane để inject rows từ code -->
+                        <GridPane fx:id="transactionGrid" hgap="12" vgap="12">
                            <columnConstraints>
                               <ColumnConstraints percentWidth="16" />
                               <ColumnConstraints percentWidth="34" />
@@ -168,46 +241,22 @@
                            </columnConstraints>
                            <rowConstraints>
                               <RowConstraints minHeight="22" />
-                              <RowConstraints minHeight="42" />
-                              <RowConstraints minHeight="42" />
-                              <RowConstraints minHeight="42" />
+                              <!-- 5 data rows sẽ được add động từ Controller -->
                            </rowConstraints>
                            <children>
-                              <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Mã Phiên" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                              <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Sản phẩm" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                              <!-- Header row (row 0) — tĩnh, giữ nguyên -->
+                              <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Mã Phiên"    GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                              <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Sản phẩm"   GridPane.columnIndex="1" GridPane.rowIndex="0" />
                               <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Người thắng" GridPane.columnIndex="2" GridPane.rowIndex="0" />
-                              <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Giá cuối" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+                              <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Giá cuối"   GridPane.columnIndex="3" GridPane.rowIndex="0" />
                               <Label style="-fx-text-fill: #9CA3AF; -fx-font-size: 10px;" text="Trạng thái" GridPane.columnIndex="4" GridPane.rowIndex="0" />
-
-                              <Label style="-fx-font-weight: bold; -fx-font-size: 11px;" text="#AUC-2941" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                              <Label style="-fx-font-size: 11px;" text="Rolex Submariner&#10;2022" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                              <Label style="-fx-font-size: 11px;" text="H. Nguyễn" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                              <Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="420,000,000&#10;VNĐ" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                              <Label style="-fx-background-color: rgba(46, 204, 113, 0.16); -fx-background-radius: 9; -fx-text-fill: #2ECC71; -fx-font-size: 8px; -fx-font-weight: bold; -fx-padding: 4 6 4 6;" text="HOÀN TẤT" GridPane.columnIndex="4" GridPane.rowIndex="1" />
-
-                              <Label style="-fx-font-weight: bold; -fx-font-size: 11px;" text="#AUC-2940" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                              <Label style="-fx-font-size: 11px;" text="iPhone 15 Pro Max&#10;Custom" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                              <Label style="-fx-font-size: 11px;" text="T. Trần" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                              <Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="55,000,000 VNĐ" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                              <Label style="-fx-background-color: rgba(46, 204, 113, 0.16); -fx-background-radius: 9; -fx-text-fill: #2ECC71; -fx-font-size: 8px; -fx-font-weight: bold; -fx-padding: 4 6 4 6;" text="HOÀN TẤT" GridPane.columnIndex="4" GridPane.rowIndex="2" />
-
-                              <Label style="-fx-font-weight: bold; -fx-font-size: 11px;" text="#AUC-2938" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                              <Label style="-fx-font-size: 11px;" text="Tác phẩm 'Mùa Thu'&#10;- L. Phó" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                              <Label style="-fx-font-size: 11px;" text="Minh Khôi" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                              <Label style="-fx-font-size: 11px; -fx-font-weight: bold;" text="1,250,000,000&#10;VNĐ" GridPane.columnIndex="3" GridPane.rowIndex="3" />
-                              <Label style="-fx-background-color: rgba(201, 168, 76, 0.15); -fx-background-radius: 9; -fx-text-fill: #D1D5DB; -fx-font-size: 8px; -fx-font-weight: bold; -fx-padding: 4 6 4 6;" text="CHỜ THANH TOÁN" wrapText="true" GridPane.columnIndex="4" GridPane.rowIndex="3" />
                            </children>
                         </GridPane>
-
-                        <ScrollPane fitToWidth="true" managed="false" opacity="0.0" prefHeight="1.0">
-                           <content>
-                              <VBox fx:id="vboxBidHistory" spacing="5.0" />
-                           </content>
-                        </ScrollPane>
                      </children>
                   </VBox>
                </children>
             </HBox>
+
          </children>
       </VBox>
    </content>

@@ -10,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.nhomX.example.model.User;
 import com.nhomX.example.repository.*;
 
 public class AuctionServer {
@@ -138,19 +139,23 @@ public class AuctionServer {
             }
         }
     }
-    // ===== THÊM VÀO AuctionServer.java =====
     /**
-     * Hàm gửi tin nhắn riêng (Private Message) cho một User cụ thể đang online
+     * Gửi message đích danh tới một user cụ thể (theo userId).
+     * Dùng cho: hoàn tiền khi bị vượt giá, thông báo cá nhân.
+     *
+     * @param userId ID của user cần nhận tin
+     * @param msg Message cần gửi
      */
-    public void sendToUser(String targetUserId, Message msg) {
-        // Duyệt qua toàn bộ client đang kết nối
+    public void sendToUser(String userId, Message msg) {
         for (ClientHandler client : clients) {
-            // Kiểm tra xem client đó đã đăng nhập chưa và có khớp ID không
-            if (client.getCurrentUser() != null && client.getCurrentUser().getId().equals(targetUserId)) {
+            User user = client.getCurrentUser();
+            if (user != null && userId.equals(user.getId())) {
                 client.sendToClient(msg);
-                return; // Tìm thấy rồi thì gửi và thoát hàm luôn cho nhẹ máy
+                return; // Tìm thấy rồi, dừng vòng lặp
             }
         }
+        // Không tìm thấy = user đang offline — bỏ qua, không báo lỗi
+        System.out.println("SERVER: User " + userId + " không online, bỏ qua sendToUser.");
     }
 
     // ĐÃ SỬA: Dọn dẹp triệt để khi Client ngắt kết nối (tắt app)
