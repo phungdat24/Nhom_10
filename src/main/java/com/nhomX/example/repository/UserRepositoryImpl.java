@@ -24,6 +24,12 @@ public class UserRepositoryImpl implements UserRepository {
     String sql =
         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES (?,? , ?, ?, ?, ?)";
     Connection conn = DatabaseConnection.getInstance().getConnection();
+    try {
+      ensureUserActiveColumn(conn);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi kiểm tra cột is_active: " + e.getMessage());
+      return false;
+    }
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, user.getId());
       pstmt.setString(2, user.getUserName());
@@ -46,8 +52,14 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User login(String username, String passwordHash) {
-    String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+    String sql = "SELECT * FROM users WHERE username = ? AND password = ? AND is_active = 1";
     Connection conn = DatabaseConnection.getInstance().getConnection();
+    try {
+      ensureUserActiveColumn(conn);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi kiểm tra cột is_active: " + e.getMessage());
+      return null;
+    }
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, username);
       pstmt.setString(2, passwordHash);
@@ -122,6 +134,12 @@ public class UserRepositoryImpl implements UserRepository {
     List<User> users = new ArrayList<>();
     String sql = "SELECT * FROM users";
     Connection conn = DatabaseConnection.getInstance().getConnection();
+    try {
+      ensureUserActiveColumn(conn);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi kiểm tra cột is_active: " + e.getMessage());
+      return users;
+    }
     try (PreparedStatement pstmt = conn.prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
@@ -191,5 +209,181 @@ public class UserRepositoryImpl implements UserRepository {
       System.err.println("❌ Lỗi getTotalUserCount: " + e.getMessage());
     }
     return count;
+  }
+
+  /**
+   * ALTER TABLE cần chạy 1 lần trên DB để thêm cột is_active:
+   *
+   * <p>ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;
+   *
+   * <p>SQLite dùng INTEGER (0/1), MySQL dùng TINYINT(1) hoặc BOOLEAN. Giá trị mặc định 1 = tất cả
+   * user cũ đều được coi là "đang hoạt động".
+   */
+  private void ensureUserActiveColumn(Connection conn) throws SQLException {
+    synchronized (conn) {
+      try (PreparedStatement pstmt = conn.prepareStatement("PRAGMA table_info(users)");
+          ResultSet rs = pstmt.executeQuery()) {
+        while (rs.next()) {
+          if ("is_active".equalsIgnoreCase(rs.getString("name"))) {
+            return;
+          }
+        }
+      }
+
+      try (PreparedStatement pstmt = conn.prepareStatement(
+          "ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1")) {
+        pstmt.executeUpdate();
+      }
+    }
+  }
+
+  @Override
+  public boolean setUserActiveStatus(String userId, boolean isActive) {
+    // UPDATE đúng 1 cột — không đụng mật khẩu, balance hay bất cứ thứ gì khác
+    String sql = "UPDATE users SET is_active = ? WHERE id = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try {
+      ensureUserActiveColumn(conn);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi kiểm tra cột is_active: " + e.getMessage());
+      return false;
+    }
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setInt(1, isActive ? 1 : 0); // SQLite: 1=active, 0=locked
+      pstmt.setString(2, userId);
+      int rows = pstmt.executeUpdate();
+      if (rows > 0) {
+        System.out.println("✅ Đã " + (isActive ? "mở khóa" : "khóa") + " tài khoản: " + userId);
+        return true;
+      }
+      System.err.println("❌ Không tìm thấy user để cập nhật trạng thái: " + userId);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi setUserActiveStatus: " + e.getMessage());
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deleteUser(String userId) {
+    // XÓA THEO ĐÚNG THỨ TỰ FOREIGN KEY để tránh lỗi constraint:
+    // 1. Xóa auto_bids của user này và của các phiên do user này đăng bán
+    // 2. Xóa bids của user này và của các phiên do user này đăng bán
+    // 3. Xóa item_images của user này
+    // 4. Xóa auctions liên quan
+    // 5. Xóa items của user này
+    // 6. Cuối cùng mới xóa user
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    synchronized (conn) {
+      try {
+        conn.setAutoCommit(false);
+
+        // Gỡ tham chiếu tới user từ những phiên vẫn được giữ lại.
+        executeUpdate(conn, "UPDATE auctions SET winner_id = NULL WHERE winner_id = ?", userId);
+        executeUpdate(conn, "UPDATE auctions SET approved_by = NULL WHERE approved_by = ?", userId);
+
+        // Bước 1: Xóa cấu hình auto-bid
+        executeUpdate(conn,
+            "DELETE FROM auto_bids WHERE auction_id IN "
+                + "(SELECT a.id FROM auctions a JOIN items i ON a.item_id = i.id "
+                + "WHERE i.seller_id = ?)",
+            userId);
+        executeUpdate(conn, "DELETE FROM auto_bids WHERE user_id = ?", userId);
+
+        // Bước 2: Xóa lịch sử đấu giá (bids)
+        executeUpdate(conn,
+            "DELETE FROM bids WHERE auction_id IN "
+                + "(SELECT a.id FROM auctions a JOIN items i ON a.item_id = i.id "
+                + "WHERE i.seller_id = ?)",
+            userId);
+        executeUpdate(conn, "DELETE FROM bids WHERE user_id = ?", userId);
+
+        // Bước 3: Lấy danh sách item_id của user để xóa ảnh
+        // (cần xóa item_images trước khi xóa items do FK)
+        executeUpdate(conn,
+            "DELETE FROM item_images WHERE item_id IN "
+                + "(SELECT id FROM items WHERE seller_id = ?)",
+            userId);
+
+        // Bước 4: Xóa auctions của các items thuộc user
+        // (cần trước khi xóa items)
+        executeUpdate(conn,
+            "DELETE FROM auctions WHERE item_id IN "
+                + "(SELECT id FROM items WHERE seller_id = ?)",
+            userId);
+
+        // Bước 5: Xóa items
+        executeUpdate(conn, "DELETE FROM items WHERE seller_id = ?", userId);
+
+        // Bước 6: Cuối cùng xóa chính user
+        int rows = executeUpdate(conn, "DELETE FROM users WHERE id = ?", userId);
+
+        conn.commit();
+        if (rows > 0) {
+          System.out.println("✅ Đã xóa toàn bộ dữ liệu của user: " + userId);
+          return true;
+        }
+        System.err.println("❌ Không tìm thấy user để xóa: " + userId);
+        return false;
+
+      } catch (SQLException e) {
+        System.err.println("❌ Lỗi deleteUser — đang rollback: " + e.getMessage());
+        rollbackSilently(conn);
+        return false;
+      } finally {
+        restoreAutoCommit(conn);
+      }
+    }
+  }
+
+  @Override
+  public boolean isUserActive(String userId) {
+    String sql = "SELECT is_active FROM users WHERE id = ?";
+    Connection conn = DatabaseConnection.getInstance().getConnection();
+    try {
+      ensureUserActiveColumn(conn);
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi kiểm tra cột is_active: " + e.getMessage());
+      return true;
+    }
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, userId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("is_active") == 1;
+        }
+      }
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi isUserActive: " + e.getMessage());
+    }
+    // Mặc định coi là active nếu không tìm thấy (tránh khóa nhầm)
+    return true;
+  }
+
+  // ── Helper dùng chung trong deleteUser ───────────────────────────────────
+  private int executeUpdate(Connection conn, String sql, String param) throws SQLException {
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, param);
+      return pstmt.executeUpdate();
+    }
+  }
+
+  private void rollbackSilently(Connection conn) {
+    try {
+      if (conn != null) {
+        conn.rollback();
+      }
+    } catch (SQLException ex) {
+      System.err.println("❌ Lỗi rollback: " + ex.getMessage());
+    }
+  }
+
+  private void restoreAutoCommit(Connection conn) {
+    try {
+      if (conn != null) {
+        conn.setAutoCommit(true);
+      }
+    } catch (SQLException ex) {
+      System.err.println("❌ Lỗi restoreAutoCommit: " + ex.getMessage());
+    }
   }
 }

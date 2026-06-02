@@ -26,4 +26,34 @@ public interface UserRepository {
     int getTotalUserCount();
     // Update khi quên mật khẩu:
      boolean updatePassword(String username, String newPasswordHash);
+
+    /**
+     * Lấy toàn bộ danh sách user (đã có sẵn findAll()).
+     * Thêm 3 method mới phục vụ Admin:
+     */
+
+    /**
+     * Khóa/mở khóa tài khoản user.
+     *
+     * @param userId ID user cần thay đổi
+     * @param isActive true = mở khóa, false = khóa
+     * @return true nếu cập nhật thành công
+     */
+    boolean setUserActiveStatus(String userId, boolean isActive);
+
+    /**
+     * Xóa vĩnh viễn một user khỏi hệ thống.
+     *
+     * @param userId ID user cần xóa
+     * @return true nếu xóa thành công
+     */
+    boolean deleteUser(String userId);
+
+    /**
+     * Kiểm tra trạng thái active của user.
+     *
+     * @param userId ID user cần kiểm tra
+     * @return true nếu đang active
+     */
+    boolean isUserActive(String userId);
 }
