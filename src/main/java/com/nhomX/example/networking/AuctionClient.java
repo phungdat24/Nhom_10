@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 import com.nhomX.example.controller.client.MainDashBoardController;
@@ -30,6 +31,8 @@ public class AuctionClient {
     private volatile ObjectInputStream in;
 
     private volatile ServerEventListener listener;
+    private final List<ServerEventListener> listeners = new CopyOnWriteArrayList<>();
+
     // THÊM MỚI: Cache ảnh tại Client — tránh request trùng lặp
     // Key: fileName, Value: byte[]
     private final ConcurrentHashMap<String, byte[]> imageCache = new ConcurrentHashMap<>();
@@ -38,6 +41,14 @@ public class AuctionClient {
     // Cung cấp hàm để các Controller sử dụng:
     public void setServerEventListener(ServerEventListener listener) {
         this.listener = listener;
+    }
+
+    public void addListener(ServerEventListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(ServerEventListener listener) {
+        listeners.remove(listener);
     }
 
     public AuctionClient(String username) {
@@ -493,6 +504,26 @@ public class AuctionClient {
                         }
                     });
                 }
+                break;
+
+            case "ALL_USERS_RESULT":
+                @SuppressWarnings("unchecked")
+                List<User> users = (List<User>) msg.getData();
+                listeners.forEach(currentListener -> currentListener.onAllUsersReceived(users));
+                break;
+            case "USER_BALANCE_UPDATED":
+                Map<?, ?> balancePayload = (Map<?, ?>) msg.getData();
+                String balanceUserId = (String) balancePayload.get("userId");
+                long updatedBalance = ((Number) balancePayload.get("newBalance")).longValue();
+                listeners.forEach(currentListener ->
+                        currentListener.onUserBalanceUpdated(balanceUserId, updatedBalance));
+                break;
+            case "USER_STATUS_CHANGED":
+                Map<?, ?> statusPayload = (Map<?, ?>) msg.getData();
+                String statusUserId = (String) statusPayload.get("userId");
+                boolean isActive = (Boolean) statusPayload.get("isActive");
+                listeners.forEach(currentListener ->
+                        currentListener.onUserStatusChanged(statusUserId, isActive));
                 break;
 
             default:
