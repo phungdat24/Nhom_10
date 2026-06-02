@@ -652,6 +652,10 @@ public class ClientHandler implements Runnable {
                 throw new AuthenticationException(
                         "Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn trên máy chủ!");
             }
+            // [THÊM MỚI]: Lấy ID người dẫn đầu CŨ trước khi thực hiện giao dịch
+            Auction currentAuction = auctionRepository.findById(auctionId);
+            String oldWinnerId = (currentAuction != null && currentAuction.getWinner() != null)
+                    ? currentAuction.getWinner().getId() : null;
             boolean isSuccess =
                     bidRepository.executeBidTransaction(userId, auctionId, bidAmount, newBidId);
             if (isSuccess) {
@@ -660,6 +664,13 @@ public class ClientHandler implements Runnable {
                                 : msg.getUsername();
                 server.broadcastToAll(Message.updatePrice(bidderFullName, auctionId, bidAmount));
                 sendToClient(Message.bidSuccess());
+                // ===== [BỔ SUNG TỪ ĐÂY]: Ép giao diện Sidebar cập nhật số dư =====
+                User updatedUser = userRepository.findById(userId);
+                if (updatedUser != null) {
+                    // Mượn tạm gói tin DEPOSIT_RESULT (vì Client đã có sẵn logic cập nhật số dư cho gói này)
+                    sendToClient(new Message("DEPOSIT_RESULT", new Object[]{true, updatedUser.getBalance()}));
+                }
+                notifyRefundToOldWinner(oldWinnerId, userId);
                 // [THÊM MỚI] Kích hoạt Auto-bid ngay sau khi Bid thủ công thành công
                 // Chạy trên luồng riêng để không làm chậm phản hồi cho người vừa bid
                 triggerAutoBid(auctionId, userId, bidAmount);
@@ -710,6 +721,10 @@ public class ClientHandler implements Runnable {
                     server.broadcastToAll(new Message("AUTO_BID_STOPPED", "System", auctionId, 0, stopPayload));
                     return;
                 }
+                // Lấy id người dẫn đầu cũ
+                Auction currentAuction = auctionRepository.findById(auctionId);
+                String oldWinnerId = (currentAuction != null && currentAuction.getWinner() != null)
+                        ? currentAuction.getWinner().getId() : null;
 
                 // Tái sử dụng executeBidTransaction() — đã có Lock + Transaction bên trong
                 String autoBidId = UUID.randomUUID().toString();
@@ -724,6 +739,8 @@ public class ClientHandler implements Runnable {
                     String displayName = (autoUser != null) ? autoUser.getFullName() : "Ẩn danh";
                     // Broadcast giá mới cho Clienta
                     server.broadcastToAll(Message.updatePrice(displayName, auctionId, autoBidAmount));
+                    // [THÊM MỚI]: Báo tin hoàn tiền cho máy của người vừa bị vượt giá
+                    notifyRefundToOldWinner(oldWinnerId, autoUserId);
 
                     // Đệ quy: Kích hoạt Auto-bid tiếp theo nếu có người khác cũng bật
                     // Thêm delay nhỏ 500ms để tránh flood message
@@ -738,8 +755,7 @@ public class ClientHandler implements Runnable {
             }
         });
     }
-
-                    private void handleWatchItem(Message msg) {
+    private void handleWatchItem(Message msg) {
         server.watchAuction(msg.getAuctionId(), this);
     }
 
@@ -830,6 +846,25 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+    // Hoàn tiền cho người thua cuộc
+    private void notifyRefundToOldWinner(String oldWinnerId, String newWinnerId) {
+        // Nếu có người dẫn đầu cũ, và người đó không phải là người vừa bid
+        if (oldWinnerId != null && !oldWinnerId.equals(newWinnerId)) {
+
+            // Tìm lại số dư mới nhất của người bị vượt dưới DB
+            User oldUserDb = userRepository.findById(oldWinnerId);
+
+            if (oldUserDb != null) {
+                // Đóng gói tin nhắn cập nhật ví
+                Message refundMsg = new Message("DEPOSIT_RESULT", new Object[]{true, oldUserDb.getBalance()});
+
+                // Nhờ Server gửi đích danh cho người đó bằng hàm vừa tạo
+                server.sendToUser(oldWinnerId, refundMsg);
+
+                System.out.println("SERVER: Đã báo tin nảy số dư cho người bị vượt giá: " + oldWinnerId);
+            }
+        }
+    }
 
     /**
      * Gửi message về client. [FIX] Thêm synchronized để thread-safe – nhiều thread có thể gọi đồng
@@ -859,5 +894,8 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.err.println("SERVER: Lỗi đóng socket – " + e.getMessage());
         }
+    }
+    public User getCurrentUser() {
+        return this.currentUser;
     }
 }

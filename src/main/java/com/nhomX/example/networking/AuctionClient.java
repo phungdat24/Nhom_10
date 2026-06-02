@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import com.nhomX.example.controller.client.MainDashBoardController;
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -443,6 +444,10 @@ public class AuctionClient {
                     User currentSessionUser = SessionManager.getInstance().getCurrentUser();
                     if (currentSessionUser != null){
                         currentSessionUser.setBalance(newBalance);
+                        // [GỌI LỆNH NÀY ĐỂ ÉP GIAO DIỆN CẬP NHẬT TỨC THÌ]
+                        if (MainDashBoardController.instance != null) {
+                            MainDashBoardController.instance.updateBalanceGlobally();
+                        }
                     }
                 }
                 runOnUiThread(() -> {

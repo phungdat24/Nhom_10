@@ -8,6 +8,7 @@ import java.util.ResourceBundle;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -18,6 +19,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -41,6 +45,20 @@ public class MainDashBoardController extends BaseController implements Initializ
     public static MainDashBoardController instance;
     @FXML
     private List<Button> navButtons;
+    @FXML
+    private VBox sidebarUserArea;
+    @FXML
+    private VBox walletPanel;
+    @FXML
+    private HBox sidebarUserCard;
+    @FXML
+    private Label lblSidebarUserName;
+    @FXML
+    private Label lblCurrentBalance;
+    @FXML
+    private FontAwesomeIcon walletArrowIcon;
+
+    private boolean isWalletOpen = false; // Biến cờ theo dõi trạng thái đóng/mở ví
 
     private AuctionClient auctionClient;
     private boolean isSidebarOpen = true;
@@ -64,6 +82,8 @@ public class MainDashBoardController extends BaseController implements Initializ
                 sidebar.setOpacity(0);
             });
         }
+        // GỌI KIỂM TRA NGAY KHI VỪA MỞ APP LÊN
+        checkUserLoginStatus();
         // Load trang mặc định
         loadView("/com/nhomX/example/fxml/client/DashboardContent.fxml");
     }
@@ -172,5 +192,58 @@ public class MainDashBoardController extends BaseController implements Initializ
     public void setCenterContent(Node node) {
         mainContentArea.getChildren().clear();
         mainContentArea.getChildren().add(node);
+    }
+    @FXML
+    public void toggleWalletPanel(MouseEvent mouseEvent) {
+        isWalletOpen = !isWalletOpen;
+
+        // Ẩn/hiện vùng thông tin số dư
+        walletPanel.setVisible(isWalletOpen);
+        walletPanel.setManaged(isWalletOpen);
+
+        // UX Animation: Xoay mũi tên 180 độ
+        if (isWalletOpen) {
+            walletArrowIcon.setRotate(180);
+        } else {
+            walletArrowIcon.setRotate(0);
+        }
+    }
+    // ===== CƠ CHẾ REAL-TIME CẬP NHẬT SỐ DƯ =====
+    // Hàm này có thể gọi từ BẤT KỲ ĐÂU (VD: AuctionClient, DepositController)
+    public void updateBalanceGlobally() {
+        if (SessionManager.getInstance().isLoggedIn()) {
+            long currentBalance = SessionManager.getInstance().getCurrentUser().getBalance();
+
+            // BẮT BUỘC dùng Platform.runLater vì hàm này có thể bị gọi từ luồng Socket (Thread con)
+            Platform.runLater(() -> {
+                // Giả định em đã có CurrencyFormatter. Nếu chưa, dùng String.format("%,d đ", currentBalance)
+                lblCurrentBalance.setText(com.nhomX.example.utils.CurrencyFormatter.formatVND(currentBalance));
+            });
+        }
+    }
+    // ===== LOGIC HIỂN THỊ DỰA TRÊN TRẠNG THÁI LOGIN =====
+    public void checkUserLoginStatus() {
+        if (SessionManager.getInstance().isLoggedIn()) {
+            // Đã đăng nhập: Hiện khu vực User Card
+            sidebarUserArea.setVisible(true);
+            sidebarUserArea.setManaged(true);
+
+            // Nạp tên người dùng
+            var currentUser = SessionManager.getInstance().getCurrentUser();
+            String displayName = currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUserName();
+            lblSidebarUserName.setText(displayName);
+
+            // Cập nhật số dư lần đầu
+            updateBalanceGlobally();
+        } else {
+            // Chưa đăng nhập: Giấu nhẹm toàn bộ khu vực này đi
+            sidebarUserArea.setVisible(false);
+            sidebarUserArea.setManaged(false);
+
+            // Đảm bảo Wallet cũng đang đóng
+            isWalletOpen = false;
+            walletPanel.setVisible(false);
+            walletPanel.setManaged(false);
+        }
     }
 }
