@@ -173,6 +173,10 @@ public class AuctionServer {
         return auctionRepository;
     }
 
+    public UserRepository getUserRepository() {
+        return userRepository;
+    }
+
     /**
      * Trả về số lượng Client (User) đang kết nối trực tiếp tới Server
      */

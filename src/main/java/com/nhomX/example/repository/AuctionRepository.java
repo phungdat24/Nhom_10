@@ -47,6 +47,9 @@ public interface AuctionRepository {
 
     boolean updateAuctionStatus(Auction auction);
 
+    // Tat toan phien dau gia khi het gio: cong tien cho seller va cap nhat trang thai.
+    boolean settleAuctionPayment(String auctionId);
+
     // [THÊM MỚI] Dành riêng cho Scheduler quét các phiên chuẩn bị mở
     List<Auction> findReadyToOpenAuctions();
 

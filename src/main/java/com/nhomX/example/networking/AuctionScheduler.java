@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.User;
 
 public class AuctionScheduler {
     private static final int CHECK_INTERVAL_SECONDS = 5;
@@ -60,22 +61,40 @@ public class AuctionScheduler {
                     continue;
                 }
 
-                auction.closeAuction();
+                String winnerId =
+                        (auction.getWinner() != null) ? auction.getWinner().getId() : null;
 
-                boolean saved = server.getAuctionRepository().updateAuctionStatus(auction);
+                // Goi ham tat toan: cong tien cho seller va chuyen status PAID/CANCELED.
+                boolean isSettled =
+                        server.getAuctionRepository().settleAuctionPayment(auction.getId());
 
-                if (saved) {
-                    String winnerId =
-                            (auction.getWinner() != null) ? auction.getWinner().getId() : null;
-
+                if (isSettled) {
                     server.broadcastToAuction(auction.getId(),
                             Message.auctionClosed(auction.getId(), winnerId));
+
+                    // QUAN TRONG: gui rieng cho seller de UI cap nhat so du tuc thi.
+                    String sellerId = getSellerId(auction);
+                    if (winnerId != null && sellerId != null) {
+                        User sellerDb = server.getUserRepository().findById(sellerId);
+                        if (sellerDb != null) {
+                            server.sendToUser(sellerId,
+                                    new Message("DEPOSIT_RESULT",
+                                            new Object[] {true, sellerDb.getBalance()}));
+                        }
+                    }
 
                     System.out.println("SCHEDULER: Da dong phien " + auction.getId()
                             + " | Winner: " + (winnerId != null ? winnerId : "Khong co"));
                 }
             }
         }
+    }
+
+    private String getSellerId(Auction auction) {
+        if (auction.getItem() == null || auction.getItem().getSeller() == null) {
+            return null;
+        }
+        return auction.getItem().getSeller().getId();
     }
 
     public void shutdown() {
