@@ -153,6 +153,84 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       return false;
     }
   }
+
+  // ===== BO SUNG VAO TANG REPOSITORY (Ben Server) =====
+  @Override
+  public boolean settleAuctionPayment(String auctionId) {
+    String sqlSelect = "SELECT a.highest_bid, a.winner_id, a.status, i.seller_id "
+        + "FROM auctions a JOIN items i ON a.item_id = i.id WHERE a.id = ?";
+    String sqlPay = "UPDATE users SET balance = balance + ? WHERE id = ?";
+    String sqlUpdate = "UPDATE auctions SET status = ? WHERE id = ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+      conn.setAutoCommit(false); // Bat dau Transaction
+      try {
+        long highestBid = 0;
+        String sellerId = null;
+        String winnerId = null;
+        String currentStatus = null;
+
+        try (PreparedStatement pstSelect = conn.prepareStatement(sqlSelect)) {
+          pstSelect.setString(1, auctionId);
+          try (ResultSet rs = pstSelect.executeQuery()) {
+            if (!rs.next()) {
+              rollbackSilently(conn);
+              return false;
+            }
+            highestBid = rs.getLong("highest_bid");
+            sellerId = rs.getString("seller_id");
+            winnerId = rs.getString("winner_id");
+            currentStatus = rs.getString("status");
+          }
+        }
+
+        if (AuctionStatus.PAID.name().equalsIgnoreCase(currentStatus)
+            || AuctionStatus.CANCELED.name().equalsIgnoreCase(currentStatus)) {
+          conn.commit();
+          return true;
+        }
+
+        boolean hasWinner = winnerId != null && !winnerId.isBlank();
+        boolean hasSeller = sellerId != null && !sellerId.isBlank();
+        AuctionStatus nextStatus;
+
+        // Neu co nguoi thang va co tien -> Cong tien cho Seller.
+        if (hasWinner && hasSeller) {
+          try (PreparedStatement pstPay = conn.prepareStatement(sqlPay)) {
+            pstPay.setLong(1, highestBid);
+            pstPay.setString(2, sellerId);
+            if (pstPay.executeUpdate() == 0) {
+              throw new SQLException("Khong tim thay seller de cong tien: " + sellerId);
+            }
+          }
+          // Cap nhat trang thai thanh PAID.
+          nextStatus = AuctionStatus.PAID;
+        } else {
+          // Neu khong ai mua, chuyen thanh CANCELED.
+          nextStatus = AuctionStatus.CANCELED;
+        }
+
+        try (PreparedStatement pstUpdate = conn.prepareStatement(sqlUpdate)) {
+          pstUpdate.setString(1, nextStatus.name());
+          pstUpdate.setString(2, auctionId);
+          pstUpdate.executeUpdate();
+        }
+
+        conn.commit();
+        return true;
+      } catch (SQLException e) {
+        rollbackSilently(conn);
+        System.err.println("Loi tat toan phien dau gia " + auctionId + ": " + e.getMessage());
+        return false;
+      } finally {
+        restoreAutoCommit(conn);
+      }
+    } catch (SQLException e) {
+      System.err.println("Loi mo ket noi DB khi tat toan: " + e.getMessage());
+      return false;
+    }
+  }
+
   //====== NHÓM TRUY VẤN DỮ LIỆU ĐƠN LẺ VÀ DANH SÁCH===========
   //===========================================================
 
@@ -484,6 +562,26 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     } catch (Exception e) {
       System.err.println("⚠️ Lỗi parse ngày giờ: " + timeStr);
       return null;
+    }
+  }
+
+  private void rollbackSilently(Connection conn) {
+    try {
+      if (conn != null) {
+        conn.rollback();
+      }
+    } catch (SQLException ex) {
+      System.err.println("Loi rollback: " + ex.getMessage());
+    }
+  }
+
+  private void restoreAutoCommit(Connection conn) {
+    try {
+      if (conn != null) {
+        conn.setAutoCommit(true);
+      }
+    } catch (SQLException ex) {
+      System.err.println("Loi restoreAutoCommit: " + ex.getMessage());
     }
   }
 }

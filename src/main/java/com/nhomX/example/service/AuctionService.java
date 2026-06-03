@@ -41,6 +41,7 @@ public class AuctionService {
         //Luôn trả lại Auto-commit
         if (conn != null) {
           conn.setAutoCommit(true);
+          conn.close();
         }
       } catch (SQLException e) {
         e.printStackTrace();
