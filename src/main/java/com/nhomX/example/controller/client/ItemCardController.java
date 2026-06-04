@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
@@ -138,6 +139,14 @@ public class ItemCardController extends BaseController {
         if (countdownTimer != null) countdownTimer.stop();
 
         countdownTimer = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
+            // Mỗi giây trôi qua, lôi bản ghi mới nhất từ RAM ra để "ghi đè" lên bản cũ
+            Auction freshData = AuctionManager.getInstance().getAuctionById(this.currentAuction.getId());
+            if (freshData != null) {
+                this.currentAuction = freshData; // Cập nhật tham chiếu
+
+                // Đồng bộ Giá hiện tại (Nếu có người vừa đấu giá xong)
+                lblCurrentPrice.setText(CurrencyFormatter.formatVND(this.currentAuction.getHighestBid()));
+            }
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime start = currentAuction.getStartTime();
 

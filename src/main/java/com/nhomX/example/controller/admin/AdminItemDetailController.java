@@ -31,7 +31,8 @@ public class AdminItemDetailController extends BaseController implements ServerE
   @FXML private Button btnBack;
   @FXML private Button btnClose;
   @FXML private ImageView imgMain;
-  @FXML private Label lblTitle;
+  @FXML
+  private Label lblTitle;
   @FXML private Label lblCode;
   @FXML private Label lblAvatarText;
   @FXML private Label lblSellerName;

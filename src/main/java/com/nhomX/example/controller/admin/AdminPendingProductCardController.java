@@ -8,9 +8,12 @@ import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 
 import java.util.List;
 
@@ -84,6 +87,33 @@ public class AdminPendingProductCardController {
         if (client != null) {
             // Gọi hàm approveAuction mà ta đã thiết kế ở Networking
             client.approveAuction(currentAuction.getId());
+        }
+    }
+    @FXML
+    private void handleViewDetail(MouseEvent mouseEvent) {
+        if (currentAuction == null) return;
+
+        try {
+            // 1. Nạp file giao diện chi tiết kiểm duyệt
+            // (Lưu ý: Sửa lại đường dẫn file FXML cho khớp với project của em nếu cần)
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/admin/AdminItemDetail.fxml"));
+            Parent root = loader.load();
+
+            // 2. Lấy Controller và truyền dữ liệu
+            AdminItemDetailController detailController = loader.getController();
+            detailController.setAuctionData(currentAuction);
+
+            // 3. Gọi Quản gia đổi khung hình trung tâm
+            if (AdminLayoutController.instance != null) {
+                // Sử dụng cơ chế View Caching ta đã làm để cất trang danh sách đi
+                AdminLayoutController.instance.saveCurrentViewAndNavigate(root, "Chi tiết kiểm duyệt");
+            } else {
+                System.err.println("Lỗi: Không tìm thấy AdminLayoutController!");
+            }
+
+        } catch (java.io.IOException e) {
+            System.err.println("❌ Lỗi chuyển hướng trang chi tiết kiểm duyệt: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

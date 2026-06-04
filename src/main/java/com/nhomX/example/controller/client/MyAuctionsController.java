@@ -163,11 +163,15 @@ public class MyAuctionsController extends BaseController implements ServerEventL
     // Lắng nghe Real-time để cập nhật khi bị vượt giá
     @Override
     public void onHighestBidUpdated(String itemId, long newPrice, String bidderName) {
-        // Cứ có người đấm búa là tự động xin Server danh sách DTO mới để vẽ lại trạng thái LEADING/OUTBID
-        AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        if (client != null) {
-            fetchMyAuctionsData(client);
-            System.out.println("MY AUCTIONS: Đã phát hiện biến động giá, đang làm mới danh sách...");
+        // Chỉ gửi Request lên Server nếu món vừa có biến động thuộc về danh sách của mình
+        boolean isMyItem = rawMyAuctionsList.stream().anyMatch(dto -> dto.getAuction().getId().equals(itemId));
+
+        if (isMyItem) {
+            AuctionClient client = SessionManager.getInstance().getAuctionClient();
+            if (client != null) {
+                fetchMyAuctionsData(client);
+                System.out.println("MY AUCTIONS: Phát hiện biến động ở món của mình, đang làm mới danh sách...");
+            }
         }
     }
 
