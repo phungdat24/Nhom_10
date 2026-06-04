@@ -13,7 +13,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws IOException {
         AuctionClient client = new AuctionClient("Guest");
-        client.connect("localhost", 8080);
+        client.connect("10.11.18.139", 8080);
         // Lưu vào SessionManager để dùng xuyên suốt app
         SessionManager.getInstance().setAuctionClient(client);
         SceneSwitcher.mainStage = primaryStage;
