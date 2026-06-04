@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
@@ -35,6 +36,7 @@ public class AdminLayoutController implements Initializable {
     @FXML private HBox searchBox;
     @FXML private TextField searchField;
     @FXML private StackPane contentArea;
+    @FXML private VBox adminLogoutPanel;
     // BIẾN LƯU TRỮ LỊCH SỬ TRANG (VIEW CACHING)
     // ==========================================
     private Node previousNode;
@@ -188,5 +190,22 @@ public class AdminLayoutController implements Initializable {
             newButton.getStyleClass().add("active-nav");
             currentActiveButton = newButton;
         }
+    }
+    @FXML
+    void toggleAdminMenu() {
+        boolean showing = adminLogoutPanel.isVisible();
+        adminLogoutPanel.setVisible(!showing);
+        adminLogoutPanel.setManaged(!showing);
+    }
+
+    @FXML
+    void handleLogout(ActionEvent event) {
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.setServerEventListener(null);
+        }
+
+        SessionManager.getInstance().logout();
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
     }
 }
