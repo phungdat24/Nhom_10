@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.layout.StackPane?>
 <BorderPane prefHeight="720" prefWidth="1100" styleClass="root-pane" stylesheets="@../../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.admin.AdminLayoutController">
 
     <left>
@@ -70,11 +71,11 @@
                 <Region HBox.hgrow="ALWAYS" />
 
                 <Button onAction="#handleNotification" styleClass="notif-btn">
-               <graphic>
-                  <FontAwesomeIcon fill="GOLD" glyphName="BELL" />
-               </graphic></Button>
+                    <graphic>
+                        <FontAwesomeIcon fill="GOLD" glyphName="BELL" />
+                    </graphic></Button>
             </HBox>
-         <FlowPane VBox.vgrow="ALWAYS" />
+            <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS" />
 
         </VBox>
     </center>

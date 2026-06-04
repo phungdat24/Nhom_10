@@ -11,8 +11,10 @@
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="306.0" spacing="10.0" style="-fx-clip-to-padding: true;" styleClass="product-card" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.nhomX.example.controller.admin.AdminPendingProductCardController">
    <children>
-      <ImageView fx:id="imgProduct" fitHeight="202.0" fitWidth="307.0" pickOnBounds="true" preserveRatio="true" />
-      <Label fx:id="lblProductName" styleClass="product-name" text="Tên sản phẩm">
+      <ImageView fx:id="imgProduct" fitHeight="202.0" fitWidth="307.0" pickOnBounds="true" preserveRatio="true" onMouseClicked="#handleViewDetail" style="-fx-cursor: hand;" />
+
+      <Label fx:id="lblProductName" styleClass="product-name" text="Tên sản phẩm"
+             onMouseClicked="#handleViewDetail" style="-fx-cursor: hand;">
          <padding>
             <Insets left="10.0" />
          </padding>
