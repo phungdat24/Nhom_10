@@ -93,6 +93,11 @@ public class DashboardContentController extends BaseController implements Server
         }
 
         countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            Auction latestHeroData = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
+            if (latestHeroData != null) {
+                // Tự động đè giá mới nhất lên UI mỗi giây, bất chấp việc bị cướp Listener
+                lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(latestHeroData.getHighestBid()));
+            }
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime endTime = freshAuction.getEndTime();
 

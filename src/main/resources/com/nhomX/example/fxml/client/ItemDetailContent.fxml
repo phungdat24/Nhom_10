@@ -105,10 +105,18 @@
                     </LineChart>
                 </VBox>
 
-                <VBox spacing="10" styleClass="detail-card" VBox.vgrow="ALWAYS">
+                <VBox spacing="10" styleClass="detail-card"
+                      prefHeight="350"
+                      maxHeight="350"
+                      VBox.vgrow="NEVER">
                     <Label styleClass="featured-tag" text="📜 Lịch sử đặt giá" />
 
-                    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+                    <ScrollPane fitToWidth="true"
+                                prefHeight="300"
+                                maxHeight="300"
+                                vbarPolicy="ALWAYS"
+                                hbarPolicy="NEVER"
+                                style="-fx-background-color: transparent; -fx-background: transparent;">
                         <content>
                             <VBox fx:id="vboxBidHistory" spacing="5.0" />
                         </content>

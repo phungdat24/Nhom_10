@@ -5,9 +5,9 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane prefHeight="720" prefWidth="1100" styleClass="root-pane" stylesheets="@../../css/admin.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.admin.AdminLayoutController">
@@ -21,42 +21,50 @@
 
             <VBox spacing="0" styleClass="sidebar-nav" VBox.vgrow="ALWAYS">
 
-                      <Button fx:id="btnHome" maxWidth="Infinity" onAction="#handleNavHome" styleClass="nav-item" text="Trang chủ">
-               <graphic>
-                  <FontAwesomeIcon fill="#b7aaaa" glyphName="TH_LARGE" size="2em" text="" />
-               </graphic>
-            </Button>
+                <Button fx:id="btnHome" maxWidth="Infinity" onAction="#handleNavHome" styleClass="nav-item" text="Trang chủ">
+                    <graphic>
+                        <FontAwesomeIcon fill="#b7aaaa" glyphName="TH_LARGE" size="2em" text="" />
+                    </graphic>
+                </Button>
 
                 <Button fx:id="btnUsers" maxWidth="Infinity" onAction="#handleNavUsers" styleClass="nav-item" text="Người dùng">
-               <graphic>
-                  <FontAwesomeIcon fill="#b7aaaa" glyphName="USERS" size="2em" />
-               </graphic>
+                    <graphic>
+                        <FontAwesomeIcon fill="#b7aaaa" glyphName="USERS" size="2em" />
+                    </graphic>
                 </Button>
 
                 <Button fx:id="btnProducts" maxWidth="Infinity" onAction="#handleNavProducts" styleClass="nav-item" text="Quản lý sản phẩm">
-               <graphic>
-                  <FontAwesomeIcon fill="#b7aaaa" glyphName="LIST_ALT" size="2em" />
-               </graphic>
+                    <graphic>
+                        <FontAwesomeIcon fill="#b7aaaa" glyphName="LIST_ALT" size="2em" />
+                    </graphic>
                 </Button>
 
                 <Button fx:id="btnAuctions" maxWidth="Infinity" onAction="#handleNavAuctions" styleClass="nav-item" text="Phiên đấu giá">
-               <graphic>
-                  <FontAwesomeIcon fill="#b7aaaa" glyphName="DOLLAR" size="2em" />
-               </graphic>
+                    <graphic>
+                        <FontAwesomeIcon fill="#b7aaaa" glyphName="DOLLAR" size="2em" />
+                    </graphic>
                 </Button>
 
                 <Region VBox.vgrow="ALWAYS" />
             </VBox>
 
-            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="sidebar-footer">
+            <!-- Thanh đăng xuất: mặc định ẩn, khi ấn vào ô Admin thì hiện lên phía trên -->
+            <VBox fx:id="adminLogoutPanel" alignment="CENTER" managed="false" style="-fx-background-color: #181818; -fx-background-radius: 12; -fx-padding: 10;" visible="false">
+                <Button fx:id="btnLogout" maxWidth="Infinity" onAction="#handleLogout" style="-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;" text="Đăng xuất" />
+                <VBox.margin>
+                    <Insets bottom="8.0" left="10.0" right="10.0" />
+                </VBox.margin>
+            </VBox>
+
+            <HBox fx:id="adminBox" alignment="CENTER_LEFT" onMouseClicked="#toggleAdminMenu" spacing="12" style="-fx-cursor: hand;" styleClass="sidebar-footer">
                 <Label styleClass="avatar" text="A" />
                 <VBox spacing="2">
                     <Label styleClass="footer-name" text="Admin" />
                     <Label styleClass="footer-role" text="System Manager" />
                 </VBox>
-            <VBox.margin>
-               <Insets bottom="15.0" left="10.0" right="10.0" />
-            </VBox.margin>
+                <VBox.margin>
+                    <Insets bottom="15.0" left="10.0" right="10.0" />
+                </VBox.margin>
             </HBox>
 
         </VBox>
@@ -70,11 +78,11 @@
                 <Region HBox.hgrow="ALWAYS" />
 
                 <Button onAction="#handleNotification" styleClass="notif-btn">
-               <graphic>
-                  <FontAwesomeIcon fill="GOLD" glyphName="BELL" />
-               </graphic></Button>
+                    <graphic>
+                        <FontAwesomeIcon fill="GOLD" glyphName="BELL" />
+                    </graphic></Button>
             </HBox>
-         <FlowPane VBox.vgrow="ALWAYS" />
+         <StackPane fx:id="contentArea" VBox.vgrow="ALWAYS" />
 
         </VBox>
     </center>
