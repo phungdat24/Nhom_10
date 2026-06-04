@@ -1,8 +1,12 @@
 package com.nhomX.example.controller.client;
 
+import com.nhomX.example.manager.AuctionManager;
+import com.nhomX.example.model.Auction;
+import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.MyAuctionStatus;
 import com.nhomX.example.utils.CurrencyFormatter;
+import com.nhomX.example.utils.ImageLoader;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -17,6 +21,7 @@ import javafx.util.Duration;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class MyAuctionCardController {
     @FXML
@@ -52,7 +57,13 @@ public class MyAuctionCardController {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         lblEndTime.setText(dto.getAuction().getEndTime().format(formatter));
-
+        //Load ảnh
+        List<ItemImage> images = dto.getAuction().getItem().getImages();
+        if (images != null && !images.isEmpty() && images.get(0).getImagePath() != null) {
+            ImageLoader.loadAsync(images.get(0).getImagePath().trim(), itemImageView);
+        } else {
+            ImageLoader.loadAsync(null, itemImageView); // Ép hiển thị Placeholder nếu không có ảnh
+        }
         // 2. Logic xử lý UX (Đổi màu và nút bấm theo trạng thái)
         updateStatusUI(dto.getMyStatus());
         startCardCountdown(dto.getAuction().getEndTime());
@@ -70,7 +81,18 @@ public class MyAuctionCardController {
         }
 
         cardTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), endTime);
+            // Lấy dữ liệu tươi từ RAM đè lên UI mỗi giây
+            Auction freshData = AuctionManager.getInstance().getAuctionById(currentDTO.getAuction().getId());
+
+            LocalDateTime actualEndTime = endTime; // Mặc định dùng endTime gốc
+
+            if (freshData != null) {
+                // Ép UI nảy số giá mới nhất
+                lblCurrentPrice.setText(CurrencyFormatter.formatVND(freshData.getHighestBid()));
+                // Cập nhật lại thời gian kết thúc (Đề phòng có người đẩy giá ở giây cuối làm kích hoạt Anti-sniping)
+                actualEndTime = freshData.getEndTime();
+            }
+            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), actualEndTime);
 
             if (duration.isNegative() || duration.isZero()) {
                 if (lblTimeLeft != null) lblTimeLeft.setText("Hết giờ");
@@ -101,6 +123,11 @@ public class MyAuctionCardController {
         // Dọn dẹp style cũ
         lblStatusBadge.getStyleClass().removeAll("badge-leading", "badge-outbid", "badge-won", "badge-lost");
         btnAction.getStyleClass().removeAll("btn-action-outbid", "btn-action-leading");
+        // [QUAN TRỌNG]: LUÔN BẬT CHẾ ĐỘ HIỂN THỊ MẶC ĐỊNH CHO NÚT BẤM (Tránh bị ẩn vĩnh viễn khi dùng lại thẻ cũ)
+        btnAction.setVisible(true);
+        btnAction.setManaged(true);
+        btnDetail.setVisible(true);
+        btnDetail.setManaged(true);
 
         switch (status) {
             case LEADING:
@@ -118,12 +145,20 @@ public class MyAuctionCardController {
             case WON:
                 lblStatusBadge.setText("🏆 ĐÃ TRÚNG THẦU");
                 lblStatusBadge.setStyle("-fx-background-color: #c9a227; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
-                btnAction.setText("Thanh toán");
+                // [ĐÃ FIX]: GIẤU CẢ 2 NÚT BẤM
+                btnAction.setVisible(false);
+                btnAction.setManaged(false);
+                btnDetail.setVisible(false);
+                btnDetail.setManaged(false);
                 break;
             case LOST:
                 lblStatusBadge.setText("❌ ĐÃ THUA");
                 lblStatusBadge.setStyle("-fx-background-color: #757575; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
-                btnAction.setText("Xem kết quả");
+                // [ĐÃ FIX]: GIẤU CẢ 2 NÚT BẤM
+                btnAction.setVisible(false);
+                btnAction.setManaged(false);
+                btnDetail.setVisible(false);
+                btnDetail.setManaged(false);
                 break;
         }
     }

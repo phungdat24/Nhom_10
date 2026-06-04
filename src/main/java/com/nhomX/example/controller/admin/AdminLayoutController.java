@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
@@ -35,6 +36,11 @@ public class AdminLayoutController implements Initializable {
     @FXML private HBox searchBox;
     @FXML private TextField searchField;
     @FXML private StackPane contentArea;
+    @FXML private VBox adminLogoutPanel;
+    // BIẾN LƯU TRỮ LỊCH SỬ TRANG (VIEW CACHING)
+    // ==========================================
+    private Node previousNode;
+    private String previousTitle;
 
     // Biến lưu trữ nút đang được chọn để làm hiệu ứng
     private Button currentActiveButton;
@@ -119,7 +125,9 @@ public class AdminLayoutController implements Initializable {
             }
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Node view = loader.load();
-
+            // Xóa rỗng lịch sử cũ khi người dùng bấm sang một Tab chính khác
+            this.previousNode = null;
+            this.previousTitle = null;
 
             // Xóa nội dung cũ và nhét nội dung mới vào
             contentArea.getChildren().clear();
@@ -130,7 +138,47 @@ public class AdminLayoutController implements Initializable {
             e.printStackTrace();
         }
     }
+    /**
+     * CẤT GIAO DIỆN CŨ ĐI VÀ HIỂN THỊ CHI TIẾT
+     * Được gọi bởi trang Danh sách khi Admin bấm nút "Xem chi tiết"
+     * @param newDetailNode Giao diện chi tiết đã được load sẵn
+     * @param newTitle Tiêu đề mới cho Topbar
+     */
+    public void saveCurrentViewAndNavigate(Node newDetailNode, String newTitle) {
+        // 1. Lưu lại giao diện hiện tại đang nằm trong contentArea
+        if (!contentArea.getChildren().isEmpty()) {
+            this.previousNode = contentArea.getChildren().get(0);
+            this.previousTitle = topbarTitle.getText();
+        }
 
+        // 2. Chuyển sang màn hình chi tiết mới
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(newDetailNode);
+        topbarTitle.setText(newTitle);
+    }
+
+    /**
+     * KHÔI PHỤC LẠI GIAO DIỆN CŨ
+     * Được gọi bởi ItemDetailController khi Admin bấm "Quay lại"
+     */
+    public void restorePreviousView() {
+        if (this.previousNode != null) {
+            // Lấy giao diện đã cất từ trước ra gắn lại
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(this.previousNode);
+
+            if (this.previousTitle != null) {
+                topbarTitle.setText(this.previousTitle);
+            }
+
+            // Xóa cache để tránh lỗi chồng chéo
+            this.previousNode = null;
+            this.previousTitle = null;
+        } else {
+            // Safety fallback: Nếu lịch sử bị mất, tự động lùi về trang Quản lý sản phẩm gốc
+            handleNavProducts(null);
+        }
+    }
     /**
      * Đổi màu nút đang được chọn trên Sidebar
      */
@@ -142,5 +190,22 @@ public class AdminLayoutController implements Initializable {
             newButton.getStyleClass().add("active-nav");
             currentActiveButton = newButton;
         }
+    }
+    @FXML
+    void toggleAdminMenu() {
+        boolean showing = adminLogoutPanel.isVisible();
+        adminLogoutPanel.setVisible(!showing);
+        adminLogoutPanel.setManaged(!showing);
+    }
+
+    @FXML
+    void handleLogout(ActionEvent event) {
+        AuctionClient client = SessionManager.getInstance().getAuctionClient();
+        if (client != null) {
+            client.setServerEventListener(null);
+        }
+
+        SessionManager.getInstance().logout();
+        SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
     }
 }
