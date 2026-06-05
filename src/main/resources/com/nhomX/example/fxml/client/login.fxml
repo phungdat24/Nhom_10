@@ -22,7 +22,7 @@
          <children>
             <HBox alignment="CENTER" maxHeight="100.0" onMouseClicked="#handleBackToHome" styleClass="vibo-home-btn">
                <children>
-                  <FontAwesomeIcon fill="RED" glyphName="PAW" size="3em">
+                  <FontAwesomeIcon fill="#00d4c8" glyphName="PAW" size="3em">
                      <font>
                         <Font size="42.0" />
                      </font>
