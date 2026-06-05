@@ -10,71 +10,74 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AutoBidConfig;
 import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.utils.DatabaseConnection;
 
 public class AutoBidRepositoryImpl implements AutoBidRepository {
+  private static final Logger logger = LoggerFactory.getLogger(AutoBidRepositoryImpl.class);
   private static final DateTimeFormatter DB_FORMATTER =
-          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   @Override
   public boolean save(AutoBidConfig config) {
-    String sql =
-        "INSERT OR REPLACE INTO auto_bids "
-                + "(id, user_id, auction_id, max_price, step_price, is_active, created_at) "
-                + "VALUES (COALESCE((SELECT id FROM auto_bids "
-                + "WHERE user_id=? AND auction_id=?), ?), ?, ?, ?, ?, 1, ?)";
+    String sql = "INSERT OR REPLACE INTO auto_bids "
+        + "(id, user_id, auction_id, max_price, step_price, is_active, created_at) "
+        + "VALUES (COALESCE((SELECT id FROM auto_bids "
+        + "WHERE user_id=? AND auction_id=?), ?), ?, ?, ?, ?, 1, ?)";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, config.getBidder().getId());
       pstmt.setString(2, config.getAuction().getId());
       pstmt.setString(3, UUID.randomUUID().toString()); // id mới nếu chưa tồn tại
       pstmt.setString(4, config.getBidder().getId());
       pstmt.setString(5, config.getAuction().getId());
-      pstmt.setLong(6,   config.getMaxLimit());
-      pstmt.setLong(7,   config.getIncrement());
+      pstmt.setLong(6, config.getMaxLimit());
+      pstmt.setLong(7, config.getIncrement());
       pstmt.setString(8, LocalDateTime.now().format(DB_FORMATTER));
 
       pstmt.executeUpdate();
-      System.out.println("AUTO-BID: Đã lưu config cho user="
-              + config.getBidder().getId());
+      logger.info("AUTO-BID: Đã lưu config cho user={}", config.getBidder().getId());
       return true;
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lưu AutoBid: " + e.getMessage());
+      logger.error("Lỗi khi lưu AutoBid", e);
       return false;
     }
   }
+
   // [CHUYỂN VỀ ĐÚNG CHỖ] Lấy danh sách Auto-bid đang bật cho một phiên
   // Loại trừ người vừa thắng bid để tránh tự bid chính mình
   @Override
   public List<AutoBidConfig> findByAuctionId(String auctionId) {
     return findActiveByAuctionId(auctionId, null);
   }
+
   /**
-   * Lấy Auto-bid đang bật (is_active=1), loại trừ một userId cụ thể.
-   * Sắp xếp theo max_price DESC: Người trả cao nhất được xử lý trước.
+   * Lấy Auto-bid đang bật (is_active=1), loại trừ một userId cụ thể. Sắp xếp theo max_price DESC:
+   * Người trả cao nhất được xử lý trước.
    */
   public List<AutoBidConfig> findActiveByAuctionId(String auctionId, String excludeUserId) {
     List<AutoBidConfig> list = new ArrayList<>();
 
     // Nếu excludeUserId null thì lấy tất cả, ngược lại loại trừ
     String sql = excludeUserId != null
-            ? "SELECT * FROM auto_bids "
-            + "WHERE auction_id=? AND is_active=1 AND user_id!=? "
+        ? "SELECT * FROM auto_bids " + "WHERE auction_id=? AND is_active=1 AND user_id!=? "
             + "ORDER BY max_price DESC"
-            : "SELECT * FROM auto_bids "
-            + "WHERE auction_id=? AND is_active=1 "
+        : "SELECT * FROM auto_bids " + "WHERE auction_id=? AND is_active=1 "
             + "ORDER BY max_price DESC";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
 
       ps.setString(1, auctionId);
-      if (excludeUserId != null) ps.setString(2, excludeUserId);
+      if (excludeUserId != null)
+        ps.setString(2, excludeUserId);
 
       try (ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
@@ -86,6 +89,7 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
     }
     return list;
   }
+
   // [CHUYỂN VỀ ĐÚNG CHỖ] Tắt Auto-bid khi đạt max_price hoặc phiên kết thúc
   // =========================================================================
   @Override
@@ -93,42 +97,42 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
     String sql = "UPDATE auto_bids SET is_active=0 WHERE id=?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, configId);
       ps.executeUpdate();
     } catch (SQLException e) {
       System.err.println("AUTO-BID: Lỗi deactivate - " + e.getMessage());
     }
   }
+
   /**
    * Tắt theo cặp (userId, auctionId) — dùng khi người dùng tự tắt từ UI.
    */
   public void deactivateByUserAndAuction(String userId, String auctionId) {
-    String sql = "UPDATE auto_bids SET is_active=0 "
-            + "WHERE user_id=? AND auction_id=?";
+    String sql = "UPDATE auto_bids SET is_active=0 " + "WHERE user_id=? AND auction_id=?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, userId);
       ps.setString(2, auctionId);
       ps.executeUpdate();
-      System.out.println("AUTO-BID: Đã tắt cho user=" + userId
-              + " auction=" + auctionId);
+      logger.info("AUTO-BID: Đã tắt cho user={} auction={}", userId, auctionId);
     } catch (SQLException e) {
-      System.err.println("AUTO-BID: Lỗi deactivate - " + e.getMessage());
+      logger.error("AUTO-BID: Lỗi deactivate", e);
     }
   }
+
   @Override
   public AutoBidConfig findByUserAndAuction(String userId, String auctionId) {
-    String sql = "SELECT * FROM auto_bids "
-            + "WHERE user_id=? AND auction_id=?";
+    String sql = "SELECT * FROM auto_bids " + "WHERE user_id=? AND auction_id=?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
+        PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setString(1, userId);
       ps.setString(2, auctionId);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return mapRowToAutoBid(rs);
+        if (rs.next())
+          return mapRowToAutoBid(rs);
       }
     } catch (SQLException e) {
       System.err.println("AUTO-BID: Lỗi findByUserAndAuction - " + e.getMessage());
@@ -141,13 +145,13 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
     String sql = "DELETE FROM auto_bids WHERE id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, configId);
       pstmt.executeUpdate();
-      System.out.println("🗑️ Đã hủy cấu hình AutoBid: " + configId);
+      logger.info("Đã hủy cấu hình AutoBid: {}", configId);
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi xóa AutoBid: " + e.getMessage());
+      logger.error("Lỗi khi xóa AutoBid", e);
     }
   }
 
@@ -169,10 +173,10 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
     String createdAt = rs.getString("created_at");
     if (createdAt != null) {
       try {
-        config.setCreatedAt(createdAt.contains("T")
-                ? LocalDateTime.parse(createdAt)
-                : LocalDateTime.parse(createdAt, DB_FORMATTER));
-      } catch (Exception ignored) {}
+        config.setCreatedAt(createdAt.contains("T") ? LocalDateTime.parse(createdAt)
+            : LocalDateTime.parse(createdAt, DB_FORMATTER));
+      } catch (Exception ignored) {
+      }
     }
     return config;
   }
