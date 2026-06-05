@@ -35,7 +35,7 @@
             <VBox maxWidth="Infinity" prefWidth="300" spacing="16" HBox.hgrow="ALWAYS">
 
                 <!-- Profile Card -->
-                <VBox maxHeight="1.7976931348623157E308" spacing="20" styleClass="profile-card " VBox.vgrow="ALWAYS">
+                <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" spacing="20" styleClass="profile-card " VBox.vgrow="ALWAYS">
                     <padding><Insets bottom="24" left="24" right="24" top="24" /></padding>
 
                     <!-- Avatar + Badge -->
