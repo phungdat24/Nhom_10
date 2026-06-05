@@ -8,13 +8,10 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Rectangle?>
 
 <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" styleClass="scroll-pane" stylesheets="@../../css/dashboard.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.ProfileController">
 
@@ -43,22 +40,11 @@
                         <StackPane alignment="BOTTOM_RIGHT" maxWidth="-Infinity">
                             <VBox alignment="CENTER" prefHeight="90.0" prefWidth="90.0" style="-fx-background-color: #3c2a1a; -fx-background-radius: 15; -fx-border-color: #c9a227; -fx-border-width: 1.5; -fx-border-radius: 15;">
                                 <children>
-                                    <ImageView fx:id="imgAvatar" fitHeight="86.0" fitWidth="86.0" preserveRatio="true">
-                                        <clip>
-                                            <Rectangle arcHeight="25.0" arcWidth="25.0" height="86.0" width="86.0" />
-                                        </clip>
-                                        <image>
-                                            <Image url="@../../images/email_icon.png" />
-                                        </image>
-                                    </ImageView>
+                           <FontAwesomeIcon fill="#ecdcdc" glyphName="USER" size="6em" />
                                 </children>
                             </VBox>
                             <Button onAction="#handleChangeAvatar" style="-fx-background-color: #c9a227; -fx-text-fill: #2b1f12; -fx-background-radius: 10; -fx-font-size: 10px; -fx-padding: 2 4 2 4; -fx-cursor: hand;" text="📷" />
                         </StackPane>
-
-                        <HBox alignment="CENTER" maxWidth="-Infinity" spacing="4" style="-fx-background-color: rgba(201,162,39,0.18); -fx-background-radius: 15; -fx-border-color: rgba(201,162,39,0.45); -fx-border-radius: 15; -fx-padding: 2 10 2 10;">
-                            <Label style="-fx-text-fill: #c9a227; -fx-font-size: 10px; -fx-font-weight: bold;" text="✔  THÀNH VIÊN VERIFIED" />
-                        </HBox>
                     </VBox>
 
                     <Separator style="-fx-background-color: rgba(201,162,39,0.25);" />
@@ -78,10 +64,7 @@
                             <TextField fx:id="txtEmail" editable="false" promptText="abc@gmail.com" style="-fx-background-color: rgba(255,255,255,0.04); -fx-text-fill: #1a1a1a; -fx-prompt-text-fill: rgba(60, 42, 26, 0.5); -fx-background-radius: 8; -fx-border-color: rgba(201,162,39,0.15); -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 10 14 10 14; -fx-font-size: 14px;" />
                         </VBox>
                         <!-- Phone -->
-                        <VBox spacing="6">
-                            <Label style="-fx-text-fill: #3c2a1a; -fx-font-size: 12px; -fx-font-weight: bold;" text="Số điện thoại" />
-                            <TextField fx:id="txtPhone" promptText="Nhập số điện thoại..." style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: #1a1a1a; -fx-prompt-text-fill: rgba(60, 42, 26, 0.5); -fx-background-radius: 8; -fx-border-color: rgba(201,162,39,0.35); -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 10 14 10 14; -fx-font-size: 14px;" />
-                        </VBox>
+                        <VBox spacing="6" />
 
                     </VBox>
 
@@ -90,7 +73,7 @@
                         <Button fx:id="btnSave" maxWidth="Infinity" onAction="#handleSaveProfile" style="-fx-background-color: #c9a227; -fx-text-fill: #2b1f12; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-padding: 12 20 12 20; -fx-cursor: hand;" text="💾  Lưu thay đổi" HBox.hgrow="ALWAYS" />
                         <Button fx:id="btnChangePassword" onAction="#handleChangePassword" style="-fx-background-color: rgba(255,255,255,0.10); -fx-text-fill: #3c2a1a; -fx-font-weight: bold; -fx-font-size: 14px; -fx-background-radius: 8; -fx-border-color: red; -fx-border-radius: 8; -fx-border-width: 1; -fx-padding: 12 16 12 16; -fx-cursor: hand;" text="🔑  Đổi mật khẩu" />
                     </HBox>
-               <Button mnemonicParsing="false" styleClass="btn-thoat" text="Thoát" />
+               <Button mnemonicParsing="false" onAction="#handleBack" styleClass="btn-thoat" text="Thoát" />
 
                 </VBox>
                 <!-- End Profile Card -->
