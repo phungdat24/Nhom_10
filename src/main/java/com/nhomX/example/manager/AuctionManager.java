@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.RegularUser;
@@ -14,6 +16,7 @@ import com.nhomX.example.model.RegularUser;
  * Thật Duy Nhất (Single Source of Truth) cho toàn bộ Giao diện UI.
  */
 public class AuctionManager {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionManager.class);
     // 1. Khởi tạo Singleton an toàn đa luồng (Thread-safe) với từ khóa volatile
     private static volatile AuctionManager instance;
 
@@ -53,8 +56,7 @@ public class AuctionManager {
         for (Auction auction : auctions) {
             auctionCache.put(auction.getId(), auction);
         }
-        System.out.println(
-                "CACHE: Đã nạp thành công " + auctions.size() + " phiên đấu giá vào bộ nhớ tạm.");
+        logger.info("CACHE: Đã nạp thành công {} phiên đấu giá vào bộ nhớ tạm.", auctions.size());
     }
 
     /**
@@ -74,8 +76,8 @@ public class AuctionManager {
                     auction.setWinner(tempWinner);
                 }
             } else {
-                System.err.println("CACHE WARNING: Bỏ qua gói tin cũ — giá "
-                        + newPrice + " thấp hơn giá hiện tại " + auction.getHighestBid());
+                System.err.println("CACHE WARNING: Bỏ qua gói tin cũ — giá " + newPrice
+                        + " thấp hơn giá hiện tại " + auction.getHighestBid());
             }
         }
     }
@@ -105,12 +107,11 @@ public class AuctionManager {
         list.sort(Comparator.comparing(Auction::getId));
         return list;
     }
+
     /**
-     * Lấy ra đúng những phiên đang hiển thị cho phép đấu giá (OPEN, RUNNING).
-     * ĐIỀU KIỆN HỢP LỆ (3 tiêu chí phải thỏa đồng thời):
-     * 1. Status phải là OPEN hoặc RUNNING
-     * 2. startTime <= now  (phiên đã bắt đầu)
-     * 3. endTime   >  now  (phiên chưa kết thúc)
+     * Lấy ra đúng những phiên đang hiển thị cho phép đấu giá (OPEN, RUNNING). ĐIỀU KIỆN HỢP LỆ (3
+     * tiêu chí phải thỏa đồng thời): 1. Status phải là OPEN hoặc RUNNING 2. startTime <= now (phiên
+     * đã bắt đầu) 3. endTime > now (phiên chưa kết thúc)
      */
     public List<Auction> getActiveAuctions() {
         LocalDateTime now = LocalDateTime.now();
@@ -118,17 +119,16 @@ public class AuctionManager {
 
         for (Auction a : auctionCache.values()) {
             // Tiêu chí 1: Lọc theo trạng thái
-            boolean validStatus = a.getStatus() == AuctionStatus.OPEN
-                    || a.getStatus() == AuctionStatus.RUNNING;
-            if (!validStatus) continue;
+            boolean validStatus =
+                    a.getStatus() == AuctionStatus.OPEN || a.getStatus() == AuctionStatus.RUNNING;
+            if (!validStatus)
+                continue;
 
             // Tiêu chí 2: Phiên phải đã bắt đầu
-            boolean hasStarted = a.getStartTime() != null
-                    && !a.getStartTime().isAfter(now);
+            boolean hasStarted = a.getStartTime() != null && !a.getStartTime().isAfter(now);
 
             // Tiêu chí 3: Phiên chưa kết thúc
-            boolean notExpired = a.getEndTime() != null
-                    && a.getEndTime().isAfter(now);
+            boolean notExpired = a.getEndTime() != null && a.getEndTime().isAfter(now);
 
             if (hasStarted && notExpired) {
                 activeList.add(a);
@@ -151,8 +151,8 @@ public class AuctionManager {
             // - Nếu ID chưa tồn tại: Nó thêm Object này vào thành một mục mới.
             auctionCache.put(auction.getId(), auction);
         }
-        System.out.println("CACHE: Đã cập nhật (Merge) " + auctions.size()
-                + " phiên đấu giá vào bộ nhớ an toàn.");
+        logger.info("CACHE: Đã cập nhật (Merge) {} phiên đấu giá vào bộ nhớ an toàn.",
+                auctions.size());
     }
 
     /**
