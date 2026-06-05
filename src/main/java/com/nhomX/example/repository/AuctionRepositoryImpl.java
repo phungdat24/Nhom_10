@@ -8,6 +8,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.Items;
@@ -17,13 +21,14 @@ import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.utils.DatabaseConnection;
 
 public class AuctionRepositoryImpl implements AuctionRepository {
+  private static final Logger logger = LoggerFactory.getLogger(AuctionRepositoryImpl.class);
 
   // Formatter chuẩn để lưu/đọc thời gian nhất quán
   private static final DateTimeFormatter DB_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-  //======================================================================
-  //========= NHÓM CÂU LỆNH CRUD(THAO TÁC DỮ LIỆU)========================
+  // ======================================================================
+  // ========= NHÓM CÂU LỆNH CRUD(THAO TÁC DỮ LIỆU)========================
 
   // Khởi tạo và lưu một phiên đấu giá mới vào cơ sở dữ liệu với kết nối độc lập
   @Override
@@ -34,13 +39,14 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
     // Sử dụng try-with-resources để tự động đóng Statement sau khi dùng xong
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       // Truyền dữ liệu số và chuỗi cơ bản
       pstmt.setString(1, auction.getId());
       pstmt.setLong(2, auction.getStartingPrice());
       pstmt.setLong(3, auction.getHighestBid());
 
-      // Lưu start_time đúng định dạng: ép kiểu LocalDatetime sang String theo định dạng DB_Formatter
+      // Lưu start_time đúng định dạng: ép kiểu LocalDatetime sang String theo định dạng
+      // DB_Formatter
       pstmt.setString(4,
           auction.getStartTime() != null ? auction.getStartTime().format(DB_FORMATTER) : null);
       pstmt.setString(5,
@@ -57,11 +63,12 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       pstmt.setString(9, auction.getApprovedBy());
       // Thực thi lệnh ghi xuống database:
       pstmt.executeUpdate();
-      System.out.println("✅ Đã lưu phiên đấu giá: " + auction.getId());
+      logger.info("Đã lưu phiên đấu giá: {}", auction.getId());
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lưu Auction: " + e.getMessage());
+      logger.error("Lỗi khi lưu Auction", e);
     }
   }
+
   // Thêm mới một phiên đấu giá cho phép truyền kết nối từ bên ngoài vào
   public void save(Auction auction, Connection conn) throws SQLException {
     String sql =
@@ -82,30 +89,33 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       pstmt.executeUpdate();
     }
   }
-  //Cập nhật trạng thái của phiên đấu giá theo ID.
+
+  // Cập nhật trạng thái của phiên đấu giá theo ID.
   @Override
   public void updateStatus(String auctionId, AuctionStatus status) {
     String sql = "UPDATE auctions SET status = ? WHERE id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, status.name());
       pstmt.setString(2, auctionId);
       pstmt.executeUpdate();
-      System.out.println("🔄 Đã cập nhật trạng thái phiên " + auctionId + " thành: " + status);
+      logger.info("Đã cập nhật trạng thái phiên {} thành: {}", auctionId, status);
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi cập nhật trạng thái: " + e.getMessage());
+      logger.error("Lỗi cập nhật trạng thái", e);
     }
   }
-  // Cập nhật bước giá cao nhất hiện tại, ID người đang dẫn đầu và chuyển trạng thái phiên sang RUNNING
+
+  // Cập nhật bước giá cao nhất hiện tại, ID người đang dẫn đầu và chuyển trạng thái phiên sang
+  // RUNNING
   @Override
   public void updateHighestBidAndWinner(String auctionId, long newPrice, String winnerId) {
     String sql =
-            "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING' WHERE id = ?";
+        "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING' WHERE id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setLong(1, newPrice);
       pstmt.setString(2, winnerId);
@@ -115,33 +125,36 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       System.err.println("❌ Lỗi cập nhật người thắng: " + e.getMessage());
     }
   }
+
   // Gia hạn thời gian kết thúc (thường dùng trong tính năng chống bắn tỉa - Anti-sniping).
   @Override
   public void updateEndTime(String auctionId, LocalDateTime newEndTime) {
     String sql = "UPDATE auctions SET end_time = ? WHERE id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, newEndTime.format(DB_FORMATTER));
       pstmt.setString(2, auctionId);
       pstmt.executeUpdate();
-      System.out.println("⏱ Đã gia hạn thời gian phiên " + auctionId + " → " + newEndTime);
+      logger.info("Đã gia hạn thời gian phiên {} -> {}", auctionId, newEndTime);
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi cập nhật end_time: " + e.getMessage());
+      logger.error("Lỗi cập nhật end_time", e);
     }
   }
-  // Cập nhật tổng hợp gồm trạng thái, thời gian kết thúc và người phê duyệt của một thực thể Auction
+
+  // Cập nhật tổng hợp gồm trạng thái, thời gian kết thúc và người phê duyệt của một thực thể
+  // Auction
   @Override
   public boolean updateAuctionStatus(Auction auction) {
     // Cập nhật cả status và end_time (phòng trường hợp gia hạn do Anti-sniping)
     String sql = "UPDATE auctions SET status = ?, end_time = ?, approved_by = ? WHERE id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auction.getStatus().name());
       pstmt.setString(2,
-              auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
+          auction.getEndTime() != null ? auction.getEndTime().format(DB_FORMATTER) : null);
       pstmt.setString(3, auction.getApprovedBy());
       pstmt.setString(4, auction.getId());
 
@@ -231,8 +244,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
   }
 
-  //====== NHÓM TRUY VẤN DỮ LIỆU ĐƠN LẺ VÀ DANH SÁCH===========
-  //===========================================================
+  // ====== NHÓM TRUY VẤN DỮ LIỆU ĐƠN LẺ VÀ DANH SÁCH===========
+  // ===========================================================
 
   // Tìm kiếm thông tin chi tiết một phiên đấu giá bằng id:
   @Override
@@ -240,7 +253,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) {
@@ -252,7 +265,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return null;
   }
-  //Danh sách các phiên đấu giá đang diễn ra va có trạng thái hợp lệ:
+
+  // Danh sách các phiên đấu giá đang diễn ra va có trạng thái hợp lệ:
   @Override
   public List<Auction> findAllActiveAuctions() {
     List<Auction> list = new ArrayList<>();
@@ -260,7 +274,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         + "AND start_time <= ? " + "AND end_time > ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       String now = LocalDateTime.now().format(DB_FORMATTER);
 
       pstmt.setString(1, now); // start_time <= now
@@ -275,6 +289,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
+
   // Tìm các phiên đã quá giờ kết thúc nhưng trạng thái vẫn chưa được cập nhật đóng.
   @Override
   public List<Auction> findExpiredOpenAuctions() {
@@ -283,7 +298,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE status IN ('OPEN', 'RUNNING') AND end_time <= ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, now);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -306,7 +321,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         + "WHERE i.seller_id = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, sellerId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
@@ -318,7 +333,9 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
-  // Tìm các phiên đang ở trạng thái chờ (UP_COMING) nhưng đã đến giờ khai mạc để hệ thống kích hoạt kích mở tự động.
+
+  // Tìm các phiên đang ở trạng thái chờ (UP_COMING) nhưng đã đến giờ khai mạc để hệ thống kích hoạt
+  // kích mở tự động.
   @Override
   public List<Auction> findReadyToOpenAuctions() {
     List<Auction> list = new ArrayList<>();
@@ -327,8 +344,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
     // Sử dụng try-with-resources để tự động đóng kết nối, chuẩn Checkstyle
 
-    try ( Connection conn = DatabaseConnection.getInstance().getConnection();
-          PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       String now = java.time.LocalDateTime.now().format(DB_FORMATTER);
       pstmt.setString(1, now);
@@ -344,6 +361,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
     return list;
   }
+
   // Tìm phiên theo trạng thái
   @Override
   public List<Auction> findAuctionsByStatus(AuctionStatus auctionStatus) {
@@ -351,7 +369,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT * FROM auctions WHERE status = ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionStatus.name());
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -364,8 +382,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
-  //=====================================================================
-  //NHÓM CÁC CÂU LỆNH TÍNH NĂNG ĐĂ THÙ VÀ THỐNG KÊ:
+  // =====================================================================
+  // NHÓM CÁC CÂU LỆNH TÍNH NĂNG ĐĂ THÙ VÀ THỐNG KÊ:
   // =========================================================================
 
   // HÀM LẤY DANH SÁCH "MY AUCTIONS" CỦA RIÊNG USER ĐANG ĐĂNG NHẬP
@@ -382,7 +400,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, userId);
 
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -424,16 +442,17 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
+
   // ---------------- TASK 1: CHIẾN LƯỢC LẤY DANH SÁCH ----------------
   // Lấy danh sách các phiên sắp kết thúc xếp theo thời gian sớm nhất để hiển thị ở trang chủ
   @Override
   public List<Auction> getEndingSoonAuctions(int limit) {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT * FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') AND end_time > ? "
-            + "ORDER BY end_time ASC LIMIT ?";
+        + "ORDER BY end_time ASC LIMIT ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       // Dấu ? số 1 là thời gian hiện tại (Format chuẩn DB của nhóm bạn)
       pstmt.setString(1, java.time.LocalDateTime.now().format(DB_FORMATTER));
@@ -449,15 +468,16 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
+
   // Lấy các phiên "hot" nhất dựa trên số lượng lượt bid (đặt giá) nhiều nhất.
   @Override
   public List<Auction> getTrendingAuctions(int limit) {
     List<Auction> list = new ArrayList<>();
     String sql = "SELECT a.* FROM auctions a " + "LEFT JOIN bids b ON a.id = b.auction_id "
-            + "WHERE a.status = 'RUNNING' " + "GROUP BY a.id " + "ORDER BY COUNT(b.id) DESC LIMIT ?";
+        + "WHERE a.status = 'RUNNING' " + "GROUP BY a.id " + "ORDER BY COUNT(b.id) DESC LIMIT ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setInt(1, limit);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -478,8 +498,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     String sql = "SELECT COUNT(*) FROM auctions WHERE status IN ('OPEN', 'RUNNING')";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql);
-         ResultSet rs = pstmt.executeQuery()) {
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery()) {
 
       if (rs.next())
         count = rs.getInt(1);
@@ -488,15 +508,16 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return count;
   }
+
   // Đếm các phiên sắp kết thúc
   @Override
   public int countEndingSoonAuctions() {
     int count = 0;
     String sql = "SELECT COUNT(*) FROM auctions " + "WHERE status IN ('OPEN', 'RUNNING') "
-            + "AND end_time > ? AND end_time <= ?";
+        + "AND end_time > ? AND end_time <= ?";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       LocalDateTime now = java.time.LocalDateTime.now();
       LocalDateTime tomorrow = now.plusHours(24); // Sắp kết thúc trong 24h
@@ -551,7 +572,8 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     auction.setApprovedBy(rs.getString("approved_by"));
     return auction;
   }
-  //Chuyển đổi chuỗi String ngày tháng từ DB về đối tượng LocalDateTime
+
+  // Chuyển đổi chuỗi String ngày tháng từ DB về đối tượng LocalDateTime
   private LocalDateTime parseDateTime(String timeStr) {
     try {
       if (timeStr.contains("T")) {
