@@ -1,5 +1,10 @@
 package com.nhomX.example.controller.client;
 
+import java.io.File;
+import java.net.URL;
+import java.util.ResourceBundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
@@ -12,36 +17,51 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
-import java.io.File;
-import java.net.URL;
-import java.util.ResourceBundle;
-
-public class ProfileController extends BaseController implements Initializable, ServerEventListener {
+public class ProfileController extends BaseController
+        implements Initializable, ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(ProfileController.class);
     // ==========================================
     // KHAI BÁO UI COMPONENTS
     // ==========================================
-    @FXML private ImageView imgAvatar;
-    @FXML private TextField txtFullName;
-    @FXML private TextField txtEmail;
-    @FXML private TextField txtPhone; // LƯU Ý: Em nhớ sửa FXML từ txtUsername thành txtPhone nhé!
+    @FXML
+    private ImageView imgAvatar;
+    @FXML
+    private TextField txtFullName;
+    @FXML
+    private TextField txtEmail;
+    @FXML
+    private TextField txtPhone; // LƯU Ý: Em nhớ sửa FXML từ txtUsername thành txtPhone nhé!
 
-    @FXML private Button btnSave;
-    @FXML private Button btnChangePassword;
-    @FXML private Button btnDeposit;
+    @FXML
+    private Button btnSave;
+    @FXML
+    private Button btnChangePassword;
+    @FXML
+    private Button btnDeposit;
 
-    @FXML private Label lblBalance;
-    @FXML private Label lblTotalBids;
-    @FXML private Label lblAuctionsWon;
-    @FXML private Label lblWinRate;
-    @FXML private ProgressBar progressWinRate;
-    @FXML private Label lblRepScore;
-    @FXML private VBox activityList;
+    @FXML
+    private Label lblBalance;
+    @FXML
+    private Label lblTotalBids;
+    @FXML
+    private Label lblAuctionsWon;
+    @FXML
+    private Label lblWinRate;
+    @FXML
+    private ProgressBar progressWinRate;
+    @FXML
+    private Label lblRepScore;
+    @FXML
+    private VBox activityList;
 
     private User currentUser;
     private AuctionClient auctionClient;
@@ -62,7 +82,8 @@ public class ProfileController extends BaseController implements Initializable, 
         if (currentUser != null) {
             loadUserDataToUI();
         } else {
-            AlertUtils.showError("Lỗi phiên", "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại!");
+            AlertUtils.showError("Lỗi phiên",
+                    "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại!");
         }
     }
 
@@ -97,9 +118,8 @@ public class ProfileController extends BaseController implements Initializable, 
     private void handleChangeAvatar(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Chọn ảnh đại diện mới");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
-        );
+        fileChooser.getExtensionFilters()
+                .addAll(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
 
         // Mở hộp thoại chọn file
         selectedAvatarFile = fileChooser.showOpenDialog(null);
@@ -127,7 +147,7 @@ public class ProfileController extends BaseController implements Initializable, 
         String[] profileData = {currentUser.getId(), newFullName, newPhone};
         if (auctionClient != null) {
             auctionClient.sendToServer(new Message("UPDATE_PROFILE", profileData));
-            System.out.println("CLIENT: Gửi yêu cầu cập nhật Profile...");
+            logger.info("CLIENT: Gửi yêu cầu cập nhật Profile...");
         }
     }
 
@@ -135,7 +155,7 @@ public class ProfileController extends BaseController implements Initializable, 
     private void handleChangePassword(ActionEvent event) {
         // Luồng đổi mật khẩu khá phức tạp, tốt nhất nên chuyển sang màn hình riêng
         // hoặc gọi một Custom Dialog có 3 ô: Mật khẩu cũ, Mới, Xác nhận
-        System.out.println("Chuyển hướng đến màn hình đổi mật khẩu nội bộ.");
+        logger.info("Chuyển hướng đến màn hình đổi mật khẩu nội bộ.");
         // SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ChangePassword.fxml");
     }
 
@@ -147,7 +167,7 @@ public class ProfileController extends BaseController implements Initializable, 
     @FXML
     private void handleViewAllActivity(ActionEvent event) {
         // Logic mở lịch sử giao dịch chi tiết
-        System.out.println("Mở popup hoặc chuyển trang xem tất cả hoạt động...");
+        logger.info("Mở popup hoặc chuyển trang xem tất cả hoạt động...");
     }
     // LẮNG NGHE PHẢN HỒI TỪ SERVER
 
@@ -180,6 +200,5 @@ public class ProfileController extends BaseController implements Initializable, 
         });
     }
 
-    public void handleWithDraw(ActionEvent event) {
-    }
+    public void handleWithDraw(ActionEvent event) {}
 }
