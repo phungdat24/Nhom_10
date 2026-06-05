@@ -3,11 +3,14 @@ package com.nhomX.example.controller.admin;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -63,7 +66,7 @@ public class AdminLayoutController implements Initializable {
         // 1. Kiểm tra bảo mật cực đoan: Nếu không phải Admin thì đuổi cổ ra ngay
         if (!SessionManager.getInstance().isLoggedIn()
                 || !SessionManager.getInstance().getCurrentUser().getRoleName().equals("ADMIN")) {
-            System.err.println("CẢNH BÁO BẢO MẬT: Xâm nhập trái phép không gian Admin!");
+            logger.warn("CẢNH BÁO BẢO MẬT: Xâm nhập trái phép không gian Admin");
             SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
             return;
         }
@@ -130,8 +133,8 @@ public class AdminLayoutController implements Initializable {
             var resource = getClass().getResource(fxmlPath);
 
             if (resource == null) {
-                System.err.println("ADMIN ROUTING ERROR: Không tìm thấy file FXML: " + fxmlPath);
-                System.err.println("→ Kiểm tra file có tồn tại tại: src/main/resources" + fxmlPath);
+                logger.error("ADMIN ROUTING ERROR: Không tìm thấy file FXML: {}", fxmlPath);
+                logger.error("Kiểm tra file có tồn tại tại: src/main/resources{}", fxmlPath);
                 return; // Dừng lại, không để crash toàn bộ app
             }
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
@@ -145,8 +148,7 @@ public class AdminLayoutController implements Initializable {
             contentArea.getChildren().add(view);
 
         } catch (IOException e) {
-            System.err.println("LỖI ADMIN ROUTING: Không thể load file " + fxmlPath);
-            e.printStackTrace();
+            logger.error("LỖI ADMIN ROUTING: Không thể load file {}", fxmlPath, e);
         }
     }
 
