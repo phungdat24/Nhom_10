@@ -1,5 +1,9 @@
 package com.nhomX.example.controller.client;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.MyAuctionStatus;
@@ -16,10 +20,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class MyAuctionsController extends BaseController implements ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(MyAuctionsController.class);
     @FXML
     private Label lblTotalJoined;
     @FXML
@@ -39,8 +41,10 @@ public class MyAuctionsController extends BaseController implements ServerEventL
     private String currentFilterTab = "TAB_ACTIVE";
 
     // Các hằng số Style CSS cho Tab (Em có thể tinh chỉnh màu cho đồng bộ với css của dự án)
-    private final String STYLE_ACTIVE = "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 15; -fx-background-radius: 6;";
-    private final String STYLE_INACTIVE = "-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 6 15; -fx-background-radius: 6;";
+    private final String STYLE_ACTIVE =
+            "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 15; -fx-background-radius: 6;";
+    private final String STYLE_INACTIVE =
+            "-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 6 15; -fx-background-radius: 6;";
 
     @FXML
     public void initialize() {
@@ -55,6 +59,7 @@ public class MyAuctionsController extends BaseController implements ServerEventL
             fetchMyAuctionsData(client);
         }
     }
+
     // Hàm gọi API tách riêng để tái sử dụng
     private void fetchMyAuctionsData(AuctionClient client) {
         if (SessionManager.getInstance().getCurrentUser() != null) {
@@ -62,6 +67,7 @@ public class MyAuctionsController extends BaseController implements ServerEventL
             client.sendToServer(new Message("GET_MY_AUCTIONS", userId));
         }
     }
+
     @FXML
     private void handleTabActive(ActionEvent event) {
         switchTab("TAB_ACTIVE", btnTabActive);
@@ -76,6 +82,7 @@ public class MyAuctionsController extends BaseController implements ServerEventL
     private void handleTabLost(ActionEvent event) {
         switchTab("TAB_LOST", btnTabLost);
     }
+
     private void switchTab(String targetTab, Button clickedButton) {
         this.currentFilterTab = targetTab;
 
@@ -88,17 +95,23 @@ public class MyAuctionsController extends BaseController implements ServerEventL
         // Tiến hành lọc dữ liệu và vẽ lại danh sách thẻ
         renderFilteredAuctions();
     }
+
     private void resetTabStyles() {
-        if (btnTabActive != null) btnTabActive.setStyle(STYLE_INACTIVE);
-        if (btnTabWon != null) btnTabWon.setStyle(STYLE_INACTIVE);
-        if (btnTabLost != null) btnTabLost.setStyle(STYLE_INACTIVE);
+        if (btnTabActive != null)
+            btnTabActive.setStyle(STYLE_INACTIVE);
+        if (btnTabWon != null)
+            btnTabWon.setStyle(STYLE_INACTIVE);
+        if (btnTabLost != null)
+            btnTabLost.setStyle(STYLE_INACTIVE);
     }
+
     @Override
     public void onMyAuctionsReceived(List<MyAuctionDTO> myAuctionsList) {
         Platform.runLater(() -> {
             // Đồng bộ dữ liệu vào kho chứa RAM
             this.rawMyAuctionsList.clear();
-            if (myAuctionsList == null) return;
+            if (myAuctionsList == null)
+                return;
             // ✅ BỔ SUNG DÒNG NÀY: Đổ dữ liệu tươi từ Server vào kho chứa trên RAM để chuẩn bị lọc
             this.rawMyAuctionsList = myAuctionsList;
             // 1. Tính toán Thống kê Header
@@ -107,23 +120,25 @@ public class MyAuctionsController extends BaseController implements ServerEventL
 
             for (MyAuctionDTO dto : myAuctionsList) {
                 // Chỉ đếm những phiên đang diễn ra
-                if (dto.getMyStatus() == MyAuctionStatus.LEADING ||
-                        dto.getMyStatus() == MyAuctionStatus.OUTBID) {
+                if (dto.getMyStatus() == MyAuctionStatus.LEADING
+                        || dto.getMyStatus() == MyAuctionStatus.OUTBID) {
                     totalJoined++;
                 }
-                if (dto.getMyStatus()== MyAuctionStatus.LEADING){
+                if (dto.getMyStatus() == MyAuctionStatus.LEADING) {
                     // Tiền đang cược (tiền bị giam) thường là số tiền cao nhất mình đã đặt
                     totalLockedMoney += dto.getMyHighestBid();
                 }
             }
 
             lblTotalJoined.setText("Đang tham gia: " + totalJoined);
-            lblTotalLockedMoney.setText("Tổng tiền đang cược: " + CurrencyFormatter.formatVND(totalLockedMoney));
+            lblTotalLockedMoney.setText(
+                    "Tổng tiền đang cược: " + CurrencyFormatter.formatVND(totalLockedMoney));
 
             // 3. Thực thi lọc và hiển thị danh sách theo Tab hiện tại
             renderFilteredAuctions();
         });
     }
+
     private void renderFilteredAuctions() {
         contentArea.getChildren().clear();
 
@@ -134,7 +149,8 @@ public class MyAuctionsController extends BaseController implements ServerEventL
             // Thực hiện State Machine ánh xạ dữ liệu DTO vào đúng Tab hình thể
             switch (currentFilterTab) {
                 case "TAB_ACTIVE":
-                    isMatchTab = (status == MyAuctionStatus.LEADING || status == MyAuctionStatus.OUTBID);
+                    isMatchTab =
+                            (status == MyAuctionStatus.LEADING || status == MyAuctionStatus.OUTBID);
                     break;
                 case "TAB_WON":
                     isMatchTab = (status == MyAuctionStatus.WON);
@@ -147,7 +163,8 @@ public class MyAuctionsController extends BaseController implements ServerEventL
             // Nếu phần tử khớp bộ lọc, tiến hành nạp FXML và đẩy lên giao diện
             if (isMatchTab) {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/MyAuctionCard.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass()
+                            .getResource("/com/nhomX/example/fxml/client/MyAuctionCard.fxml"));
                     Node cardNode = loader.load();
 
                     MyAuctionCardController cardController = loader.getController();
@@ -155,22 +172,26 @@ public class MyAuctionsController extends BaseController implements ServerEventL
 
                     contentArea.getChildren().add(cardNode);
                 } catch (Exception e) {
-                    System.err.println("Lỗi render MyAuctionCard tại tab " + currentFilterTab + ": " + e.getMessage());
+                    System.err.println("Lỗi render MyAuctionCard tại tab " + currentFilterTab + ": "
+                            + e.getMessage());
                 }
             }
         }
     }
+
     // Lắng nghe Real-time để cập nhật khi bị vượt giá
     @Override
     public void onHighestBidUpdated(String itemId, long newPrice, String bidderName) {
         // Chỉ gửi Request lên Server nếu món vừa có biến động thuộc về danh sách của mình
-        boolean isMyItem = rawMyAuctionsList.stream().anyMatch(dto -> dto.getAuction().getId().equals(itemId));
+        boolean isMyItem =
+                rawMyAuctionsList.stream().anyMatch(dto -> dto.getAuction().getId().equals(itemId));
 
         if (isMyItem) {
             AuctionClient client = SessionManager.getInstance().getAuctionClient();
             if (client != null) {
                 fetchMyAuctionsData(client);
-                System.out.println("MY AUCTIONS: Phát hiện biến động ở món của mình, đang làm mới danh sách...");
+                logger.info(
+                        "MY AUCTIONS: Phát hiện biến động ở món của mình, đang làm mới danh sách...");
             }
         }
     }
