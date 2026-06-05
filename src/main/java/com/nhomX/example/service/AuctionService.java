@@ -1,14 +1,19 @@
 package com.nhomX.example.service;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.repository.AuctionRepositoryImpl;
 import com.nhomX.example.repository.ItemRepositoryImpl;
 import com.nhomX.example.utils.DatabaseConnection;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 public class AuctionService {
+  private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
   private final ItemRepositoryImpl itemRepo = new ItemRepositoryImpl();
   private final AuctionRepositoryImpl auctionRepo = new AuctionRepositoryImpl();
 
@@ -23,22 +28,22 @@ public class AuctionService {
       auctionRepo.save(auction, conn);
 
       conn.commit();
-      System.out.println("SERVICE: Da luu thanh cong san pham va phien dau gia vao DB.");
+      logger.info("SERVICE: Đã lưu thành công sản phẩm và phiên đấu giá vào DB");
       return true;
 
     } catch (Exception e) {
-      System.err.println("SERVICE LOI: Dang rollback toan bo du lieu... " + e.getMessage());
+      logger.error("SERVICE LỖI: Đang rollback toàn bộ dữ liệu", e);
       try {
         if (conn != null) {
           conn.rollback();
         }
       } catch (SQLException ex) {
-        ex.printStackTrace();
+        logger.error("Lỗi rollback transaction", ex);
       }
       return false;
     } finally {
       try {
-        //Luôn trả lại Auto-commit
+        // Luôn trả lại Auto-commit
         if (conn != null) {
           conn.setAutoCommit(true);
           conn.close();
