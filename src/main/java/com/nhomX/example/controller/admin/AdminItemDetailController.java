@@ -3,8 +3,10 @@ package com.nhomX.example.controller.admin;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.controller.client.BaseController;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -16,6 +18,7 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -157,7 +160,7 @@ public class AdminItemDetailController extends BaseController implements ServerE
     if (AdminLayoutController.instance != null) {
       AdminLayoutController.instance.handleNavProducts(null);
     } else {
-      System.err.println("Lỗi: AdminLayoutController instance bị null!");
+      logger.error("AdminLayoutController instance bị null");
     }
   }
 
