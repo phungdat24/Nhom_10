@@ -1,14 +1,17 @@
 package com.nhomX.example.controller.admin;
 
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -123,12 +126,12 @@ public class AdminPendingProductCardController {
                 AdminLayoutController.instance.saveCurrentViewAndNavigate(root,
                         "Chi tiết kiểm duyệt");
             } else {
-                System.err.println("Lỗi: Không tìm thấy AdminLayoutController!");
+                logger.error("Không tìm thấy AdminLayoutController");
             }
 
         } catch (java.io.IOException e) {
-            System.err.println("❌ Lỗi chuyển hướng trang chi tiết kiểm duyệt: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Lỗi chuyển hướng trang chi tiết kiểm duyệt", e);
+
         }
     }
 }
