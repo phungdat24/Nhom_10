@@ -5,6 +5,7 @@ module com.nhomX.example {
     requires java.desktop;
     requires java.mail;
     requires fontawesomefx;
+    requires org.slf4j;
 
     opens com.nhomX.example to javafx.fxml;
 
@@ -12,9 +13,14 @@ module com.nhomX.example {
     exports com.nhomX.example.manager;
 
     opens com.nhomX.example.controller.client to javafx.fxml;
+
     exports com.nhomX.example.controller.client;
+
     opens com.nhomX.example.controller.shared to javafx.fxml;
+
     exports com.nhomX.example.controller.shared;
+
     opens com.nhomX.example.controller.admin to javafx.fxml;
+
     exports com.nhomX.example.controller.admin;
 }
