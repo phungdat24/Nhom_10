@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.controller.client.MainDashBoardController;
 import com.nhomX.example.dto.DashboardDataDTO;
 import com.nhomX.example.manager.AuctionManager;
@@ -23,6 +24,7 @@ import com.nhomX.example.utils.AlertUtils;
 import javafx.application.Platform;
 
 public class AuctionClient {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionClient.class);
 
     private String username;
     // Đưa socket lên làm thuộc tính class để chống Leak
@@ -67,9 +69,9 @@ public class AuctionClient {
             Thread listenerThread = new Thread(this::listenToServer, "client-listener");
             listenerThread.setDaemon(true); // Tự tắt khi ứng dụng chính tắt
             listenerThread.start();
-            System.out.println("CLIENT: Đã kết nối tới " + host + ":" + port);
+            logger.info("CLIENT: Đã kết nối tới {}:{}", host, port);
         } catch (IOException e) {
-            System.err.println("CLIENT: Không thể kết nối tới Server.");
+            logger.error("CLIENT: Không thể kết nối tới Server.");
         }
     }
 
@@ -82,15 +84,15 @@ public class AuctionClient {
                 out.close();
             if (socket != null && !socket.isClosed())
                 socket.close();
-            System.out.println("CLIENT: Đã đóng kết nối an toàn.");
+            logger.info("CLIENT: Đã đóng kết nối an toàn.");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("CLIENT: Lỗi khi đóng kết nối.", e);
         }
     }
+
     /**
-     * Yêu cầu Server gửi ảnh về.
-     * Nếu ảnh đã có trong cache cục bộ → gọi callback ngay, không tốn mạng.
-     * Func dùng để gọi ảnh
+     * Yêu cầu Server gửi ảnh về. Nếu ảnh đã có trong cache cục bộ → gọi callback ngay, không tốn
+     * mạng. Func dùng để gọi ảnh
      */
     public void requestImage(String fileName, Consumer<byte[]> onReceived) {
         // Kiểm tra cache trước
@@ -104,8 +106,8 @@ public class AuctionClient {
     }
 
     // Map lưu callback chờ kết quả ảnh
-    private final ConcurrentHashMap<String, Consumer<byte[]>>
-            pendingImageCallbacks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Consumer<byte[]>> pendingImageCallbacks =
+            new ConcurrentHashMap<>();
 
     // Gửi yêu cầu đặt giá lên Server
     public void placeBid(String userId, String auctionId, long bidAmount) {
@@ -190,14 +192,14 @@ public class AuctionClient {
     // Gọi khi người dùng MỞ giao diện chi tiết món hàng
     public void watchAuction(String auctionId) {
         sendToServer(new Message("WATCH_ITEM", username, auctionId, 0));
-        System.out.println("CLIENT: Đang theo dõi phiên " + auctionId);
+        logger.info("CLIENT: Đang theo dõi phiên {}", auctionId);
     }
 
     // Gọi khi người dùng ĐÓNG/THOÁT giao diện chi tiết món hàng
     public void unwatchAuction(String auctionId) {
         // Gửi tin nhắn loại "UNWATCH" lên Server
         sendToServer(new Message("UNWATCH_ITEM", username, auctionId, 0));
-        System.out.println("CLIENT: Đã hủy theo dõi phiên " + auctionId);
+        logger.info("CLIENT: Đã hủy theo dõi phiên {}", auctionId);
     }
 
     public void getBidHistory(String auctionId) {
@@ -235,12 +237,13 @@ public class AuctionClient {
                     }
                 });
                 break;
-                // Khi Client gọi ảnh chi tiết sản phẩm
+            // Khi Client gọi ảnh chi tiết sản phẩm
             case "IMAGE_RESULT":
-                if (msg.getData() == null) break;
-                Object[] imgPayload  = (Object[]) msg.getData();
-                String   imgFileName = (String) imgPayload[0];
-                byte[]   imgBytes    = (byte[]) imgPayload[1];
+                if (msg.getData() == null)
+                    break;
+                Object[] imgPayload = (Object[]) msg.getData();
+                String imgFileName = (String) imgPayload[0];
+                byte[] imgBytes = (byte[]) imgPayload[1];
 
                 // Lưu vào cache
                 imageCache.put(imgFileName, imgBytes);
@@ -378,9 +381,11 @@ public class AuctionClient {
                 });
                 break;
             case "AUCTION_APPROVED_ALERT":
-                if (msg.getData() == null) break;
+                if (msg.getData() == null)
+                    break;
                 if (!(msg.getData() instanceof Auction)) {
-                    System.err.println("CLIENT: AUCTION_APPROVED_ALERT nhận data không phải Auction!");
+                    System.err.println(
+                            "CLIENT: AUCTION_APPROVED_ALERT nhận data không phải Auction!");
                     break;
                 }
                 Auction approvedAuction = (Auction) msg.getData();
@@ -399,8 +404,8 @@ public class AuctionClient {
                 if (msg.getData() instanceof DashboardDataDTO dto) {
                     // DTO duy nhất — Controller Admin tự unpack.
                     runOnUiThread(() -> {
-                        listeners.forEach(currentListener ->
-                                currentListener.onDashboardDataReceived(dto));
+                        listeners.forEach(
+                                currentListener -> currentListener.onDashboardDataReceived(dto));
                         if (listener != null && !listeners.contains(listener)) {
                             listener.onDashboardDataReceived(dto);
                         }
@@ -440,20 +445,20 @@ public class AuctionClient {
                 break;
 
             case "FORGOT_PASSWORD_RESULT":
-                if (listener != null){
+                if (listener != null) {
                     String[] resultData = (String[]) msg.getData();
                     boolean isSuccess = Boolean.parseBoolean(resultData[0]);
                     String responseMsg = resultData[1];
 
-                    javafx.application.Platform.runLater(() ->{
+                    javafx.application.Platform.runLater(() -> {
                         listener.onForgotPasswordResult(isSuccess, responseMsg);
                     });
-                    }
+                }
                 break;
 
             case "SELLER_AUCTIONS_RESULT":
                 List<Auction> sellerAuctionsList = (List<Auction>) msg.getData();
-                if (listener != null){
+                if (listener != null) {
                     listener.onSellerAuctionsReceived(sellerAuctionsList);
                 }
                 break;
@@ -463,9 +468,9 @@ public class AuctionClient {
                 boolean isDepositSuccess = (Boolean) depositData[0];
                 long newBalance = (long) depositData[1];
 
-                if (isDepositSuccess){
+                if (isDepositSuccess) {
                     User currentSessionUser = SessionManager.getInstance().getCurrentUser();
-                    if (currentSessionUser != null){
+                    if (currentSessionUser != null) {
                         currentSessionUser.setBalance(newBalance);
                         // [GỌI LỆNH NÀY ĐỂ ÉP GIAO DIỆN CẬP NHẬT TỨC THÌ]
                         if (MainDashBoardController.instance != null) {
@@ -482,21 +487,17 @@ public class AuctionClient {
             case "AUTO_BID_SUCCESS":
                 runOnUiThread(() -> {
                     // Gọi hàm AlertUtils để báo tin vui cho người dùng
-                    AlertUtils.showSuccess(
-                            "Thành công",
-                            "Đã lưu cấu hình Đấu giá tự động (Auto-bid) thành công!"
-                    );
+                    AlertUtils.showSuccess("Thành công",
+                            "Đã lưu cấu hình Đấu giá tự động (Auto-bid) thành công!");
                 });
                 break;
 
             case "AUTO_BID_FAIL":
                 runOnUiThread(() -> {
-                    String failReason = msg.getData() != null ? (String) msg.getData() : "Lỗi không xác định!";
+                    String failReason =
+                            msg.getData() != null ? (String) msg.getData() : "Lỗi không xác định!";
                     // Báo lỗi cho người dùng biết
-                    AlertUtils.showError(
-                            "Cảnh báo",
-                            "Thiết lập Auto-bid thất bại: " + failReason
-                    );
+                    AlertUtils.showError("Cảnh báo", "Thiết lập Auto-bid thất bại: " + failReason);
                 });
                 break;
             // TÌM ĐẾN VÀ THÊM VÀO TRONG VÒNG SWITCH CỦA AuctionClient.java
@@ -527,15 +528,15 @@ public class AuctionClient {
                 Map<?, ?> balancePayload = (Map<?, ?>) msg.getData();
                 String balanceUserId = (String) balancePayload.get("userId");
                 long updatedBalance = ((Number) balancePayload.get("newBalance")).longValue();
-                listeners.forEach(currentListener ->
-                        currentListener.onUserBalanceUpdated(balanceUserId, updatedBalance));
+                listeners.forEach(currentListener -> currentListener
+                        .onUserBalanceUpdated(balanceUserId, updatedBalance));
                 break;
             case "USER_STATUS_CHANGED":
                 Map<?, ?> statusPayload = (Map<?, ?>) msg.getData();
                 String statusUserId = (String) statusPayload.get("userId");
                 boolean isActive = (Boolean) statusPayload.get("isActive");
-                listeners.forEach(currentListener ->
-                        currentListener.onUserStatusChanged(statusUserId, isActive));
+                listeners.forEach(currentListener -> currentListener
+                        .onUserStatusChanged(statusUserId, isActive));
                 break;
 
             default:
