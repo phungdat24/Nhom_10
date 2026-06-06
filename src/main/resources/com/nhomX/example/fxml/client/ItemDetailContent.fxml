@@ -22,7 +22,7 @@
         <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
 
         <!-- Nút Quay lại -->
-        <Button fx:id="btnBack" onAction="#handleBackAction" styleClass="btn-detail" text="⬅ Quay lại" />
+        <Button fx:id="btnBack" onAction="#handleBackAction" styleClass="btn-back" text="⬅ Quay lại" />
 
         <!-- HBox Tổng chứa 2 cột -->
         <HBox alignment="TOP_CENTER" spacing="30.0" VBox.vgrow="ALWAYS">
@@ -105,18 +105,10 @@
                     </LineChart>
                 </VBox>
 
-                <VBox spacing="10" styleClass="detail-card"
-                      prefHeight="350"
-                      maxHeight="350"
-                      VBox.vgrow="NEVER">
+                <VBox maxHeight="350" prefHeight="350" spacing="10" styleClass="detail-card" VBox.vgrow="NEVER">
                     <Label styleClass="featured-tag" text="📜 Lịch sử đặt giá" />
 
-                    <ScrollPane fitToWidth="true"
-                                prefHeight="300"
-                                maxHeight="300"
-                                vbarPolicy="ALWAYS"
-                                hbarPolicy="NEVER"
-                                style="-fx-background-color: transparent; -fx-background: transparent;">
+                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="300" prefHeight="300" style="-fx-background-color: transparent; -fx-background: transparent;" vbarPolicy="ALWAYS">
                         <content>
                             <VBox fx:id="vboxBidHistory" spacing="5.0" />
                         </content>

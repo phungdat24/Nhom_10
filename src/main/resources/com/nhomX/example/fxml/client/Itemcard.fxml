@@ -13,11 +13,14 @@
 -->
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<VBox spacing="6" styleClass="product-card" stylesheets="@../../css/dashboard.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.nhomX.example.controller.client.ItemCardController">
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="6" styleClass="product-card" stylesheets="@../../css/dashboard.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.nhomX.example.controller.client.ItemCardController">
 
     <padding>
         <Insets bottom="12" left="12" right="12" top="12" />
@@ -64,7 +67,7 @@
     <!-- ── Nút hành động ── -->
     <HBox spacing="8">
         <Button fx:id="btnBid" maxWidth="Infinity" onAction="#handleBidAction" styleClass="btn-bidTransaction" text="Đấu giá" HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnDetail" maxWidth="Infinity" onAction="#handleDetailAction" prefHeight="26.0" prefWidth="82.0" styleClass="btn-detail" text="Xem chi tiết" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDetail" maxWidth="Infinity" onAction="#handleDetailAction" prefHeight="26.0" prefWidth="82.0" styleClass="btn-detail" text="Xem chi tiết" textFill="#477926" HBox.hgrow="ALWAYS" />
     </HBox>
 
 </VBox>

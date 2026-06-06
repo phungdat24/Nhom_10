@@ -137,6 +137,30 @@ public class DepositMoneyController implements Initializable {
             }
         });
     }
+    //QUAY LAI TRANG PROFILE
+    @FXML
+    private void handleBackToProfile(ActionEvent event) {
+        stopCountdown();
+
+        try {
+            SceneSwitcher.switchScene(
+                    event,
+                    "/com/nhomX/example/fxml/client/dashboard.fxml"
+            );
+
+            Platform.runLater(() -> {
+                if (MainDashBoardController.instance != null) {
+                    MainDashBoardController.instance.loadView(
+                            "/com/nhomX/example/fxml/client/ProfileContent.fxml"
+                    );
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtils.showError("Lỗi", "Không thể quay lại trang hồ sơ.");
+        }
+    }
 
     // =========================================================================
     // 5. XỬ LÝ SỰ KIỆN — TẠO MÃ THANH TOÁN
@@ -180,7 +204,26 @@ public class DepositMoneyController implements Initializable {
         AlertUtils.showSuccess("Đang xử lý",
                 "Hệ thống đang xử lý giao dịch. Tiền sẽ được cộng vào tài khoản sau ít phút.");
 
-        SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/ProfileContent.fxml");
+        try {
+            // Quay lại màn Dashboard chính trước
+            SceneSwitcher.switchScene(
+                    event,
+                    "/com/nhomX/example/fxml/client/dashboard.fxml"
+            );
+
+            // Sau khi Dashboard load xong, đưa nội dung Profile vào vùng mainContentArea
+            Platform.runLater(() -> {
+                if (MainDashBoardController.instance != null) {
+                    MainDashBoardController.instance.loadView(
+                            "/com/nhomX/example/fxml/client/ProfileContent.fxml"
+                    );
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            AlertUtils.showError("Lỗi", "Không thể quay lại trang hồ sơ.");
+        }
     }
 
     // =========================================================================
@@ -323,4 +366,5 @@ public class DepositMoneyController implements Initializable {
             // Fallback: Nếu mất mạng, có thể set lại cái ảnh mock_qr.png mặc định
         }
     }
+
 }
