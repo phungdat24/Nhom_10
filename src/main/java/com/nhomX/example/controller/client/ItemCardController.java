@@ -5,14 +5,17 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -103,7 +106,7 @@ public class ItemCardController extends BaseController {
             if (MainDashBoardController.instance != null) {
                 MainDashBoardController.instance.saveCurrentViewAndNavigate(root);
             } else {
-                System.err.println("Lỗi: MainController chưa được khởi tạo!");
+                logger.error("MainController chưa được khởi tạo");
             }
 
         } catch (IOException e) {

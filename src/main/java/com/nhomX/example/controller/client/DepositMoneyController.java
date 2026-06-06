@@ -3,8 +3,10 @@ package com.nhomX.example.controller.client;
 import java.net.URL;
 import java.util.Random;
 import java.util.ResourceBundle;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
@@ -12,6 +14,7 @@ import com.nhomX.example.networking.Message;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -331,7 +334,7 @@ public class DepositMoneyController implements Initializable {
             imgQrCode.setImage(dynamicQrImage);
 
         } catch (Exception e) {
-            System.err.println("❌ Lỗi sinh mã QR Động: " + e.getMessage());
+            logger.error("Lỗi hiển thị mã QR động", e);
             // Fallback: Nếu mất mạng, có thể set lại cái ảnh mock_qr.png mặc định
         }
     }

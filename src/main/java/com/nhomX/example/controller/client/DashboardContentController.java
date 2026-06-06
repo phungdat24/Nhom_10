@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -15,6 +17,7 @@ import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -64,7 +67,7 @@ public class DashboardContentController extends BaseController implements Server
             // Yêu cầu dữ liệu thống kê từ Server
             client.sendToServer(new Message("GET_DASHBOARD_DATA", null));
         } else {
-            System.err.println("Cảnh báo: Không tìm thấy kết nối mạng Socket!");
+            logger.warn("Không tìm thấy kết nối mạng Socket");
         }
     }
 
@@ -91,7 +94,7 @@ public class DashboardContentController extends BaseController implements Server
                 ImageLoader.loadAsync(null, imgFeatured);
             }
         } catch (Exception e) {
-            System.err.println("Không load được ảnh sản phẩm nổi bật: " + e.getMessage());
+            logger.error("Không load được ảnh sản phẩm nổi bật", e);
         }
 
         if (countdownTimeline != null) {
@@ -169,7 +172,7 @@ public class DashboardContentController extends BaseController implements Server
                 MainDashBoardController.instance.saveCurrentViewAndNavigate(root);
             }
         } catch (IOException e) {
-            System.err.println("Lỗi chuyển hướng trang chi tiết: " + e.getMessage());
+            logger.error("Lỗi chuyển hướng trang chi tiết", e);
         }
     }
 
@@ -234,7 +237,7 @@ public class DashboardContentController extends BaseController implements Server
 
                             contentArea.getChildren().add(cardNode);
                         } catch (Exception e) {
-                            System.err.println("❌ Lỗi khi render ItemCard: " + e.getMessage());
+                            logger.error("Lỗi khi render ItemCard", e);
                         }
                     }
                 }
