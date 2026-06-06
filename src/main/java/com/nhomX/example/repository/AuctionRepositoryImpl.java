@@ -122,7 +122,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       pstmt.setString(3, auctionId);
       pstmt.executeUpdate();
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi cập nhật người thắng: " + e.getMessage());
+      logger.error("Lỗi cập nhật người thắng", e);
     }
   }
 
@@ -162,7 +162,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       return affectedRows > 0;
 
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi cập nhật trạng thái phiên: " + e.getMessage());
+      logger.error("Lỗi cập nhật trạng thái phiên", e);
       return false;
     }
   }
@@ -233,13 +233,13 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         return true;
       } catch (SQLException e) {
         rollbackSilently(conn);
-        System.err.println("Loi tat toan phien dau gia " + auctionId + ": " + e.getMessage());
+        logger.error("Lỗi tất toán phiên đấu giá {}", auctionId, e);
         return false;
       } finally {
         restoreAutoCommit(conn);
       }
     } catch (SQLException e) {
-      System.err.println("Loi mo ket noi DB khi tat toan: " + e.getMessage());
+      logger.error("Lỗi mở kết nối DB khi tất toán", e);
       return false;
     }
   }
@@ -261,7 +261,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi tìm Auction: " + e.getMessage());
+      logger.error("Lỗi khi tìm Auction", e);
     }
     return null;
   }
@@ -285,7 +285,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy ds phiên mở: " + e.getMessage());
+      logger.error("Lỗi khi lấy danh sách phiên mở", e);
     }
     return list;
   }
@@ -307,7 +307,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi quét phiên hết hạn: " + e.getMessage());
+      logger.error("Lỗi quét phiên hết hạn", e);
     }
     return list;
   }
@@ -329,7 +329,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy phiên theo seller: " + e.getMessage());
+      logger.error("Lỗi khi lấy phiên theo seller", e);
     }
     return list;
   }
@@ -356,7 +356,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi quét phiên UP_COMING: " + e.getMessage());
+      logger.error("Lỗi quét phiên UP_COMING", e);
     }
 
     return list;
@@ -378,7 +378,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi tìm Auction theo status: " + e.getMessage());
+      logger.error("Lỗi khi tìm Auction theo status", e);
     }
     return list;
   }
@@ -438,7 +438,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy danh sách My Auctions: " + e.getMessage());
+      logger.error("Lỗi khi lấy danh sách My Auctions", e);
     }
     return list;
   }
@@ -464,7 +464,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi getEndingSoonAuctions: " + e.getMessage());
+      logger.error("Lỗi getTrendingAuctions", e);
     }
     return list;
   }
@@ -486,7 +486,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi getTrendingAuctions: " + e.getMessage());
+      logger.error("Lỗi getTrendingAuctions", e);
     }
     return list;
   }
@@ -504,7 +504,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
       if (rs.next())
         count = rs.getInt(1);
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi countActiveAuctions: " + e.getMessage());
+      logger.error("Lỗi countActiveAuctions", e);
     }
     return count;
   }
@@ -530,7 +530,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
           count = rs.getInt(1);
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi countEndingSoonAuctions: " + e.getMessage());
+      logger.error("Lỗi countEndingSoonAuctions", e);
     }
     return count;
   }
@@ -582,7 +582,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         return LocalDateTime.parse(timeStr, DB_FORMATTER);
       }
     } catch (Exception e) {
-      System.err.println("⚠️ Lỗi parse ngày giờ: " + timeStr);
+      logger.warn("Lỗi parse ngày giờ: {}", timeStr);
       return null;
     }
   }
@@ -593,7 +593,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         conn.rollback();
       }
     } catch (SQLException ex) {
-      System.err.println("Loi rollback: " + ex.getMessage());
+      logger.error("Lỗi rollback", ex);
     }
   }
 
@@ -603,7 +603,7 @@ public class AuctionRepositoryImpl implements AuctionRepository {
         conn.setAutoCommit(true);
       }
     } catch (SQLException ex) {
-      System.err.println("Loi restoreAutoCommit: " + ex.getMessage());
+      logger.error("Lỗi restoreAutoCommit", ex);
     }
   }
 }

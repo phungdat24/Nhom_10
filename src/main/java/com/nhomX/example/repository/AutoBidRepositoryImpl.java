@@ -85,7 +85,7 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("AUTO-BID: Lỗi truy vấn - " + e.getMessage());
+      logger.error("AUTO-BID: Lỗi truy vấn", e);
     }
     return list;
   }
@@ -101,7 +101,7 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
       ps.setString(1, configId);
       ps.executeUpdate();
     } catch (SQLException e) {
-      System.err.println("AUTO-BID: Lỗi deactivate - " + e.getMessage());
+      logger.error("AUTO-BID: Lỗi deactivate", e);
     }
   }
 
@@ -135,7 +135,7 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
           return mapRowToAutoBid(rs);
       }
     } catch (SQLException e) {
-      System.err.println("AUTO-BID: Lỗi findByUserAndAuction - " + e.getMessage());
+      logger.error("AUTO-BID: Lỗi findByUserAndAuction", e);
     }
     return null;
   }
