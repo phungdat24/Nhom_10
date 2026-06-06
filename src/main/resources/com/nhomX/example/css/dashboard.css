@@ -448,25 +448,24 @@
 
 /* NÚT HAMBURGER SVG MỚI */
 .btn-hamburger {
-    -fx-background-color: #ffffff;
-    -fx-border-color: rgba(201, 162, 39, 0.25);
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-border-width: 1;
+    -fx-background-color: transparent;
+    -fx-background-radius: 50%;
+    -fx-border-width: 0;
     -fx-cursor: hand;
-    -fx-padding: 8 10 8 10;
+    -fx-padding: 9 11 9 11;
 }
 
 .btn-hamburger:hover {
-    -fx-background-color: #f7f4eb; /* Đổi nền nhẹ khi di chuột */
-    -fx-border-color: rgba(201, 162, 39, 0.6);
+    -fx-background-color: rgba(255, 255, 255, 0.14);
 }
 
-/* ĐƯỜNG NÉT HAMBURGER */
+.btn-hamburger:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.22);
+}
+
 .svg-icon-hamburger {
-    -fx-fill: #2b1f12;
+    -fx-fill: #F7F1E8;
 }
-
 /* CỤM THƯƠNG HIỆU */
 .brand-box {
     -fx-cursor: hand;
@@ -491,6 +490,7 @@
     -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     -fx-font-size: 24px;
     -fx-font-weight: bold;
+    -fx-text-fill: white;
 }
 
 /* ========================================================
@@ -1023,3 +1023,88 @@
     -fx-scale-y: 0.98;
 }
 
+.user-menu-shell {
+    -fx-background-color: linear-gradient(to bottom, #5A3A1E, #3C2A1A);
+    -fx-background-radius: 26;
+    -fx-border-color: #D4AF37;
+    -fx-border-radius: 26;
+    -fx-border-width: 1.5;
+    -fx-padding: 7 10 7 8;
+    -fx-effect: dropshadow(gaussian, rgba(212,175,55,0.35), 14, 0.25, 0, 2);
+}
+
+.user-menu-avatar {
+    -fx-background-color: linear-gradient(to bottom, #F4D35E, #C9A227);
+    -fx-background-radius: 18;
+}
+
+.user-menu-name {
+    -fx-text-fill: #FFF8E7;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.user-menu-button {
+    -fx-background-color: linear-gradient(to bottom, #FFFDF8, #F5E6B8);
+    -fx-background-radius: 16;
+    -fx-border-color: #E5C96A;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-padding: 6 14 6 14;
+    -fx-cursor: hand;
+}
+
+.user-menu-button .label {
+    -fx-text-fill: #3C2A1A !important;
+    -fx-font-weight: bold;
+}
+
+.user-menu-button .arrow {
+    -fx-background-color: #3C2A1A;
+}
+
+.user-menu-button .context-menu {
+    -fx-background-color: #FFFDF8;
+    -fx-background-radius: 12;
+    -fx-border-color: #D4AF37;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 6;
+}
+
+.user-dropdown-item {
+    -fx-background-color: transparent;
+    -fx-padding: 9 18 9 12;
+}
+
+.user-dropdown-item .label {
+    -fx-text-fill: #3C2A1A;
+    -fx-font-weight: bold;
+}
+
+.user-dropdown-item:hover {
+    -fx-background-color: #F5E6B8;
+}
+
+.user-dropdown-logout:hover {
+    -fx-background-color: #E5C96A;
+}
+
+.change-password-dialog {
+    -fx-background-color: #FFF8E7;
+    -fx-padding: 18;
+}
+
+.change-password-dialog .password-field {
+    -fx-background-color: #FFFDF8;
+    -fx-background-radius: 8;
+    -fx-border-color: #D4AF37;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.3;
+    -fx-padding: 10;
+    -fx-font-size: 13px;
+}
+
+.change-password-dialog .password-field:focused {
+    -fx-border-color: #B8860B;
+}

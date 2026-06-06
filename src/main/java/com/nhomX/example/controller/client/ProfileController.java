@@ -99,7 +99,7 @@ public class ProfileController extends BaseController
         txtFullName.setText(currentUser.getFullName());
         txtEmail.setText(currentUser.getUserName()); // Hệ thống đang dùng Email làm Username
         // Nếu User model của em có trường Phone, hãy thay bằng getPhone()
-        txtPhone.setText("0987654321"); // Mock data tạm thời
+
 
         // 2. Load Tài chính
         // Chú ý: Cần có phương thức getBalance() trong model User của em
@@ -141,7 +141,7 @@ public class ProfileController extends BaseController
     @FXML
     private void handleSaveProfile(ActionEvent event) {
         String newFullName = txtFullName.getText().trim();
-        String newPhone = txtPhone.getText().trim();
+
 
         if (newFullName.isEmpty()) {
             AlertUtils.showWarning("Thiếu thông tin", "Họ và tên không được để trống!");
@@ -151,7 +151,7 @@ public class ProfileController extends BaseController
         btnSave.setDisable(true); // Chống click đúp (Double-click prevention)
 
         // Đóng gói dữ liệu gửi lên Server
-        String[] profileData = {currentUser.getId(), newFullName, newPhone};
+        String[] profileData = {currentUser.getId(), newFullName};
         if (auctionClient != null) {
             auctionClient.sendToServer(new Message("UPDATE_PROFILE", profileData));
             logger.info("CLIENT: Gửi yêu cầu cập nhật Profile...");
@@ -164,6 +164,50 @@ public class ProfileController extends BaseController
         // hoặc gọi một Custom Dialog có 3 ô: Mật khẩu cũ, Mới, Xác nhận
         logger.info("Chuyển hướng đến màn hình đổi mật khẩu nội bộ.");
         // SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/ChangePassword.fxml");
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Đổi mật khẩu");
+        dialog.setHeaderText("Vui lòng nhập thông tin mật khẩu");
+
+        PasswordField oldPassword = new PasswordField();
+        oldPassword.setPromptText("Mật khẩu cũ");
+
+        PasswordField newPassword = new PasswordField();
+        newPassword.setPromptText("Mật khẩu mới");
+
+        PasswordField confirmPassword = new PasswordField();
+        confirmPassword.setPromptText("Xác nhận mật khẩu mới");
+
+        VBox content = new VBox(12);
+        content.getStyleClass().add("change-password-dialog");
+        content.getChildren().addAll(oldPassword, newPassword, confirmPassword);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/com/nhomX/example/css/dashboard.css").toExternalForm());
+
+        dialog.showAndWait().ifPresent(result -> {
+            if (result == ButtonType.OK) {
+                String oldPass = oldPassword.getText().trim();
+                String newPass = newPassword.getText().trim();
+                String confirmPass = confirmPassword.getText().trim();
+
+                if (oldPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
+                    AlertUtils.showWarning("Thiếu thông tin", "Vui lòng nhập đầy đủ mật khẩu!");
+                    return;
+                }
+
+                if (!newPass.equals(confirmPass)) {
+                    AlertUtils.showWarning("Sai xác nhận",
+                            "Mật khẩu mới và xác nhận mật khẩu không khớp!");
+                    return;
+                }
+
+                System.out.println("Gửi yêu cầu đổi mật khẩu...");
+                // Sau này gửi server ở đây
+            }
+        });
     }
 
     @FXML
@@ -208,6 +252,17 @@ public class ProfileController extends BaseController
     }
 
     public void handleWithDraw(ActionEvent event) {}
+
+    @FXML
+    private void handleBack(ActionEvent event) {
+
+        if (MainDashBoardController.instance != null) {
+
+            MainDashBoardController.instance
+                    .loadView("/com/nhomX/example/fxml/client/DashboardContent.fxml");
+
+        }
+    }
 
     private PasswordField txtPass;
     private Dialog dialog;
