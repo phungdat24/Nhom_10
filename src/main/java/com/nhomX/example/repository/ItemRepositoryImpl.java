@@ -39,7 +39,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         itemsList.add(mapRowToItem(rs, conn));
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy danh sách sản phẩm: " + e.getMessage());
+      logger.error("Lỗi khi lấy danh sách sản phẩm", e);
     }
     return itemsList;
   }
@@ -64,7 +64,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lọc sản phẩm theo danh mục: " + e.getMessage());
+      logger.error("Lỗi khi lọc sản phẩm theo danh mục", e);
     }
     return itemsList;
   }
@@ -84,7 +84,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lọc sản phẩm theo seller: " + e.getMessage());
+      logger.error("Lỗi khi lọc sản phẩm theo seller", e);
     }
     return itemsList;
   }
@@ -125,7 +125,7 @@ public class ItemRepositoryImpl implements ItemRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi tìm sản phẩm theo ID: " + e.getMessage());
+      logger.error("Lỗi khi tìm sản phẩm theo ID", e);
     }
 
     // 5. Giá trị trả về: Trả về null nếu không tìm thấy ID hoặc xảy ra lỗi
@@ -280,7 +280,7 @@ public class ItemRepositoryImpl implements ItemRepository {
       if (conn != null)
         conn.rollback();
     } catch (SQLException ex) {
-      System.err.println("❌ Lỗi rollback: " + ex.getMessage());
+      logger.error("Lỗi rollback", ex);
     }
   }
 
@@ -289,7 +289,7 @@ public class ItemRepositoryImpl implements ItemRepository {
       if (conn != null)
         conn.setAutoCommit(true);
     } catch (SQLException ex) {
-      System.err.println("❌ Lỗi khôi phục autoCommit: " + ex.getMessage());
+      logger.error("Lỗi khôi phục autoCommit", ex);
     }
   }
 

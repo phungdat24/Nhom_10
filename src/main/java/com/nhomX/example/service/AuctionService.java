@@ -49,7 +49,7 @@ public class AuctionService {
           conn.close();
         }
       } catch (SQLException e) {
-        e.printStackTrace();
+        logger.error("Lỗi khi khôi phục AutoCommit hoặc đóng Connection", e);
       }
     }
   }
