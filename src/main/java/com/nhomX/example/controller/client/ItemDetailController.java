@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -17,6 +19,7 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -268,7 +271,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             // 🛠 KIẾN TRÚC MỚI: Bật ngược lại màn hình cũ từ RAM
             MainDashBoardController.instance.restorePreviousView();
         } else {
-            System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
+            logger.error("Không tìm thấy MainDashBoardController");
         }
     }
 

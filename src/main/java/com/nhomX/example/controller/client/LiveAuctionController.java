@@ -10,14 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -140,7 +143,7 @@ public class LiveAuctionController extends BaseController
                 activeAuctionCards.put(auction.getId(), cardController);
                 liveAuctionContainer.getChildren().add(cardItem);
             } catch (IOException e) {
-                System.err.println("Không thể load giao diện thẻ sản phẩm: " + e.getMessage());
+                logger.error("Không thể load giao diện thẻ sản phẩm", e);
             }
         }
     }
