@@ -1,14 +1,139 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
+<AnchorPane prefHeight="770.0" prefWidth="1041.0" style="-fx-background-color: linear-gradient(to bottom right, #fffdf7, #f7efe3);" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.AuctionSuccessController">
 
+    <children>
+        <!-- Decorative background circles -->
+        <Circle centerX="120.0" centerY="110.0" fill="#f3dfbd" opacity="0.32" radius="95.0" />
+        <Circle centerX="965.0" centerY="610.0" fill="#ead1a3" opacity="0.26" radius="135.0" />
+        <Circle centerX="915.0" centerY="135.0" fill="#ffffff" opacity="0.72" radius="48.0" />
+
+        <!-- Main success card -->
+        <StackPane AnchorPane.bottomAnchor="82.0" AnchorPane.leftAnchor="210.0" AnchorPane.rightAnchor="210.0" AnchorPane.topAnchor="82.0">
+            <children>
+                <VBox alignment="TOP_CENTER" spacing="22.0" style="-fx-background-color: rgba(255, 252, 245, 0.96); -fx-background-radius: 34; -fx-border-color: #ead8bc; -fx-border-radius: 34; -fx-border-width: 1.2;">
+                    <effect>
+                        <DropShadow blurType="GAUSSIAN" color="#b99a6638" height="34.0" offsetY="10.0" radius="16.5" width="34.0" />
+                    </effect>
+                    <padding>
+                        <Insets bottom="42.0" left="54.0" right="54.0" top="48.0" />
+                    </padding>
+
+                    <children>
+                        <!-- Trophy badge -->
+                        <StackPane prefHeight="142.0" prefWidth="142.0">
+                            <children>
+                                <Circle fill="#fff7e8" radius="71.0" stroke="#e5c98f" strokeWidth="2.0" />
+                                <Circle fill="#f4d895" opacity="0.94" radius="56.0" />
+
+                                <!-- Simple trophy drawn by shapes -->
+                                <VBox alignment="CENTER" spacing="0.0">
+                                    <children>
+                                        <StackPane prefHeight="62.0" prefWidth="82.0">
+                                            <children>
+                                                <Rectangle arcHeight="16.0" arcWidth="16.0" fill="#fff4cf" height="48.0" stroke="#9f7727" strokeWidth="2.0" width="58.0" />
+                                    <FontAwesomeIcon fill="#eaca2d" glyphName="TROPHY" size="3EM" />
+                                            </children>
+                                        </StackPane>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </StackPane>
+
+                        <VBox alignment="CENTER" spacing="10.0">
+                            <children>
+                                <Label text="Chúc mừng chiến thắng!" textFill="#3d3427">
+                                    <font>
+                                        <Font name="System Bold" size="36.0" />
+                                    </font>
+                                </Label>
+
+                                <Label text="Bạn đã đấu giá thành công" textFill="#8c6b34">
+                                    <font>
+                                        <Font name="System Bold" size="20.0" />
+                                    </font>
+                                </Label>
+
+                                <Label alignment="CENTER" maxWidth="520.0" text="Phiên đấu giá đã kết thúc. Sản phẩm hiện thuộc về bạn. Vui lòng kiểm tra thông tin đơn hàng và hoàn tất các bước tiếp theo." textAlignment="CENTER" textFill="#6f665b" wrapText="true">
+                                    <font>
+                                        <Font size="15.0" />
+                                    </font>
+                                </Label>
+                            </children>
+                        </VBox>
+
+                        <VBox alignment="CENTER" maxWidth="520.0" spacing="12.0" style="-fx-background-color: #fff8eb; -fx-background-radius: 22; -fx-border-color: #ead8bc; -fx-border-radius: 22; -fx-border-width: 1;">
+                            <padding>
+                                <Insets bottom="22.0" left="26.0" right="26.0" top="22.0" />
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="18.0">
+                                    <children>
+                                        <Label prefWidth="130.0" text="Sản phẩm" textFill="#7b746b">
+                                            <font><Font size="14.0" /></font>
+                                        </Label>
+                                        <Label fx:id="productNameLabel" text="Đồng hồ cổ điển cao cấp" textFill="#3d3427">
+                                            <font><Font name="System Bold" size="15.0" /></font>
+                                        </Label>
+                                    </children>
+                                </HBox>
+
+                                <Line endX="455.0" stroke="#ead8bc" strokeWidth="1.0" />
+
+                                <HBox alignment="CENTER_LEFT" spacing="18.0">
+                                    <children>
+                                        <Label prefWidth="130.0" text="Giá thắng" textFill="#7b746b">
+                                            <font><Font size="14.0" /></font>
+                                        </Label>
+                                        <Label fx:id="winningPriceLabel" text="2.500.000 VNĐ" textFill="#9f7727">
+                                            <font><Font name="System Bold" size="18.0" /></font>
+                                        </Label>
+                                    </children>
+                                </HBox>
+
+                                <Line endX="455.0" stroke="#ead8bc" strokeWidth="1.0" />
+
+                                <HBox alignment="CENTER_LEFT" spacing="18.0">
+                                    <children>
+                                        <Label prefWidth="130.0" text="Trạng thái" textFill="#7b746b">
+                                            <font><Font size="14.0" /></font>
+                                        </Label>
+                                        <Label fx:id="statusLabel" text="Chiến thắng phiên đấu giá" textFill="#2f7d51">
+                                            <font><Font name="System Bold" size="15.0" /></font>
+                                        </Label>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+
+                        <HBox alignment="CENTER" spacing="14.0">
+                            <children>
+                                <Button fx:id="backHomeButton" mnemonicParsing="false" onAction="#handleBackHome" prefHeight="46.0" prefWidth="178.0" style="-fx-background-color: transparent; -fx-border-color: #c8ad7f; -fx-border-radius: 24; -fx-background-radius: 24; -fx-text-fill: #7b5f2b; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" text="Về trang chủ" />
+                            </children>
+                        </HBox>
+
+                        <Label text="Cảm ơn bạn đã tham gia phiên đấu giá cùng chúng tôi." textFill="#9a9083">
+                            <font>
+                                <Font size="13.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
+            </children>
+        </StackPane>
+    </children>
 </AnchorPane>

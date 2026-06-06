@@ -23,13 +23,13 @@
             <children>
                <Button fx:id="btnHamburger" mnemonicParsing="false" onAction="#toggleSidebar" styleClass="btn-hamburger">
                   <graphic>
-                     <FontAwesomeIcon glyphName="BARS" size="1.5em" />
+                     <FontAwesomeIcon fill="#a4a4a4" glyphName="BARS" size="2em" text="" />
                   </graphic>
                </Button>
 
                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="brand-box">
                   <children>
-                     <FontAwesomeIcon fill="RED" glyphName="PAW" size="3em" />
+                     <FontAwesomeIcon fill="#00d4c8" glyphName="PAW" size="3em" />
                      <Label styleClass="vibo-logo-text" text="PeakBid" textFill="WHITE">
                         <font>
                            <Font name="Arial" size="4.0" />
@@ -50,22 +50,30 @@
                <FontAwesomeIcon fill="WHITE" glyphName="USER" size="1.3em" />
             </graphic></Button>
 
-         <!-- [ĐÃ ĐĂNG NHẬP] HBox hiện tên user — ẩn mặc định -->
-         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" style="-fx-background-color: linear-gradient(to bottom, #5A3A1E, #3C2A1A);              -fx-background-radius: 20;              -fx-border-color: #C9A227;              -fx-border-radius: 20;              -fx-border-width: 1.5;              -fx-padding: 6 14 6 8;              -fx-effect: dropshadow(gaussian, rgba(201,162,39,0.25), 10, 0.2, 0, 2);" visible="false">
+         <!-- [ĐÃ ĐĂNG NHẬP] Cụm tài khoản + menu trắng vàng ngà -->
+         <HBox fx:id="userInfoBox" alignment="CENTER" managed="false" spacing="10" styleClass="user-menu-shell" visible="false">
 
             <!-- Avatar circle -->
-            <StackPane minHeight="30" minWidth="30" style="-fx-background-color: #c9a227;                       -fx-background-radius: 15;">
-               <FontAwesomeIcon fill="#fafafa" glyphName="USER" size="2em" />
+            <StackPane minHeight="34" minWidth="34" styleClass="user-menu-avatar">
+               <FontAwesomeIcon fill="#fffaf0" glyphName="USER" size="2em" />
             </StackPane>
 
-            <!-- Tên người dùng -->
-            <Label fx:id="lblUserName" style="-fx-text-fill: #ffffff; -fx-font-size: 13px; -fx-font-weight: bold;" text="" />
+            <!-- Tên người dùng: controller vẫn có thể set vào label này -->
+            <Label fx:id="lblUserName" styleClass="user-menu-name" text="" />
 
-            <!-- Dropdown arrow + menu -->
-            <MenuButton fx:id="menuUser" mnemonicParsing="false" style="-fx-background-color: linear-gradient(to bottom, #F4D35E, #C9A227);                    -fx-background-radius: 10;                    -fx-border-color: #E8C96A;                    -fx-border-radius: 10;                    -fx-border-width: 1;                    -fx-text-fill: #2B1F12;                    -fx-font-size: 13px;                    -fx-font-weight: bold;                    -fx-padding: 4 10 4 10;                    -fx-cursor: hand;" text="▾">
+            <!-- Menu tài khoản -->
+            <MenuButton fx:id="menuUser" mnemonicParsing="false" styleClass="user-menu-button" text="Tài khoản">
                <items>
-                  <MenuItem fx:id="menuProfile" mnemonicParsing="false" onAction="#handleProfile" text="👤  Hồ sơ của tôi" />
-                  <MenuItem mnemonicParsing="false" onAction="#handleLogout" style="-fx-background-color: #C9A227; " text="🚪  Đăng xuất" />
+                  <MenuItem fx:id="menuProfile" mnemonicParsing="false" onAction="#handleProfile" styleClass="user-dropdown-item" text="Hồ sơ của tôi">
+                     <graphic>
+                        <FontAwesomeIcon fill="#8B6508" glyphName="USER" size="1em" />
+                     </graphic>
+                  </MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#handleLogout" styleClass="user-dropdown-item, user-dropdown-logout" text="Đăng xuất">
+                     <graphic>
+                        <FontAwesomeIcon fill="#8B6508" glyphName="SIGN_OUT" size="1em" />
+                     </graphic>
+                  </MenuItem>
                </items>
             </MenuButton>
          </HBox>
@@ -84,22 +92,22 @@
          <!-- Navigation Buttons -->
          <Button fx:id="btnDashboard" maxWidth="Infinity" onAction="#handleDashboard" styleClass="nav-btn, nav-btn-active" text="Dashboard">
             <graphic>
-               <FontAwesomeIcon fill="WHITE" glyphName="HOME" size="1.3em" text="" />
+               <FontAwesomeIcon fill="WHITE" glyphName="HOME" size="1.2em" text="" />
             </graphic></Button>
 
          <Button fx:id="btnLiveAuction" maxWidth="Infinity" onAction="#handleLiveAuction" styleClass="nav-btn" text="Live Auction">
             <graphic>
-               <FontAwesomeIcon fill="WHITE" glyphName="FIRE" size="1.3em" />
+               <FontAwesomeIcon fill="WHITE" glyphName="FIRE" size="1.2em" />
             </graphic></Button>
 
          <Button fx:id="btnMyAuction" maxWidth="Infinity" onAction="#handleMyAuctions" styleClass="nav-btn" text="My Auctions">
             <graphic>
-               <FontAwesomeIcon fill="WHITE" glyphName="LIST" size="1.3em" />
+               <FontAwesomeIcon fill="WHITE" glyphName="LIST" size="1.2em" />
             </graphic></Button>
 
          <Button fx:id="btnSeller" maxWidth="Infinity" onAction="#handleSeller" styleClass="nav-btn" text="Seller">
             <graphic>
-               <FontAwesomeIcon fill="WHITE" glyphName="TAG" size="1.3em" />
+               <FontAwesomeIcon fill="WHITE" glyphName="TAG" size="1.2em" />
             </graphic></Button>
 
          <Region VBox.vgrow="ALWAYS" />
