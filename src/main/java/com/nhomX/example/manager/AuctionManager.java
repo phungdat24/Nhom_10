@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.RegularUser;
@@ -76,8 +78,8 @@ public class AuctionManager {
                     auction.setWinner(tempWinner);
                 }
             } else {
-                System.err.println("CACHE WARNING: Bỏ qua gói tin cũ — giá " + newPrice
-                        + " thấp hơn giá hiện tại " + auction.getHighestBid());
+                logger.warn("CACHE WARNING: Bỏ qua gói tin cũ - giá {} thấp hơn giá hiện tại {}",
+                        newPrice, auction.getHighestBid());
             }
         }
     }
