@@ -83,10 +83,10 @@ public class MainDashBoardController extends BaseController implements Initializ
             navButtons = Arrays.asList(btnDashboard, btnLiveAuction, btnMyAuction, btnSeller);
             setActiveButton(btnDashboard);
             Platform.runLater(() -> {
-                isSidebarOpen = false;
-                sidebar.setMinWidth(0);
-                sidebar.setPrefWidth(0);
-                sidebar.setOpacity(0);
+                isSidebarOpen = true;
+                sidebar.setMinWidth(SIDEBAR_WIDTH);
+                sidebar.setPrefWidth(SIDEBAR_WIDTH);
+                sidebar.setOpacity(1);
             });
         }
         // GỌI KIỂM TRA NGAY KHI VỪA MỞ APP LÊN

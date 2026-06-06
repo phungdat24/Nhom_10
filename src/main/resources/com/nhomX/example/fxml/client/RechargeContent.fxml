@@ -113,7 +113,7 @@
                         <Label text="Sau khi tạo mã, thông tin chuyển khoản và mã QR sẽ hiển thị bên phải." textFill="#333333" wrapText="true" />
                     </children>
                 </HBox>
-            <Hyperlink text="Quay lại">
+            <Hyperlink onAction="#handleBackToProfile" text="Quay lại">
                <font>
                   <Font size="14.0" />
                </font>

@@ -32,7 +32,7 @@ public class RegisterController implements ServerEventListener {
     private Button btnSignUp; // Dùng Node này làm điểm tựa lấy Stage
     private AuctionClient auctionClient;
 
-    // Khi bấm nút đăng nhập:
+    //   Khi bấm nút đăng ky:
     @FXML
     void signUp(ActionEvent event) {
         String name = userName.getText().trim();
