@@ -79,7 +79,7 @@ public class BidRepositoryImpl implements BidRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+      logger.error("Lỗi khi lấy danh sách đấu giá", e);
     }
     return listBidTransactions;
   }
@@ -101,7 +101,7 @@ public class BidRepositoryImpl implements BidRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy giá cao nhất: " + e.getMessage());
+      logger.error("Lỗi khi lấy giá cao nhất", e);
     }
     return null;
   }
@@ -254,8 +254,7 @@ public class BidRepositoryImpl implements BidRepository {
             long minutesLeft = java.time.Duration.between(now, endTime).toMinutes();
             if (minutesLeft < 5) {
               newEndTime = now.plusMinutes(5); // Cộng thêm 5 phút từ thời điểm hiện tại
-              System.out
-                  .println("⏳ Kích hoạt Anti-Sniping: Gia hạn phiên đấu giá tới " + newEndTime);
+              logger.info("Kích hoạt Anti-Sniping: Gia hạn phiên đấu giá tới {}", newEndTime);
             }
           }
           String formattedEndTime = (newEndTime != null) ? newEndTime.format(DB_FORMATTER) : null;
@@ -346,7 +345,7 @@ public class BidRepositoryImpl implements BidRepository {
       return timeStr.contains("T") ? LocalDateTime.parse(timeStr)
           : LocalDateTime.parse(timeStr, DB_FORMATTER);
     } catch (Exception e) {
-      System.err.println("⚠️ Lỗi parse thời gian: [" + timeStr + "]");
+      logger.warn("Lỗi parse thời gian: [{}]", timeStr, e);
       return null;
     }
   }
