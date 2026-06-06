@@ -1,11 +1,22 @@
 package com.nhomX.example.controller.admin;
 
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.dto.DashboardDataDTO;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
+
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -29,49 +40,68 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-
 public class AdminDashboardController implements Initializable, ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(AdminDashboardController.class);
 
     // ── KPI Cards ────────────────────────────────────────────────────────
-    @FXML private VBox cardUsers;
-    @FXML private VBox cardLive;
-    @FXML private VBox cardRevenue;
-    @FXML private Label labelTotalUsers;
-    @FXML private Label labelLiveAuctions;
-    @FXML private Label labelTotalRevenue;
-    @FXML private Label labelUserGrowth;
+    @FXML
+    private VBox cardUsers;
+    @FXML
+    private VBox cardLive;
+    @FXML
+    private VBox cardRevenue;
+    @FXML
+    private Label labelTotalUsers;
+    @FXML
+    private Label labelLiveAuctions;
+    @FXML
+    private Label labelTotalRevenue;
+    @FXML
+    private Label labelUserGrowth;
 
     // ── AreaChart ────────────────────────────────────────────────────────
-    @FXML private AreaChart<String, Number> revenueChart;
-    @FXML private CategoryAxis chartXAxis;
-    @FXML private NumberAxis chartYAxis;
+    @FXML
+    private AreaChart<String, Number> revenueChart;
+    @FXML
+    private CategoryAxis chartXAxis;
+    @FXML
+    private NumberAxis chartYAxis;
 
     // ── Category bars ────────────────────────────────────────────────────
-    @FXML private Label labelCatJewelry;
-    @FXML private Label labelCatElec;
-    @FXML private Label labelCatArt;
-    @FXML private HBox barBgJewelry;
-    @FXML private HBox barBgElec;
-    @FXML private HBox barBgArt;
-    @FXML private Region barFillJewelry;
-    @FXML private Region barFillElec;
-    @FXML private Region barFillArt;
-    @FXML private Label labelOverallGrowth;
+    @FXML
+    private Label labelCatJewelry;
+    @FXML
+    private Label labelCatElec;
+    @FXML
+    private Label labelCatArt;
+    @FXML
+    private HBox barBgJewelry;
+    @FXML
+    private HBox barBgElec;
+    @FXML
+    private HBox barBgArt;
+    @FXML
+    private Region barFillJewelry;
+    @FXML
+    private Region barFillElec;
+    @FXML
+    private Region barFillArt;
+    @FXML
+    private Label labelOverallGrowth;
 
     // ── PieChart ─────────────────────────────────────────────────────────
-    @FXML private PieChart statusPieChart;
-    @FXML private Label labelPieLive;
-    @FXML private Label labelPiePending;
-    @FXML private Label labelPieClosed;
+    @FXML
+    private PieChart statusPieChart;
+    @FXML
+    private Label labelPieLive;
+    @FXML
+    private Label labelPiePending;
+    @FXML
+    private Label labelPieClosed;
 
     // ── Transactions ─────────────────────────────────────────────────────
-    @FXML private GridPane transactionGrid;
+    @FXML
+    private GridPane transactionGrid;
 
     // ── Misc ─────────────────────────────────────────────────────────────
     private final NumberFormat vndFmt = NumberFormat.getInstance(new Locale("vi", "VN"));
@@ -86,7 +116,7 @@ public class AdminDashboardController implements Initializable, ServerEventListe
         // Gắn listener và yêu cầu dữ liệu từ Server
         client = SessionManager.getInstance().getAuctionClient();
         if (client == null) {
-            System.err.println("CLIENT: Chưa khởi tạo AuctionClient cho Admin Dashboard.");
+            logger.error("CLIENT: Chưa khởi tạo AuctionClient cho Admin Dashboard");
             return;
         }
         client.addListener(this);
@@ -140,23 +170,20 @@ public class AdminDashboardController implements Initializable, ServerEventListe
     }
 
     /**
-     * Gắn Tooltip hiển thị số tiền chính xác khi hover vào data point.
-     * Phải gọi sau khi Scene đã layout xong (dùng Platform.runLater).
+     * Gắn Tooltip hiển thị số tiền chính xác khi hover vào data point. Phải gọi sau khi Scene đã
+     * layout xong (dùng Platform.runLater).
      */
     private void attachChartTooltips(XYChart.Series<String, Number> series) {
         for (XYChart.Data<String, Number> data : series.getData()) {
             Node node = data.getNode();
-            if (node == null) continue;
+            if (node == null)
+                continue;
 
             long amount = data.getYValue().longValue();
-            Tooltip tip = new Tooltip(
-                    data.getXValue() + "\n" + vndFmt.format(amount) + " đ");
-            tip.setStyle(
-                    "-fx-background-color: #252220; "
-                            + "-fx-text-fill: #F0EAD6; "
-                            + "-fx-font-size: 12px; "
-                            + "-fx-background-radius: 8; "
-                            + "-fx-padding: 8 12 8 12;");
+            Tooltip tip = new Tooltip(data.getXValue() + "\n" + vndFmt.format(amount) + " đ");
+            tip.setStyle("-fx-background-color: #252220; " + "-fx-text-fill: #F0EAD6; "
+                    + "-fx-font-size: 12px; " + "-fx-background-radius: 8; "
+                    + "-fx-padding: 8 12 8 12;");
             Tooltip.install(node, tip);
 
             // Hiệu ứng phóng to nhẹ khi hover
@@ -210,10 +237,8 @@ public class AdminDashboardController implements Initializable, ServerEventListe
         int total = Math.max(1, live + pending + closed);
 
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList(
-                new PieChart.Data("Live", live),
-                new PieChart.Data("Chờ Duyệt", pending),
-                new PieChart.Data("Đã Đóng", closed)
-        );
+                new PieChart.Data("Live", live), new PieChart.Data("Chờ Duyệt", pending),
+                new PieChart.Data("Đã Đóng", closed));
         statusPieChart.setData(pieData);
 
         // Tô màu đúng theo thiết kế + gắn Exploded Slice khi click
@@ -224,10 +249,8 @@ public class AdminDashboardController implements Initializable, ServerEventListe
             // Đợi Node được render rồi mới tô màu
             Platform.runLater(() -> {
                 if (slice.getNode() != null) {
-                    slice.getNode().setStyle(
-                            "-fx-pie-color: " + colors[idx] + ";");
-                    slice.getNode().setOnMouseClicked(e ->
-                            toggleExplodedSlice(slice));
+                    slice.getNode().setStyle("-fx-pie-color: " + colors[idx] + ";");
+                    slice.getNode().setOnMouseClicked(e -> toggleExplodedSlice(slice));
                 }
             });
         }
@@ -239,12 +262,11 @@ public class AdminDashboardController implements Initializable, ServerEventListe
     }
 
     /**
-     * Toggle Exploded trạng thái của một slice.
-     * Nếu đang exploded → thu về; ngược lại → tách ra.
+     * Toggle Exploded trạng thái của một slice. Nếu đang exploded → thu về; ngược lại → tách ra.
      */
     private void toggleExplodedSlice(PieChart.Data slice) {
-        boolean currentlyExploded = slice.getNode().getTranslateX() != 0
-                || slice.getNode().getTranslateY() != 0;
+        boolean currentlyExploded =
+                slice.getNode().getTranslateX() != 0 || slice.getNode().getTranslateY() != 0;
         if (currentlyExploded) {
             // Thu về trung tâm
             slice.getNode().setTranslateX(0);
@@ -260,14 +282,16 @@ public class AdminDashboardController implements Initializable, ServerEventListe
 
     /** Tính góc giữa của một slice (dùng để tính vector explode). */
     private double getSliceMidAngle(PieChart.Data slice) {
-        double total = statusPieChart.getData().stream()
-                .mapToDouble(PieChart.Data::getPieValue).sum();
-        if (total <= 0) return 0;
+        double total =
+                statusPieChart.getData().stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        if (total <= 0)
+            return 0;
 
         double start = 0;
         for (PieChart.Data data : statusPieChart.getData()) {
             double sweep = (data.getPieValue() / total) * 360.0;
-            if (data == slice) return start + sweep / 2.0;
+            if (data == slice)
+                return start + sweep / 2.0;
             start += sweep;
         }
         return 0;
@@ -304,25 +328,21 @@ public class AdminDashboardController implements Initializable, ServerEventListe
                     "-fx-font-size: 11px;", 1, row);
 
             // Col 2: Người thắng
-            String winnerName = (auction.getWinner() != null
-                    && auction.getWinner().getFullName() != null)
-                    ? auction.getWinner().getFullName() : "—";
+            String winnerName =
+                    (auction.getWinner() != null && auction.getWinner().getFullName() != null)
+                            ? auction.getWinner().getFullName()
+                            : "—";
             addGridCell(transactionGrid, winnerName, "-fx-font-size: 11px;", 2, row);
 
             // Col 3: Giá cuối
-            addGridCell(transactionGrid,
-                    vndFmt.format(auction.getHighestBid()) + " đ",
+            addGridCell(transactionGrid, vndFmt.format(auction.getHighestBid()) + " đ",
                     "-fx-font-size: 11px; -fx-font-weight: bold;", 3, row);
 
             // Col 4: Badge trạng thái
             Label badge = new Label("HOÀN TẤT");
-            badge.setStyle(
-                    "-fx-background-color: rgba(46,204,113,0.16); "
-                            + "-fx-background-radius: 9; "
-                            + "-fx-text-fill: #2ECC71; "
-                            + "-fx-font-size: 8px; "
-                            + "-fx-font-weight: bold; "
-                            + "-fx-padding: 4 6 4 6;");
+            badge.setStyle("-fx-background-color: rgba(46,204,113,0.16); "
+                    + "-fx-background-radius: 9; " + "-fx-text-fill: #2ECC71; "
+                    + "-fx-font-size: 8px; " + "-fx-font-weight: bold; " + "-fx-padding: 4 6 4 6;");
             GridPane.setColumnIndex(badge, 4);
             GridPane.setRowIndex(badge, row);
             transactionGrid.getChildren().add(badge);
@@ -342,19 +362,16 @@ public class AdminDashboardController implements Initializable, ServerEventListe
 
     private void setupCardHoverEffects() {
         for (VBox card : List.of(cardUsers, cardLive, cardRevenue)) {
-            DropShadow glowShadow = new DropShadow(
-                    28, Color.web("#C9A84C", 0.35));
+            DropShadow glowShadow = new DropShadow(28, Color.web("#C9A84C", 0.35));
 
             card.setOnMouseEntered(e -> {
-                card.setStyle(card.getStyle()
-                        .replace("-fx-background-color: #161616",
-                                "-fx-background-color: #1E1C1A"));
+                card.setStyle(card.getStyle().replace("-fx-background-color: #161616",
+                        "-fx-background-color: #1E1C1A"));
                 card.setEffect(glowShadow);
             });
             card.setOnMouseExited(e -> {
-                card.setStyle(card.getStyle()
-                        .replace("-fx-background-color: #1E1C1A",
-                                "-fx-background-color: #161616"));
+                card.setStyle(card.getStyle().replace("-fx-background-color: #1E1C1A",
+                        "-fx-background-color: #161616"));
                 card.setEffect(null);
             });
         }
@@ -364,22 +381,18 @@ public class AdminDashboardController implements Initializable, ServerEventListe
 
     private void styleChart() {
         revenueChart.setStyle("-fx-background-color: transparent;");
-        setChartNodeStyle(".chart-series-area-fill",
-                "-fx-fill: linear-gradient(to bottom, "
-                        + "rgba(201,168,76,0.35), rgba(201,168,76,0.0));");
-        setChartNodeStyle(".chart-series-area-line",
-                "-fx-stroke: #C9A84C; -fx-stroke-width: 2px;");
-        setChartNodeStyle(".chart-plot-background",
-                "-fx-background-color: transparent;");
-        setChartNodeStyle(".chart-vertical-grid-lines",
-                "-fx-stroke: transparent;");
-        setChartNodeStyle(".chart-horizontal-grid-lines",
-                "-fx-stroke: rgba(255,255,255,0.06);");
+        setChartNodeStyle(".chart-series-area-fill", "-fx-fill: linear-gradient(to bottom, "
+                + "rgba(201,168,76,0.35), rgba(201,168,76,0.0));");
+        setChartNodeStyle(".chart-series-area-line", "-fx-stroke: #C9A84C; -fx-stroke-width: 2px;");
+        setChartNodeStyle(".chart-plot-background", "-fx-background-color: transparent;");
+        setChartNodeStyle(".chart-vertical-grid-lines", "-fx-stroke: transparent;");
+        setChartNodeStyle(".chart-horizontal-grid-lines", "-fx-stroke: rgba(255,255,255,0.06);");
     }
 
     private void setChartNodeStyle(String selector, String style) {
         Node node = revenueChart.lookup(selector);
-        if (node != null) node.setStyle(style);
+        if (node != null)
+            node.setStyle(style);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────
@@ -394,6 +407,7 @@ public class AdminDashboardController implements Initializable, ServerEventListe
     }
 
     public void onClose() {
-        if (client != null) client.removeListener(this);
+        if (client != null)
+            client.removeListener(this);
     }
 }

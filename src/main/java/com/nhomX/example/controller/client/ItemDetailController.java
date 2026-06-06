@@ -5,6 +5,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -16,6 +19,7 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -31,12 +35,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 public class ItemDetailController extends BaseController implements ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(ItemDetailController.class);
     @FXML
     private Label lblItemName;
     @FXML
@@ -65,13 +73,13 @@ public class ItemDetailController extends BaseController implements ServerEventL
     private StackPane imageContainer;
     // Thêm vào phần khai báo FXML:
     @FXML
-    private TextField  txtMaxAutoBid;   // Giá tối đa
+    private TextField txtMaxAutoBid; // Giá tối đa
     @FXML
-    private TextField  txtAutoBidStep;  // Bước giá mỗi lần
+    private TextField txtAutoBidStep; // Bước giá mỗi lần
     @FXML
     private CheckBox chkAutoBidToggle;
     @FXML
-    private Label      lblAutoBidStatus;
+    private Label lblAutoBidStatus;
     @FXML
     private Button btnSetupAutoBid;
     // Cờ trạng thái Auto-bid hiện tại
@@ -79,7 +87,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
     // Slideshow
     private Timeline slideshowTimeline;
-    private int     slideshowIndex = 0;
+    private int slideshowIndex = 0;
     private List<ItemImage> slideshowImages; // Lưu lại list ảnh để Timeline dùng
 
 
@@ -125,9 +133,9 @@ public class ItemDetailController extends BaseController implements ServerEventL
         }
         if (imageContainer != null) {
             /*
-             * Tạo Rectangle clip KHÔNG có kích thước cố định.
-             * Bind width/height vào imageContainer để clip co giãn cùng container.
-             * Bind arcWidth/arcHeight cố định để góc bo luôn đồng đều.
+             * Tạo Rectangle clip KHÔNG có kích thước cố định. Bind width/height vào imageContainer
+             * để clip co giãn cùng container. Bind arcWidth/arcHeight cố định để góc bo luôn đồng
+             * đều.
              */
             javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
 
@@ -142,15 +150,13 @@ public class ItemDetailController extends BaseController implements ServerEventL
             imageContainer.setClip(clip);
 
             /*
-             * Bind fitWidth và fitHeight của ImageView vào container.
-             * - subtract(4): trừ 4px padding để ảnh không sát viền clip
-             * - preserveRatio=true trong FXML đảm bảo ảnh không bị méo dù width != height
+             * Bind fitWidth và fitHeight của ImageView vào container. - subtract(4): trừ 4px
+             * padding để ảnh không sát viền clip - preserveRatio=true trong FXML đảm bảo ảnh không
+             * bị méo dù width != height
              */
             if (imgItem != null) {
-                imgItem.fitWidthProperty().bind(
-                        imageContainer.widthProperty().subtract(4));
-                imgItem.fitHeightProperty().bind(
-                        imageContainer.heightProperty().subtract(4));
+                imgItem.fitWidthProperty().bind(imageContainer.widthProperty().subtract(4));
+                imgItem.fitHeightProperty().bind(imageContainer.heightProperty().subtract(4));
             }
         }
         // TỐI ƯU UX AUTO-BID
@@ -168,10 +174,12 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 if (btnSetupAutoBid != null) {
                     if (isNowActive) {
                         btnSetupAutoBid.setText("Lưu thiết lập Auto-bid");
-                        btnSetupAutoBid.setStyle("-fx-background-color: #bfa173; -fx-text-fill: white;");
+                        btnSetupAutoBid
+                                .setStyle("-fx-background-color: #bfa173; -fx-text-fill: white;");
                     } else {
                         btnSetupAutoBid.setText("Hủy Auto-bid");
-                        btnSetupAutoBid.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+                        btnSetupAutoBid
+                                .setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
                     }
                 }
             });
@@ -219,8 +227,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             }
 
             if (lblStatusMessage != null) {
-                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
-                        .ofPattern("HH:mm dd/MM/yyyy");
+                java.time.format.DateTimeFormatter formatter =
+                        java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
                 lblStatusMessage.setText("Bắt đầu vào lúc: " + start.format(formatter));
                 lblStatusMessage.setVisible(true);
             }
@@ -263,7 +271,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             // 🛠 KIẾN TRÚC MỚI: Bật ngược lại màn hình cũ từ RAM
             MainDashBoardController.instance.restorePreviousView();
         } else {
-            System.err.println("Lỗi: Không tìm thấy Quản gia MainDashBoardController!");
+            logger.error("Không tìm thấy MainDashBoardController");
         }
     }
 
@@ -278,7 +286,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             Platform.runLater(() -> {
                 // [REFACTOR 3]: Không dùng hàm setHighestBid tự chế nữa.
                 // Kéo giá mới từ AuctionManager (nơi đã được Socket nạp dữ liệu an toàn)
-                Auction freshAuction = AuctionManager.getInstance().getAuctionById(currentAuctionId);
+                Auction freshAuction =
+                        AuctionManager.getInstance().getAuctionById(currentAuctionId);
                 if (freshAuction != null) {
                     lblCurrentPrice
                             .setText(CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
@@ -323,7 +332,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
             // [REFACTOR 2]: Lấy giá tươi mới nhất từ Nguồn Sự Thật để kiểm duyệt trước khi
             // bắn lệnh
-            Auction freshAuction = AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
+            Auction freshAuction =
+                    AuctionManager.getInstance().getAuctionById(this.currentAuctionId);
             if (freshAuction != null && bidAmount <= freshAuction.getHighestBid()) {
                 AlertUtils.showWarning("Lỗi đặt giá", "Giá đấu phải CAO HƠN giá hiện tại!");
                 return;
@@ -334,8 +344,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 // ✅ FIX LỖI: Truyền đủ 3 tham số (userId, auctionId, bidAmount)
                 String currentUserId = SessionManager.getInstance().getCurrentUser().getId();
                 auctionClient.placeBid(currentUserId, this.currentAuctionId, bidAmount);
-                System.out.println("CLIENT: Đã gửi lệnh đấu giá " + bidAmount + " cho món "
-                        + this.currentAuctionId);
+                logger.info("CLIENT: Đã gửi lệnh đấu giá {} cho món {}", bidAmount,
+                        this.currentAuctionId);
 
                 // Xóa trắng ô nhập để chuẩn bị cho lần gõ tiếp theo
                 txtBidAmount.clear();
@@ -343,11 +353,11 @@ public class ItemDetailController extends BaseController implements ServerEventL
                 // Thêm log và cảnh báo để dễ phát hiện lỗi
                 AlertUtils.showError("Lỗi kết nối",
                         "Hệ thống chưa kết nối được tới Server (Client null)!");
-                System.err.println("❌ Lỗi: auctionClient chưa được truyền vào Controller này!");
+                logger.error("❌ Lỗi: auctionClient chưa được truyền vào Controller này!");
             }
         } catch (NumberFormatException e) {
             AlertUtils.showError("Lỗi hệ thống", "Dữ liệu nhập không hợp lệ.");
-            System.out.println("Lỗi đặt giá" + e.getMessage());
+            logger.warn("Lỗi đặt giá: {}", e.getMessage());
         }
     }
 
@@ -425,7 +435,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             priceChart.setAnimated(true);
         });
     }
-      private void setupSlideshow(List<ItemImage> images) {
+
+    private void setupSlideshow(List<ItemImage> images) {
         // Dừng slideshow cũ nếu đang chạy (ví dụ: gọi setAuctionData() nhiều lần)
         stopSlideshow();
 
@@ -437,45 +448,47 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
         this.slideshowImages = images;
         setupThumbnails(images);
-        this.slideshowIndex  = 0;
+        this.slideshowIndex = 0;
         // Load ảnh đầu tiên ngay lập tức, không chờ 2 giây
         loadSlideshowImage(0);
 
         // Trường hợp 2: Chỉ có 1 ảnh → dừng lại, không tạo Timeline
-        if (images.size() == 1) return;
+        if (images.size() == 1)
+            return;
         // Trường hợp 3: Nhiều ảnh → tạo Timeline chuyển ảnh mỗi 2 giây
-        slideshowTimeline = new Timeline(
-                new KeyFrame(javafx.util.Duration.seconds(3), event -> {
-                    // [FIX BUG] Tăng index TRƯỚC khi load — bug cũ không tăng index
-                    slideshowIndex = (slideshowIndex + 1) % slideshowImages.size();
-                    loadSlideshowImageWithFade(slideshowIndex);
-                })
-        );
+        slideshowTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(3), event -> {
+            // [FIX BUG] Tăng index TRƯỚC khi load — bug cũ không tăng index
+            slideshowIndex = (slideshowIndex + 1) % slideshowImages.size();
+            loadSlideshowImageWithFade(slideshowIndex);
+        }));
 
         slideshowTimeline.setCycleCount(Animation.INDEFINITE); // Chạy mãi mãi
         slideshowTimeline.play();
-
-        System.out.println("SLIDESHOW: Bắt đầu với " + images.size() + " ảnh.");
+        logger.info("SLIDESHOW: Bắt đầu với {} ảnh.", images.size());
     }
+
     /**
-     * Load ảnh tại index chỉ định qua ImageLoader (đúng kiến trúc Client-Server).
-     * Tái sử dụng ImageLoader.loadAsync() theo ràng buộc kỹ thuật.
+     * Load ảnh tại index chỉ định qua ImageLoader (đúng kiến trúc Client-Server). Tái sử dụng
+     * ImageLoader.loadAsync() theo ràng buộc kỹ thuật.
      */
     private void loadSlideshowImage(int index) {
-        if (slideshowImages == null || index >= slideshowImages.size()) return;
+        if (slideshowImages == null || index >= slideshowImages.size())
+            return;
         String fileName = slideshowImages.get(index).getImagePath();
         // Tái sử dụng ImageLoader.loadAsync() — đúng ràng buộc kỹ thuật
         ImageLoader.loadAsync(fileName != null ? fileName.trim() : null, imgItem);
         updateThumbnailSelection();
     }
+
     /**
-     * Load ảnh tại index với hiệu ứng cross-fade mượt mà.
-     * Fade out ảnh cũ → thay ảnh mới → Fade in.
+     * Load ảnh tại index với hiệu ứng cross-fade mượt mà. Fade out ảnh cũ → thay ảnh mới → Fade in.
      */
     private void loadSlideshowImageWithFade(int index) {
-        if (slideshowImages == null || index >= slideshowImages.size()) return;
+        if (slideshowImages == null || index >= slideshowImages.size())
+            return;
         String fileName = slideshowImages.get(index).getImagePath();
-        if (fileName == null || fileName.isBlank()) return;
+        if (fileName == null || fileName.isBlank())
+            return;
 
         // Bước 1: Fade out ảnh hiện tại (1.0 → 0.2 trong 200ms)
         FadeTransition fadeOut = new FadeTransition(Duration.millis(200), imgItem);
@@ -496,15 +509,15 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
         fadeOut.play();
     }
-        /**
-         * Dừng và dọn dẹp Timeline slideshow.
-         * BẮT BUỘC gọi khi thoát màn hình để tránh Memory Leak.
-         */
+
+    /**
+     * Dừng và dọn dẹp Timeline slideshow. BẮT BUỘC gọi khi thoát màn hình để tránh Memory Leak.
+     */
     private void stopSlideshow() {
         if (slideshowTimeline != null) {
             slideshowTimeline.stop();
             slideshowTimeline = null;
-            System.out.println("SLIDESHOW: Đã dừng và dọn dẹp.");
+            logger.info("SLIDESHOW: Đã dừng và dọn dẹp.");
         }
     }
 
@@ -593,6 +606,7 @@ public class ItemDetailController extends BaseController implements ServerEventL
             return firstWord + " *** " + lastWord;
         }
     }
+
     @Override
     public void onBidResult(boolean isSuccess, String message) {
         // Luôn phải bọc trong Platform.runLater khi muốn hiển thị Popup UI
@@ -608,11 +622,13 @@ public class ItemDetailController extends BaseController implements ServerEventL
             }
         });
     }
+
     /**
      * Tạo dải ảnh thu nhỏ (Thumbnails) phía dưới ảnh chính
      */
     private void setupThumbnails(List<ItemImage> images) {
-        if (hboxThumbnails == null || images == null) return;
+        if (hboxThumbnails == null || images == null)
+            return;
         hboxThumbnails.getChildren().clear();
 
         for (int i = 0; i < images.size(); i++) {
@@ -622,7 +638,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             StackPane thumbWrapper = new StackPane();
             thumbWrapper.setPrefSize(60, 60);
             thumbWrapper.setMinSize(60, 60);
-            thumbWrapper.setStyle("-fx-border-color: transparent; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-color: #f1f2f6; -fx-background-radius: 5; -fx-cursor: hand;");
+            thumbWrapper.setStyle(
+                    "-fx-border-color: transparent; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-color: #f1f2f6; -fx-background-radius: 5; -fx-cursor: hand;");
 
             // Tạo ImageView cho Thumbnail
             ImageView thumbView = new ImageView();
@@ -649,48 +666,56 @@ public class ItemDetailController extends BaseController implements ServerEventL
             hboxThumbnails.getChildren().add(thumbWrapper);
         }
     }
+
     /**
      * Cập nhật viền (border) cho Thumbnail đang hiển thị
      */
     private void updateThumbnailSelection() {
-        if (hboxThumbnails == null || hboxThumbnails.getChildren().isEmpty()) return;
+        if (hboxThumbnails == null || hboxThumbnails.getChildren().isEmpty())
+            return;
 
         for (int i = 0; i < hboxThumbnails.getChildren().size(); i++) {
             Node node = hboxThumbnails.getChildren().get(i);
             if (i == slideshowIndex) {
                 // Đổi viền sang màu cam (#e67e22) khi được chọn
-                node.setStyle("-fx-border-color: #e67e22; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-color: #ffffff; -fx-background-radius: 5; -fx-cursor: hand;");
+                node.setStyle(
+                        "-fx-border-color: #e67e22; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-color: #ffffff; -fx-background-radius: 5; -fx-cursor: hand;");
             } else {
                 // Xóa viền khi không được chọn
-                node.setStyle("-fx-border-color: transparent; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-color: #f1f2f6; -fx-background-radius: 5; -fx-cursor: hand;");
+                node.setStyle(
+                        "-fx-border-color: transparent; -fx-border-width: 2; -fx-border-radius: 5; -fx-background-color: #f1f2f6; -fx-background-radius: 5; -fx-cursor: hand;");
             }
         }
     }
+
     /** Cập nhật trạng thái UI Auto-bid một cách nhất quán. */
     private void updateAutoBidUI(boolean isActive, String statusText) {
         this.isAutoBidActive = isActive;
         if (lblAutoBidStatus != null) {
             lblAutoBidStatus.setText(statusText);
-            lblAutoBidStatus.setStyle(isActive
-                    ? "-fx-text-fill: #27ae60; -fx-font-weight: bold;"
+            lblAutoBidStatus.setStyle(isActive ? "-fx-text-fill: #27ae60; -fx-font-weight: bold;"
                     : "-fx-text-fill: #7f8c8d;");
         }
         // Lock/unlock input fields
-        if (txtMaxAutoBid  != null) txtMaxAutoBid.setDisable(isActive);
-        if (txtAutoBidStep != null) txtAutoBidStep.setDisable(isActive);
+        if (txtMaxAutoBid != null)
+            txtMaxAutoBid.setDisable(isActive);
+        if (txtAutoBidStep != null)
+            txtAutoBidStep.setDisable(isActive);
     }
+
     @FXML
     public void handleSetupAutoBid(ActionEvent event) {
         // Guard: Phải đăng nhập
         if (!SessionManager.getInstance().isLoggedIn()) {
-            AlertUtils.showWarning("Yêu cầu đăng nhập",
-                    "Bạn cần đăng nhập để sử dụng Auto-bid!");
-            if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(false);
+            AlertUtils.showWarning("Yêu cầu đăng nhập", "Bạn cần đăng nhập để sử dụng Auto-bid!");
+            if (chkAutoBidToggle != null)
+                chkAutoBidToggle.setSelected(false);
             return;
         }
 
         // Guard: Phải đang xem một phiên hợp lệ
-        if (currentAuctionId == null) return;
+        if (currentAuctionId == null)
+            return;
 
         boolean wantActivate = chkAutoBidToggle != null && chkAutoBidToggle.isSelected();
         if (!wantActivate) {
@@ -703,22 +728,26 @@ public class ItemDetailController extends BaseController implements ServerEventL
         }
 
         // Người dùng BẬT Auto-bid — validate input
-        String rawMax  = txtMaxAutoBid  != null ? txtMaxAutoBid.getText().replaceAll("[^\\d]", "") : "";
-        String rawStep = txtAutoBidStep != null ? txtAutoBidStep.getText().replaceAll("[^\\d]", "") : "";
+        String rawMax =
+                txtMaxAutoBid != null ? txtMaxAutoBid.getText().replaceAll("[^\\d]", "") : "";
+        String rawStep =
+                txtAutoBidStep != null ? txtAutoBidStep.getText().replaceAll("[^\\d]", "") : "";
 
         if (rawMax.isEmpty() || rawStep.isEmpty()) {
             AlertUtils.showWarning("Thiếu thông tin",
                     "Vui lòng nhập Giá tối đa và Bước giá trước khi bật Auto-bid.");
-            if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(false);
+            if (chkAutoBidToggle != null)
+                chkAutoBidToggle.setSelected(false);
             return;
         }
         long maxPrice, stepPrice;
         try {
-            maxPrice  = Long.parseLong(rawMax);
+            maxPrice = Long.parseLong(rawMax);
             stepPrice = Long.parseLong(rawStep);
         } catch (NumberFormatException e) {
             AlertUtils.showError("Lỗi", "Giá không hợp lệ!");
-            if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(false);
+            if (chkAutoBidToggle != null)
+                chkAutoBidToggle.setSelected(false);
             return;
         }
 
@@ -727,15 +756,16 @@ public class ItemDetailController extends BaseController implements ServerEventL
         long currentHighest = fresh != null ? fresh.getHighestBid() : 0L;
 
         if (maxPrice <= currentHighest) {
-            AlertUtils.showWarning("Giá không hợp lệ",
-                    "Giá tối đa phải cao hơn giá hiện tại ("
-                            + CurrencyFormatter.formatVND(currentHighest) + ")!");
-            if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(false);
+            AlertUtils.showWarning("Giá không hợp lệ", "Giá tối đa phải cao hơn giá hiện tại ("
+                    + CurrencyFormatter.formatVND(currentHighest) + ")!");
+            if (chkAutoBidToggle != null)
+                chkAutoBidToggle.setSelected(false);
             return;
         }
         if (stepPrice <= 0) {
             AlertUtils.showWarning("Bước giá không hợp lệ", "Bước giá phải lớn hơn 0!");
-            if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(false);
+            if (chkAutoBidToggle != null)
+                chkAutoBidToggle.setSelected(false);
             return;
         }
 
@@ -745,9 +775,10 @@ public class ItemDetailController extends BaseController implements ServerEventL
             updateAutoBidUI(true,
                     "Auto-bid đang bật: Tối đa " + CurrencyFormatter.formatVND(maxPrice)
                             + " | Bước " + CurrencyFormatter.formatVND(stepPrice));
-            System.out.println("AUTO-BID: Gửi setup max=" + maxPrice + " step=" + stepPrice);
+            logger.info("AUTO-BID: Gửi setup max={} step={}", maxPrice, stepPrice);
         }
     }
+
     // THÊM HÀM NÀY VÀO TRONG ItemDetailController.java
     @Override
     public void onAutoBidStopped(String auctionId, String reason) {
@@ -763,7 +794,8 @@ public class ItemDetailController extends BaseController implements ServerEventL
             updateAutoBidUI(false, "Đã dừng: Vượt mức giá tối đa.");
 
             // 3. Hiện Popup thông báo cho người dùng biết để họ nhập mức giá mới
-            AlertUtils.showWarning("Auto-bid kết thúc", reason + "\nVui lòng thiết lập lại nếu muốn tiếp tục đấu giá.");
+            AlertUtils.showWarning("Auto-bid kết thúc",
+                    reason + "\nVui lòng thiết lập lại nếu muốn tiếp tục đấu giá.");
         }
     }
 }

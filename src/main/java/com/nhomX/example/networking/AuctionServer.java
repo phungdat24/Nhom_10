@@ -9,11 +9,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.model.User;
-import com.nhomX.example.repository.*;
+import com.nhomX.example.repository.AuctionRepository;
+import com.nhomX.example.repository.AuctionRepositoryImpl;
+import com.nhomX.example.repository.AutoBidRepository;
+import com.nhomX.example.repository.AutoBidRepositoryImpl;
+import com.nhomX.example.repository.BidRepository;
+import com.nhomX.example.repository.BidRepositoryImpl;
+import com.nhomX.example.repository.ItemRepository;
+import com.nhomX.example.repository.ItemRepositoryImpl;
+import com.nhomX.example.repository.UserRepository;
+import com.nhomX.example.repository.UserRepositoryImpl;
 
 public class AuctionServer {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionServer.class);
     private static final int PORT = 8080;
     private final ExecutorService serverExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -46,10 +57,10 @@ public class AuctionServer {
         scheduler.start();
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("SERVER: Đang đợi kết nối tại cổng " + PORT + "...");
+            logger.info("SERVER: Đang đợi kết nối tại cổng {}...", PORT);
             while (true) {
                 Socket socket = serverSocket.accept();
-                System.out.println("SERVER: Có kết nối mới từ " + socket.getInetAddress());
+                logger.info("SERVER: Có kết nối mới từ {}", socket.getInetAddress());
                 ClientHandler handler = new ClientHandler(socket, this, itemRepository,
                         userRepository, bidRepository, auctionRepository, autoBidRepository);
                 clients.add(handler);
@@ -58,7 +69,7 @@ public class AuctionServer {
                 broadcastOnlineCount();
             }
         } catch (IOException e) {
-            System.err.println("SERVER ERROR: " + e.getMessage());
+            logger.error("SERVER ERROR: {}", e.getMessage(), e);
         } finally {
             // Đề phòng trường hợp vòng lặp văng lỗi, chặn luôn luồng ở đây
             if (!serverExecutor.isShutdown()) {
@@ -70,7 +81,7 @@ public class AuctionServer {
     /** Đăng ký hook dọn dẹp khi JVM tắt (Ctrl+C hoặc kill). */
     private void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("SERVER: Đang dọn dẹp trước khi tắt...");
+            logger.info("SERVER: Đang dọn dẹp trước khi tắt...");
             if (!serverExecutor.isShutdown()) {
                 serverExecutor.shutdown();
             }
@@ -81,13 +92,13 @@ public class AuctionServer {
     public void watchAuction(String auctionId, ClientHandler client) {
         // NẾU ITEM ID BỊ NULL, BỎ QUA LUÔN, KHÔNG ĐƯA VÀO HASHMAP
         if (auctionId == null || auctionId.isEmpty()) {
-            System.err.println("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
+            logger.warn("SERVER LỖI: Client yêu cầu xem một Item không có ID!");
             return;
         }
         // Đảm bảo thao tác thêm người xem không bị đụng độ luồng
         // Nếu itemId chưa ai xem thì tạo danh sách mới, sau đó thêm client vào
         auctionViewers.computeIfAbsent(auctionId, k -> ConcurrentHashMap.newKeySet()).add(client);
-        System.out.println("SERVER: Một client vừa tham gia xem món " + auctionId);
+        logger.info("SERVER: Một client vừa tham gia xem món {}", auctionId);
     }
 
     // Client gọi hàm này khi thoát khỏi trang chi tiết món hàng
@@ -128,9 +139,10 @@ public class AuctionServer {
             client.sendToClient(msg);
         }
     }
+
     /**
-     * Broadcast tới tất cả Client đang đăng nhập với role ADMIN.
-     * Dùng để thông báo sản phẩm mới chờ duyệt ngay lập tức.
+     * Broadcast tới tất cả Client đang đăng nhập với role ADMIN. Dùng để thông báo sản phẩm mới chờ
+     * duyệt ngay lập tức.
      */
     public void broadcastToAdmins(Message msg) {
         for (ClientHandler client : clients) {
@@ -139,9 +151,10 @@ public class AuctionServer {
             }
         }
     }
+
     /**
-     * Gửi message đích danh tới một user cụ thể (theo userId).
-     * Dùng cho: hoàn tiền khi bị vượt giá, thông báo cá nhân.
+     * Gửi message đích danh tới một user cụ thể (theo userId). Dùng cho: hoàn tiền khi bị vượt giá,
+     * thông báo cá nhân.
      *
      * @param userId ID của user cần nhận tin
      * @param msg Message cần gửi
@@ -155,7 +168,7 @@ public class AuctionServer {
             }
         }
         // Không tìm thấy = user đang offline — bỏ qua, không báo lỗi
-        System.out.println("SERVER: User " + userId + " không online, bỏ qua sendToUser.");
+        logger.info("SERVER: User {} không online, bỏ qua sendToUser.", userId);
     }
 
     // ĐÃ SỬA: Dọn dẹp triệt để khi Client ngắt kết nối (tắt app)
@@ -186,7 +199,7 @@ public class AuctionServer {
 
     public static void main(String[] args) {
         new AuctionServer().start();
-        System.out.println("Đang khởi động Server...");
+        logger.info("Đang khởi động Server...");
 
     }
 

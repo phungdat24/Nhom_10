@@ -1,5 +1,17 @@
 package com.nhomX.example.controller.admin;
 
+import java.net.URL;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
@@ -18,29 +30,27 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import java.net.URL;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.ResourceBundle;
-import java.util.stream.Collectors;
-
 public class UserManagementController implements Initializable, ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(UserManagementController.class);
 
     private static final int PAGE_SIZE = 15;
 
-    @FXML private ComboBox<String> statusComboBox;
-    @FXML private ComboBox<String> roleComboBox;
-    @FXML private TextField searchField;
-    @FXML private VBox tableBody;
-    @FXML private HBox pageNumbersBox;
-    @FXML private Button prevButton;
-    @FXML private Button nextButton;
-    @FXML private Label pageInfoLabel;
+    @FXML
+    private ComboBox<String> statusComboBox;
+    @FXML
+    private ComboBox<String> roleComboBox;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private VBox tableBody;
+    @FXML
+    private HBox pageNumbersBox;
+    @FXML
+    private Button prevButton;
+    @FXML
+    private Button nextButton;
+    @FXML
+    private Label pageInfoLabel;
 
     private final List<User> allUsers = new ArrayList<>();
     private final Map<String, HBox> rowCache = new HashMap<>();
@@ -54,11 +64,12 @@ public class UserManagementController implements Initializable, ServerEventListe
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupComboBoxes();
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilterAndRender());
+        searchField.textProperty()
+                .addListener((observable, oldValue, newValue) -> applyFilterAndRender());
 
         auctionClient = SessionManager.getInstance().getAuctionClient();
         if (auctionClient == null) {
-            System.err.println("CLIENT: Chưa khởi tạo AuctionClient cho màn hình quản lý người dùng.");
+            logger.error("CLIENT: Chưa khởi tạo AuctionClient cho màn hình quản lý người dùng");
             applyFilterAndRender();
             return;
         }
@@ -85,8 +96,8 @@ public class UserManagementController implements Initializable, ServerEventListe
                 allUsers.addAll(users);
                 users.forEach(user -> activeByUserId.putIfAbsent(user.getId(), true));
             }
-            activeByUserId.keySet().removeIf(userId ->
-                    allUsers.stream().noneMatch(user -> Objects.equals(user.getId(), userId)));
+            activeByUserId.keySet().removeIf(userId -> allUsers.stream()
+                    .noneMatch(user -> Objects.equals(user.getId(), userId)));
             currentPage = 1;
             applyFilterAndRender();
         });
@@ -95,9 +106,7 @@ public class UserManagementController implements Initializable, ServerEventListe
     @Override
     public void onUserBalanceUpdated(String userId, long newBalance) {
         Platform.runLater(() -> {
-            allUsers.stream()
-                    .filter(user -> Objects.equals(user.getId(), userId))
-                    .findFirst()
+            allUsers.stream().filter(user -> Objects.equals(user.getId(), userId)).findFirst()
                     .ifPresent(user -> user.setBalance(newBalance));
 
             HBox row = rowCache.get(userId);
@@ -123,11 +132,9 @@ public class UserManagementController implements Initializable, ServerEventListe
         String selectedStatus = statusComboBox.getValue();
         String selectedRole = roleComboBox.getValue();
 
-        filteredUsers = allUsers.stream()
-                .filter(user -> matchesStatus(user, selectedStatus))
+        filteredUsers = allUsers.stream().filter(user -> matchesStatus(user, selectedStatus))
                 .filter(user -> matchesRole(user, selectedRole))
-                .filter(user -> matchesKeyword(user, keyword))
-                .collect(Collectors.toList());
+                .filter(user -> matchesKeyword(user, keyword)).collect(Collectors.toList());
 
         currentPage = 1;
         renderCurrentPage();
@@ -212,8 +219,8 @@ public class UserManagementController implements Initializable, ServerEventListe
 
         boolean active = isUserActive(user);
         Label statusBadge = new Label(active ? "• ĐANG HOẠT ĐỘNG" : "• BỊ KHÓA");
-        statusBadge.getStyleClass().add(
-                active ? "user-management-status-active" : "user-management-status-locked");
+        statusBadge.getStyleClass()
+                .add(active ? "user-management-status-active" : "user-management-status-locked");
 
         HBox statusCell = new HBox(statusBadge);
         statusCell.setPrefWidth(230);
@@ -233,13 +240,14 @@ public class UserManagementController implements Initializable, ServerEventListe
         actionCell.setPrefWidth(140);
         actionCell.setAlignment(Pos.CENTER_LEFT);
 
-        row.getChildren().addAll(idLabel, nameCell, emailLabel, balanceLabel, statusCell, actionCell);
+        row.getChildren().addAll(idLabel, nameCell, emailLabel, balanceLabel, statusCell,
+                actionCell);
         return row;
     }
 
     private void updatePaginationBar(int total, int from, int to, int totalPages) {
-        pageInfoLabel.setText(String.format(
-                "Đang xem %d - %d của %s người dùng", from, to, vndFormat.format(total)));
+        pageInfoLabel.setText(String.format("Đang xem %d - %d của %s người dùng", from, to,
+                vndFormat.format(total)));
 
         prevButton.setDisable(currentPage <= 1);
         nextButton.setDisable(currentPage >= totalPages);
@@ -253,8 +261,7 @@ public class UserManagementController implements Initializable, ServerEventListe
             addPageButton(1, "user-management-page-ghost");
         }
         for (int page = start; page <= end; page++) {
-            addPageButton(page, page == currentPage
-                    ? "user-management-page-active"
+            addPageButton(page, page == currentPage ? "user-management-page-active"
                     : "user-management-page-button");
         }
         if (end < totalPages) {
@@ -306,10 +313,8 @@ public class UserManagementController implements Initializable, ServerEventListe
     }
 
     private void handleDeleteUser(User user) {
-        Alert confirmation = new Alert(
-                Alert.AlertType.CONFIRMATION,
-                "Xác nhận xóa người dùng: " + valueOrDash(user.getFullName()) + "?",
-                ButtonType.YES,
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION,
+                "Xác nhận xóa người dùng: " + valueOrDash(user.getFullName()) + "?", ButtonType.YES,
                 ButtonType.NO);
         confirmation.showAndWait().ifPresent(button -> {
             if (button == ButtonType.YES && auctionClient != null) {

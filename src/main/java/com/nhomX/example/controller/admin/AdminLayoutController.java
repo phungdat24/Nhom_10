@@ -1,8 +1,16 @@
 package com.nhomX.example.controller.admin;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,28 +23,34 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
-
 public class AdminLayoutController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(AdminLayoutController.class);
     // Đây là biến static Singleton để các trang con (như Quản lý SP)
     // có thể gọi ngược lại trang cha để đổi nội dung ở giữa.
     public static AdminLayoutController instance;
 
     // --- CÁC THÀNH PHẦN GIAO DIỆN TỪ FXML ---
-    @FXML private Button btnHome;
-    @FXML private Button btnUsers;
+    @FXML
+    private Button btnHome;
+    @FXML
+    private Button btnUsers;
     @FXML
     private Button btnProducts;
-    @FXML private Button btnAuctions;
-    @FXML private Button btnSettings;
+    @FXML
+    private Button btnAuctions;
+    @FXML
+    private Button btnSettings;
 
-    @FXML private Label topbarTitle;
-    @FXML private HBox searchBox;
-    @FXML private TextField searchField;
-    @FXML private StackPane contentArea;
-    @FXML private VBox adminLogoutPanel;
+    @FXML
+    private Label topbarTitle;
+    @FXML
+    private HBox searchBox;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private StackPane contentArea;
+    @FXML
+    private VBox adminLogoutPanel;
     // BIẾN LƯU TRỮ LỊCH SỬ TRANG (VIEW CACHING)
     // ==========================================
     private Node previousNode;
@@ -50,9 +64,9 @@ public class AdminLayoutController implements Initializable {
         instance = this;
 
         // 1. Kiểm tra bảo mật cực đoan: Nếu không phải Admin thì đuổi cổ ra ngay
-        if (!SessionManager.getInstance().isLoggedIn() ||
-                !SessionManager.getInstance().getCurrentUser().getRoleName().equals("ADMIN")) {
-            System.err.println("CẢNH BÁO BẢO MẬT: Xâm nhập trái phép không gian Admin!");
+        if (!SessionManager.getInstance().isLoggedIn()
+                || !SessionManager.getInstance().getCurrentUser().getRoleName().equals("ADMIN")) {
+            logger.warn("CẢNH BÁO BẢO MẬT: Xâm nhập trái phép không gian Admin");
             SceneSwitcher.switchScene("/com/nhomX/example/fxml/login.fxml");
             return;
         }
@@ -65,9 +79,9 @@ public class AdminLayoutController implements Initializable {
 
     @FXML
     void handleNavHome(ActionEvent event) {
-         topbarTitle.setText("Trang chủ");
-         setActiveButton(btnHome);
-         loadView("/com/nhomX/example/fxml/admin/AdminDashboard.fxml");
+        topbarTitle.setText("Trang chủ");
+        setActiveButton(btnHome);
+        loadView("/com/nhomX/example/fxml/admin/AdminDashboard.fxml");
     }
 
     @FXML
@@ -105,7 +119,7 @@ public class AdminLayoutController implements Initializable {
 
     @FXML
     void handleNotification(ActionEvent event) {
-        System.out.println("Mở bảng thông báo Admin...");
+        logger.info("Mở bảng thông báo Admin...");
     }
 
     // --- CÁC HÀM TIỆN ÍCH DÙNG CHUNG CHO KHÔNG GIAN ADMIN ---
@@ -119,8 +133,8 @@ public class AdminLayoutController implements Initializable {
             var resource = getClass().getResource(fxmlPath);
 
             if (resource == null) {
-                System.err.println("ADMIN ROUTING ERROR: Không tìm thấy file FXML: " + fxmlPath);
-                System.err.println("→ Kiểm tra file có tồn tại tại: src/main/resources" + fxmlPath);
+                logger.error("ADMIN ROUTING ERROR: Không tìm thấy file FXML: {}", fxmlPath);
+                logger.error("Kiểm tra file có tồn tại tại: src/main/resources{}", fxmlPath);
                 return; // Dừng lại, không để crash toàn bộ app
             }
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
@@ -134,13 +148,14 @@ public class AdminLayoutController implements Initializable {
             contentArea.getChildren().add(view);
 
         } catch (IOException e) {
-            System.err.println("LỖI ADMIN ROUTING: Không thể load file " + fxmlPath);
-            e.printStackTrace();
+            logger.error("LỖI ADMIN ROUTING: Không thể load file {}", fxmlPath, e);
         }
     }
+
     /**
-     * CẤT GIAO DIỆN CŨ ĐI VÀ HIỂN THỊ CHI TIẾT
-     * Được gọi bởi trang Danh sách khi Admin bấm nút "Xem chi tiết"
+     * CẤT GIAO DIỆN CŨ ĐI VÀ HIỂN THỊ CHI TIẾT Được gọi bởi trang Danh sách khi Admin bấm nút "Xem
+     * chi tiết"
+     * 
      * @param newDetailNode Giao diện chi tiết đã được load sẵn
      * @param newTitle Tiêu đề mới cho Topbar
      */
@@ -158,8 +173,7 @@ public class AdminLayoutController implements Initializable {
     }
 
     /**
-     * KHÔI PHỤC LẠI GIAO DIỆN CŨ
-     * Được gọi bởi ItemDetailController khi Admin bấm "Quay lại"
+     * KHÔI PHỤC LẠI GIAO DIỆN CŨ Được gọi bởi ItemDetailController khi Admin bấm "Quay lại"
      */
     public void restorePreviousView() {
         if (this.previousNode != null) {
@@ -179,6 +193,7 @@ public class AdminLayoutController implements Initializable {
             handleNavProducts(null);
         }
     }
+
     /**
      * Đổi màu nút đang được chọn trên Sidebar
      */
@@ -191,6 +206,7 @@ public class AdminLayoutController implements Initializable {
             currentActiveButton = newButton;
         }
     }
+
     @FXML
     void toggleAdminMenu() {
         boolean showing = adminLogoutPanel.isVisible();

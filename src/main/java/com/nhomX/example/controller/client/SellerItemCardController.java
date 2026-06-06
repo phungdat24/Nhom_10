@@ -1,5 +1,10 @@
 package com.nhomX.example.controller.client;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
@@ -20,11 +25,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 public class SellerItemCardController {
+    private static final Logger logger = LoggerFactory.getLogger(SellerItemCardController.class);
     // ==========================================
     // KHAI BÁO CÁC COMPONENT TỪ FXML
     // ==========================================
@@ -81,7 +83,9 @@ public class SellerItemCardController {
         loadImage(auction.getItem().getImages());
         // [SỬA LỖI GÁN CỨNG]: Bơm thời gian Bắt đầu thực tế từ DB vào
         if (lblTimeValue1 != null) {
-            lblTimeValue1.setText(auction.getStartTime() != null ? auction.getStartTime().format(formatter) : "Đang cập nhật");
+            lblTimeValue1.setText(
+                    auction.getStartTime() != null ? auction.getStartTime().format(formatter)
+                            : "Đang cập nhật");
         }
 
         // 3. Xử lý Trạng thái, Màu sắc, Thời gian và Khóa nút
@@ -102,7 +106,8 @@ public class SellerItemCardController {
         switch (statusStr) {
             case "PENDING":
                 lblStatus.setText("CHỜ DUYỆT");
-                lblStatus.setStyle("-fx-background-color: #7f8c8d; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblStatus.setStyle(
+                        "-fx-background-color: #7f8c8d; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
                 lblTimeCaption.setText("Tạo lúc:");
                 // Nếu DB không có create_time, ta tạm để trống hoặc lấy thời gian hiện tại
                 lblTimeValue.setText("Đợi Admin phê duyệt");
@@ -110,7 +115,8 @@ public class SellerItemCardController {
                 break;
             case "UP_COMING": // [THÊM MỚI] SẮP LÊN SÀN
                 lblStatus.setText("SẮP LÊN SÀN");
-                lblStatus.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblStatus.setStyle(
+                        "-fx-background-color: #2980b9; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
                 lblTimeCaption.setText("Mở bán sau: ");
                 lblBidCount.setVisible(false); // Chưa ai được đặt
 
@@ -121,7 +127,8 @@ public class SellerItemCardController {
 
             case "OPEN":
                 lblStatus.setText("ĐANG MỞ");
-                lblStatus.setStyle("-fx-background-color: #2980b9; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblStatus.setStyle(
+                        "-fx-background-color: #2980b9; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
                 lblTimeCaption.setText("Kết thúc: ");
                 lblBidCount.setVisible(true);
                 lblBidCount.setText("✨ Mới");
@@ -132,9 +139,12 @@ public class SellerItemCardController {
 
             case "RUNNING":
                 lblStatus.setText("ĐANG ĐẤU GIÁ");
-                lblStatus.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblStatus.setStyle(
+                        "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
                 lblTimeCaption.setText("Kết thúc:");
-                lblTimeValue.setText(currentAuction.getEndTime() != null ? currentAuction.getEndTime().format(formatter) : "--");
+                lblTimeValue.setText(currentAuction.getEndTime() != null
+                        ? currentAuction.getEndTime().format(formatter)
+                        : "--");
 
                 // Hiện số lượt Bid (Mock UI hoặc lấy thật nếu Model của em có hàm getBidCount)
                 lblBidCount.setVisible(true);
@@ -146,21 +156,26 @@ public class SellerItemCardController {
             case "FINISHED":
             case "PAID":
                 lblStatus.setText("ĐÃ BÁN");
-                lblStatus.setStyle("-fx-background-color: #c9a227; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblStatus.setStyle(
+                        "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
                 lblTimeCaption.setText("Kết thúc lúc:");
-                lblTimeValue.setText(currentAuction.getEndTime() != null ? currentAuction.getEndTime().format(formatter) : "--");
+                lblTimeValue.setText(currentAuction.getEndTime() != null
+                        ? currentAuction.getEndTime().format(formatter)
+                        : "--");
                 enableActions(false); // [GUARD CLAUSE]: CẤM SỬA/XÓA
                 break;
 
             case "CANCELED":
                 lblStatus.setText("ĐÃ HỦY");
-                lblStatus.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
+                lblStatus.setStyle(
+                        "-fx-background-color: #c0392b; -fx-text-fill: white; -fx-padding: 3 8; -fx-background-radius: 4;");
                 lblTimeCaption.setText("Trạng thái:");
                 lblTimeValue.setText("Bị vô hiệu hóa");
                 enableActions(false); // [GUARD CLAUSE]: CẤM SỬA/XÓA
                 break;
         }
     }
+
     // [THAY THẾ] HÀM ĐẾM NGƯỢC THÔNG MINH MỚI
     // ==========================================
     private void startCountdown(LocalDateTime targetTime, boolean isOpenCountdown) {
@@ -170,7 +185,8 @@ public class SellerItemCardController {
         }
 
         countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), targetTime);
+            java.time.Duration duration =
+                    java.time.Duration.between(LocalDateTime.now(), targetTime);
 
             if (duration.isNegative() || duration.isZero()) {
                 countdownTimeline.stop(); // Dừng đồng hồ
@@ -193,7 +209,8 @@ public class SellerItemCardController {
                 long seconds = duration.toSecondsPart();
 
                 if (days > 0) {
-                    lblTimeValue.setText(String.format("%d ngày %02d:%02d:%02d", days, hours, minutes, seconds));
+                    lblTimeValue.setText(
+                            String.format("%d ngày %02d:%02d:%02d", days, hours, minutes, seconds));
                     lblTimeValue.setStyle("-fx-text-fill: #2f3542;");
                 } else {
                     lblTimeValue.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
@@ -219,8 +236,10 @@ public class SellerItemCardController {
 
         if (!isEnabled) {
             // Đổi màu xám để báo hiệu cho người dùng biết nút đã bị liệt
-            btnEdit.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
-            btnDelete.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
+            btnEdit.setStyle(
+                    "-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
+            btnDelete.setStyle(
+                    "-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
         }
     }
 
@@ -229,7 +248,8 @@ public class SellerItemCardController {
     // ==========================================
     private void loadImage(List<ItemImage> images) {
         // [REFACTOR]: Xóa bỏ việc đọc file cục bộ, ủy quyền hoàn toàn cho ImageLoader gọi mạng
-        if (images == null || images.isEmpty() || images.get(0).getImagePath() == null || images.get(0).getImagePath().trim().isEmpty()) {
+        if (images == null || images.isEmpty() || images.get(0).getImagePath() == null
+                || images.get(0).getImagePath().trim().isEmpty()) {
             // Truyền null để ImageLoader tự động set ảnh mặc định (Placeholder)
             ImageLoader.loadAsync(null, itemImageView);
         } else {
@@ -244,7 +264,7 @@ public class SellerItemCardController {
     // ==========================================
     @FXML
     private void handleEditAction(ActionEvent event) {
-        System.out.println("Sửa sản phẩm: " + currentAuction.getId());
+        logger.info("Sửa sản phẩm: {}", currentAuction.getId());
         // Gọi SceneSwitcher chuyển sang form cập nhật sản phẩm
     }
 
@@ -252,16 +272,18 @@ public class SellerItemCardController {
     private void handleDeleteAction(ActionEvent event) {
         // Yêu cầu xác nhận trước khi xóa (UX chống bấm nhầm)
         boolean confirm = AlertUtils.showConfirmation("Xác nhận xóa",
-                "Bạn có chắc chắn muốn xóa sản phẩm '" + currentAuction.getItem().getTitle() + "' không? Hành động này không thể hoàn tác.");
+                "Bạn có chắc chắn muốn xóa sản phẩm '" + currentAuction.getItem().getTitle()
+                        + "' không? Hành động này không thể hoàn tác.");
 
         if (confirm) {
             AuctionClient client = SessionManager.getInstance().getAuctionClient();
             if (client != null) {
                 // Đóng gói ID sản phẩm để Server tìm và diệt
-                client.sendToServer(new Message("DELETE_PRODUCT", currentAuction.getItem().getId()));
-                System.out.println("CLIENT: Yêu cầu xóa sản phẩm " + currentAuction.getItem().getId());
+                client.sendToServer(
+                        new Message("DELETE_PRODUCT", currentAuction.getItem().getId()));
+                logger.info("CLIENT: Yêu cầu xóa sản phẩm {}", currentAuction.getItem().getId());
             }
         }
     }
-    
+
 }

@@ -1,5 +1,12 @@
 package com.nhomX.example.controller.admin;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.controller.client.BaseController;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -11,9 +18,7 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,26 +28,39 @@ import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 
 public class AdminItemDetailController extends BaseController implements ServerEventListener {
+  private static final Logger logger = LoggerFactory.getLogger(AdminItemDetailController.class);
   private static final DateTimeFormatter TIME_FORMATTER =
       DateTimeFormatter.ofPattern("HH:mm - dd/MM");
-  private static final DateTimeFormatter DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("dd/MM/yyyy");
+  private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-  @FXML private Button btnBack;
-  @FXML private Button btnClose;
-  @FXML private ImageView imgMain;
+  @FXML
+  private Button btnBack;
+  @FXML
+  private Button btnClose;
+  @FXML
+  private ImageView imgMain;
   @FXML
   private Label lblTitle;
-  @FXML private Label lblCode;
-  @FXML private Label lblAvatarText;
-  @FXML private Label lblSellerName;
-  @FXML private Label lblSubmitDate;
-  @FXML private Label lblDescription;
-  @FXML private Label lblStartingPrice;
-  @FXML private Label lblDesiredTime;
-  @FXML private TextArea txtRejectReason;
-  @FXML private Button btnReject;
-  @FXML private Button btnApprove;
+  @FXML
+  private Label lblCode;
+  @FXML
+  private Label lblAvatarText;
+  @FXML
+  private Label lblSellerName;
+  @FXML
+  private Label lblSubmitDate;
+  @FXML
+  private Label lblDescription;
+  @FXML
+  private Label lblStartingPrice;
+  @FXML
+  private Label lblDesiredTime;
+  @FXML
+  private TextArea txtRejectReason;
+  @FXML
+  private Button btnReject;
+  @FXML
+  private Button btnApprove;
 
   private Auction currentAuction;
   private AuctionClient auctionClient;
@@ -69,15 +87,15 @@ public class AdminItemDetailController extends BaseController implements ServerE
     setLabelText(lblTitle, item.getTitle());
     setLabelText(lblCode, "MÃ SP: #" + shortAuctionCode(pendingAuction.getId()));
     setLabelText(lblDescription, item.getDescription());
-    setLabelText(lblStartingPrice,
-        CurrencyFormatter.formatVND(pendingAuction.getStartingPrice()));
+    setLabelText(lblStartingPrice, CurrencyFormatter.formatVND(pendingAuction.getStartingPrice()));
 
     // Thông tin người bán
     // Seller nằm trong Item của phiên, không nằm trực tiếp trên Auction.
     User seller = item.getSeller();
     String sellerName = getSellerDisplayName(seller);
     setLabelText(lblSellerName, sellerName);
-    setLabelText(lblAvatarText, sellerName.isBlank() ? "?" : sellerName.substring(0, 1).toUpperCase());
+    setLabelText(lblAvatarText,
+        sellerName.isBlank() ? "?" : sellerName.substring(0, 1).toUpperCase());
 
     // Thời gian (Giả định ngày gửi là ngày tạo phiên - nếu có trong model,
     // ở đây dùng tạm logic hiện tại)
@@ -109,7 +127,7 @@ public class AdminItemDetailController extends BaseController implements ServerE
     setButtonsDisable(true);
     // Gửi lệnh duyệt lên sàn
     auctionClient.approveAuction(currentAuction.getId());
-    System.out.println("ADMIN: Đang gửi lệnh DUYỆT cho phiên " + currentAuction.getId());
+    logger.info("ADMIN: Đang gửi lệnh DUYỆT cho phiên {}", currentAuction.getId());
   }
 
   @FXML
@@ -132,7 +150,7 @@ public class AdminItemDetailController extends BaseController implements ServerE
     setButtonsDisable(true);
     // Gửi lệnh từ chối. Server hiện nhận auctionId, phần lý do chỉ dùng để bắt buộc Admin nhập.
     auctionClient.rejectAuction(currentAuction.getId());
-    System.out.println("ADMIN: Đang gửi lệnh TỪ CHỐI cho phiên " + currentAuction.getId());
+    logger.info("ADMIN: Đang gửi lệnh TỪ CHỐI cho phiên {}", currentAuction.getId());
   }
 
   @FXML
@@ -142,7 +160,7 @@ public class AdminItemDetailController extends BaseController implements ServerE
     if (AdminLayoutController.instance != null) {
       AdminLayoutController.instance.handleNavProducts(null);
     } else {
-      System.err.println("Lỗi: AdminLayoutController instance bị null!");
+      logger.error("AdminLayoutController instance bị null");
     }
   }
 

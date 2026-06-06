@@ -1,5 +1,13 @@
 package com.nhomX.example.controller.client;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -9,6 +17,7 @@ import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -22,12 +31,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Duration;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-
 public class DashboardContentController extends BaseController implements ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(DashboardContentController.class);
+
     @FXML
     private Label lblFeaturedName;
     @FXML
@@ -61,31 +67,34 @@ public class DashboardContentController extends BaseController implements Server
             // Yêu cầu dữ liệu thống kê từ Server
             client.sendToServer(new Message("GET_DASHBOARD_DATA", null));
         } else {
-            System.err.println("Cảnh báo: Không tìm thấy kết nối mạng Socket!");
+            logger.warn("Không tìm thấy kết nối mạng Socket");
         }
     }
 
     private void loadFeaturedData() {
-        if (featuredAuctionId == null) return;
+        if (featuredAuctionId == null)
+            return;
 
         // [REFACTOR 1]: Lấy dữ liệu CHUẨN từ Single Source of Truth (AuctionManager)
         Auction freshAuction = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
-        if (freshAuction == null) return;
+        if (freshAuction == null)
+            return;
 
         lblFeaturedName.setText(freshAuction.getItem().getTitle());
-        lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
+        lblFeaturedPrice.setText(
+                "Giá hiện tại: " + CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
 
         try {
             List<ItemImage> images = freshAuction.getItem().getImages();
             if (images != null && !images.isEmpty()) {
                 String fileName = images.get(0).getImagePath();
                 ImageLoader.loadAsync(fileName, imgFeatured);
-            }else {
+            } else {
                 // Không có ảnh -> Ném null để ImageLoader tự hiện Placeholder
-               ImageLoader.loadAsync(null, imgFeatured);
+                ImageLoader.loadAsync(null, imgFeatured);
             }
         } catch (Exception e) {
-            System.err.println("Không load được ảnh sản phẩm nổi bật: " + e.getMessage());
+            logger.error("Không load được ảnh sản phẩm nổi bật", e);
         }
 
         if (countdownTimeline != null) {
@@ -96,7 +105,8 @@ public class DashboardContentController extends BaseController implements Server
             Auction latestHeroData = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
             if (latestHeroData != null) {
                 // Tự động đè giá mới nhất lên UI mỗi giây, bất chấp việc bị cướp Listener
-                lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(latestHeroData.getHighestBid()));
+                lblFeaturedPrice.setText("Giá hiện tại: "
+                        + CurrencyFormatter.formatVND(latestHeroData.getHighestBid()));
             }
             LocalDateTime now = LocalDateTime.now();
             LocalDateTime endTime = freshAuction.getEndTime();
@@ -112,7 +122,8 @@ public class DashboardContentController extends BaseController implements Server
                     // 2. Tự động gửi lệnh xin Server một danh sách Hero mới để thay thế
                     AuctionClient client = SessionManager.getInstance().getAuctionClient();
                     if (client != null) {
-                        System.out.println("CLIENT: Món Hero đã hết hạn, đang xin Server dữ liệu Dashboard mới...");
+                        logger.info(
+                                "CLIENT: Món Hero đã hết hạn, đang xin Server dữ liệu Dashboard mới...");
                         client.sendToServer(new Message("GET_DASHBOARD_DATA", null));
                     }
                 });
@@ -123,7 +134,8 @@ public class DashboardContentController extends BaseController implements Server
                 long minutes = duration.toMinutesPart();
                 long seconds = duration.toSecondsPart();
 
-                String timeLeft = String.format("⏱ Còn lại: %d ngày %02d:%02d:%02d", days, hours, minutes, seconds);
+                String timeLeft = String.format("⏱ Còn lại: %d ngày %02d:%02d:%02d", days, hours,
+                        minutes, seconds);
                 lblFeaturedTime.setText(timeLeft);
             }
         }));
@@ -142,10 +154,12 @@ public class DashboardContentController extends BaseController implements Server
     }
 
     private void navigateToDetail() {
-        if (featuredAuctionId == null) return;
+        if (featuredAuctionId == null)
+            return;
 
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/ItemDetailContent.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass()
+                    .getResource("/com/nhomX/example/fxml/client/ItemDetailContent.fxml"));
             Parent root = loader.load();
 
             ItemDetailController detailController = loader.getController();
@@ -158,7 +172,7 @@ public class DashboardContentController extends BaseController implements Server
                 MainDashBoardController.instance.saveCurrentViewAndNavigate(root);
             }
         } catch (IOException e) {
-            System.err.println("Lỗi chuyển hướng trang chi tiết: " + e.getMessage());
+            logger.error("Lỗi chuyển hướng trang chi tiết", e);
         }
     }
 
@@ -170,17 +184,21 @@ public class DashboardContentController extends BaseController implements Server
         if (featuredAuctionId != null && featuredAuctionId.equals(itemId)) {
             Platform.runLater(() -> {
                 // Kéo giá mới từ Manager (đã được cập nhật)
-                Auction freshAuction = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
+                Auction freshAuction =
+                        AuctionManager.getInstance().getAuctionById(featuredAuctionId);
                 if (freshAuction != null) {
-                    lblFeaturedPrice.setText("Giá hiện tại: " + CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
-                    System.out.println("Dashboard: Đã đồng bộ giá mới từ AuctionManager cho sản phẩm Hero!");
+                    lblFeaturedPrice.setText("Giá hiện tại: "
+                            + CurrencyFormatter.formatVND(freshAuction.getHighestBid()));
+                    logger.info(
+                            "Dashboard: Đã đồng bộ giá mới từ AuctionManager cho sản phẩm Hero!");
                 }
             });
         }
     }
 
     @Override
-    public void onDashboardDataReceived(Map<String, Integer> stats, List<Auction> endingSoon, List<Auction> trending) {
+    public void onDashboardDataReceived(Map<String, Integer> stats, List<Auction> endingSoon,
+            List<Auction> trending) {
         Platform.runLater(() -> {
             if (stats != null) {
                 lblActiveAuctions.setText(String.valueOf(stats.getOrDefault("active", 0)));
@@ -201,22 +219,25 @@ public class DashboardContentController extends BaseController implements Server
                 loadFeaturedData();
 
                 // Đổ các sản phẩm còn lại vào vùng trống bên dưới
-                if (contentArea != null && trending.size() > 1) { // [FIX BUG 3]: Kiểm tra size an toàn
+                if (contentArea != null && trending.size() > 1) { // [FIX BUG 3]: Kiểm tra size an
+                                                                  // toàn
                     contentArea.getChildren().clear();
 
                     for (int i = 1; i < trending.size(); i++) {
                         Auction auction = trending.get(i);
                         try {
-                            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/Itemcard.fxml"));
+                            FXMLLoader loader = new FXMLLoader(getClass()
+                                    .getResource("/com/nhomX/example/fxml/client/Itemcard.fxml"));
                             Node cardNode = loader.load();
 
                             ItemCardController cardController = loader.getController();
                             // Truyền ID hoặc Object từ Manager qua
-                            cardController.setAuctionData(AuctionManager.getInstance().getAuctionById(auction.getId()));
+                            cardController.setAuctionData(
+                                    AuctionManager.getInstance().getAuctionById(auction.getId()));
 
                             contentArea.getChildren().add(cardNode);
                         } catch (Exception e) {
-                            System.err.println("❌ Lỗi khi render ItemCard: " + e.getMessage());
+                            logger.error("Lỗi khi render ItemCard", e);
                         }
                     }
                 }

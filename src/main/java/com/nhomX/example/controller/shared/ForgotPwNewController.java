@@ -1,5 +1,7 @@
 package com.nhomX.example.controller.shared;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -18,6 +20,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
 public class ForgotPwNewController implements ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(ForgotPwNewController.class);
     @FXML
     private PasswordField newPasswordField;
     @FXML
@@ -55,7 +58,8 @@ public class ForgotPwNewController implements ServerEventListener {
             checkPasswordsMatch();
         });
         // Lắng nghe ô xác nhận mật khẩu để hiện dấu tích xanh/đỏ
-        confirmPasswordField.textProperty().addListener((obs, oldVal, newVal) -> checkPasswordsMatch());
+        confirmPasswordField.textProperty()
+                .addListener((obs, oldVal, newVal) -> checkPasswordsMatch());
         // 2. Lắng nghe sự thay đổi của ô text ẩn (khi đang hiện mật khẩu)
         newPasswordVisible.textProperty().addListener((obs, oldVal, newVal) -> {
             if (isPasswordVisible) {
@@ -64,7 +68,8 @@ public class ForgotPwNewController implements ServerEventListener {
         });
 
         // 3. Lắng nghe ô xác nhận mật khẩu để hiện dấu tích xanh/đỏ
-        confirmPasswordField.textProperty().addListener((obs, oldVal, newVal) -> checkPasswordsMatch());
+        confirmPasswordField.textProperty()
+                .addListener((obs, oldVal, newVal) -> checkPasswordsMatch());
 
         // 4. Kết nối Client
         auctionClient = SessionManager.getInstance().getAuctionClient();
@@ -100,22 +105,48 @@ public class ForgotPwNewController implements ServerEventListener {
 
     private void updatePasswordStrength(String password) {
         int score = 0;
-        if (password.length() >= 6) score++;
-        if (password.length() >= 8) score++;
-        if (password.matches(".*[A-Za-z].*") && password.matches(".*[0-9].*")) score++;
-        if (password.matches(".*[!@#$%^&*()_+=\\-`~\\\\\\]\\[{}|';:/.,?><].*")) score++;
+        if (password.length() >= 6)
+            score++;
+        if (password.length() >= 8)
+            score++;
+        if (password.matches(".*[A-Za-z].*") && password.matches(".*[0-9].*"))
+            score++;
+        if (password.matches(".*[!@#$%^&*()_+=\\-`~\\\\\\]\\[{}|';:/.,?><].*"))
+            score++;
 
         // Reset màu các thanh bar
-        String defaultColor = "-fx-background-color: rgba(255,255,255,0.12); -fx-background-radius: 3;";
-        bar1.setStyle(defaultColor); bar2.setStyle(defaultColor);
-        bar3.setStyle(defaultColor); bar4.setStyle(defaultColor);
+        String defaultColor =
+                "-fx-background-color: rgba(255,255,255,0.12); -fx-background-radius: 3;";
+        bar1.setStyle(defaultColor);
+        bar2.setStyle(defaultColor);
+        bar3.setStyle(defaultColor);
+        bar4.setStyle(defaultColor);
 
         // Đổi màu tùy theo điểm
-        if (score >= 1) { bar1.setStyle("-fx-background-color: #ff4444; -fx-background-radius: 3;"); lblStrength.setText("Yếu"); lblStrength.setStyle("-fx-text-fill: #ff4444;"); }
-        if (score >= 2) { bar2.setStyle("-fx-background-color: #ff8800; -fx-background-radius: 3;"); lblStrength.setText("Trung bình"); lblStrength.setStyle("-fx-text-fill: #ff8800;"); }
-        if (score >= 3) { bar3.setStyle("-fx-background-color: #00C851; -fx-background-radius: 3;"); lblStrength.setText("Mạnh"); lblStrength.setStyle("-fx-text-fill: #00C851;"); }
-        if (score >= 4) { bar4.setStyle("-fx-background-color: #007E33; -fx-background-radius: 3;"); lblStrength.setText("Rất mạnh"); lblStrength.setStyle("-fx-text-fill: #007E33;"); }
-        if (score == 0) { lblStrength.setText("—"); lblStrength.setStyle("-fx-text-fill: rgba(255,220,160,0.50);"); }
+        if (score >= 1) {
+            bar1.setStyle("-fx-background-color: #ff4444; -fx-background-radius: 3;");
+            lblStrength.setText("Yếu");
+            lblStrength.setStyle("-fx-text-fill: #ff4444;");
+        }
+        if (score >= 2) {
+            bar2.setStyle("-fx-background-color: #ff8800; -fx-background-radius: 3;");
+            lblStrength.setText("Trung bình");
+            lblStrength.setStyle("-fx-text-fill: #ff8800;");
+        }
+        if (score >= 3) {
+            bar3.setStyle("-fx-background-color: #00C851; -fx-background-radius: 3;");
+            lblStrength.setText("Mạnh");
+            lblStrength.setStyle("-fx-text-fill: #00C851;");
+        }
+        if (score >= 4) {
+            bar4.setStyle("-fx-background-color: #007E33; -fx-background-radius: 3;");
+            lblStrength.setText("Rất mạnh");
+            lblStrength.setStyle("-fx-text-fill: #007E33;");
+        }
+        if (score == 0) {
+            lblStrength.setText("—");
+            lblStrength.setStyle("-fx-text-fill: rgba(255,220,160,0.50);");
+        }
     }
 
     private void checkPasswordsMatch() {
@@ -165,7 +196,7 @@ public class ForgotPwNewController implements ServerEventListener {
             // Gửi gói tin cập nhật mật khẩu lên Server
             String[] payload = {targetEmail, securedPass};
             auctionClient.sendToServer(new Message("RESET_PASSWORD", payload));
-            System.out.println("CLIENT: Đang gửi yêu cầu đổi mật khẩu mới...");
+            logger.info("CLIENT: Đang gửi yêu cầu đổi mật khẩu mới...");
         } else {
             AlertUtils.showError("Lỗi mạng", "Chưa kết nối đến máy chủ.");
             btnConfirm.setDisable(false);
@@ -179,7 +210,8 @@ public class ForgotPwNewController implements ServerEventListener {
     }
 
     private void cleanup() {
-        if (auctionClient != null) auctionClient.setServerEventListener(null);
+        if (auctionClient != null)
+            auctionClient.setServerEventListener(null);
         // Hủy bỏ email tạm vì quá trình đã kết thúc hoặc bị hủy
         SessionManager.getInstance().setTempEmail(null);
     }
@@ -191,7 +223,8 @@ public class ForgotPwNewController implements ServerEventListener {
             btnConfirm.setDisable(false);
             if (isSuccess) {
                 cleanup();
-                AlertUtils.showSuccess("Đổi mật khẩu thành công", "Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập lại!");
+                AlertUtils.showSuccess("Đổi mật khẩu thành công",
+                        "Mật khẩu của bạn đã được cập nhật. Vui lòng đăng nhập lại!");
                 SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
             } else {
                 showInlineError(message);

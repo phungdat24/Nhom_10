@@ -1,5 +1,12 @@
 package com.nhomX.example.controller.client;
 
+import java.net.URL;
+import java.util.Random;
+import java.util.ResourceBundle;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
@@ -7,6 +14,7 @@ import com.nhomX.example.networking.Message;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -21,36 +29,43 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 
-import java.net.URL;
-import java.util.Random;
-import java.util.ResourceBundle;
-
 public class DepositMoneyController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(DepositMoneyController.class);
     // 1. KHAI BÁO FXML COMPONENTS
     // =========================================================================
 
-    @FXML private TextField txtAmount;
-    @FXML private Label lblAmountText;
+    @FXML
+    private TextField txtAmount;
+    @FXML
+    private Label lblAmountText;
     @FXML
     private Button btnCreateQr;
 
     // Cột bên phải — ẩn đi ban đầu
-    @FXML private HBox infoPanel;        // HBox chứa toàn bộ phần thông tin chuyển khoản
-    @FXML private ImageView imgQrCode;
-    @FXML private Label lblTimer;
-    @FXML private Label lblAccountNumber;
-    @FXML private Label lblBankName;
-    @FXML private Label lblAccountOwner;
-    @FXML private Label lblContent;
-    @FXML private Button btnConfirm;
+    @FXML
+    private HBox infoPanel; // HBox chứa toàn bộ phần thông tin chuyển khoản
+    @FXML
+    private ImageView imgQrCode;
+    @FXML
+    private Label lblTimer;
+    @FXML
+    private Label lblAccountNumber;
+    @FXML
+    private Label lblBankName;
+    @FXML
+    private Label lblAccountOwner;
+    @FXML
+    private Label lblContent;
+    @FXML
+    private Button btnConfirm;
 
     // =========================================================================
     // 2. CONSTANTS & STATE
     // =========================================================================
 
-    private static final long MIN_DEPOSIT    = 10_000L;
-    private static final long MAX_DEPOSIT    = 500_000_000L;
-    private static final int  TIMER_SECONDS  = 15 * 60; // 15 phút
+    private static final long MIN_DEPOSIT = 10_000L;
+    private static final long MAX_DEPOSIT = 500_000_000L;
+    private static final int TIMER_SECONDS = 15 * 60; // 15 phút
 
     // Cố định một ngân hàng duy nhất để tăng độ Trust
     private static final String COMPANY_BANK_NAME = "Techcombank (TCB)";
@@ -86,16 +101,15 @@ public class DepositMoneyController implements Initializable {
         String rawAmount = clickedButton.getText().replaceAll("[^\\d]", "");
         txtAmount.setText(rawAmount);
     }
+
     /**
-     * Lắng nghe thay đổi trên txtAmount:
-     * - Lọc ký tự không phải số
-     * - Format dấu chấm phân cách hàng nghìn
-     * - Cập nhật chữ số bằng tiếng Việt
-     * - Giới hạn MAX_DEPOSIT
+     * Lắng nghe thay đổi trên txtAmount: - Lọc ký tự không phải số - Format dấu chấm phân cách hàng
+     * nghìn - Cập nhật chữ số bằng tiếng Việt - Giới hạn MAX_DEPOSIT
      */
     private void setupAmountFormatter() {
         txtAmount.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (isFormattingAmount) return;
+            if (isFormattingAmount)
+                return;
 
             // Chỉ giữ lại chữ số
             String rawDigits = newVal.replaceAll("[^\\d]", "");
@@ -125,7 +139,8 @@ public class DepositMoneyController implements Initializable {
 
                 String formatted = CurrencyFormatter.formatNumber(amount);
                 txtAmount.setText(formatted);
-                lblAmountText.setText("Bằng chữ: " + CurrencyFormatter.numberToWords(amount) + " đồng");
+                lblAmountText
+                        .setText("Bằng chữ: " + CurrencyFormatter.numberToWords(amount) + " đồng");
 
                 // Đẩy con trỏ về cuối sau khi format xong
                 Platform.runLater(() -> txtAmount.positionCaret(txtAmount.getText().length()));
@@ -147,8 +162,8 @@ public class DepositMoneyController implements Initializable {
         // --- Validate ---
         long amount = parsedAmount();
         if (amount < MIN_DEPOSIT) {
-            AlertUtils.showWarning("Số tiền không hợp lệ",
-                    "Vui lòng nhập số tiền tối thiểu " + CurrencyFormatter.formatVND(MIN_DEPOSIT) + ".");
+            AlertUtils.showWarning("Số tiền không hợp lệ", "Vui lòng nhập số tiền tối thiểu "
+                    + CurrencyFormatter.formatVND(MIN_DEPOSIT) + ".");
             return;
         }
         String transferContent = generateTransferContent();
@@ -193,16 +208,14 @@ public class DepositMoneyController implements Initializable {
         remainingSeconds = TIMER_SECONDS;
         updateTimerLabel(remainingSeconds);
 
-        countdownTimer = new Timeline(
-                new KeyFrame(Duration.seconds(1), e -> {
-                    remainingSeconds--;
-                    updateTimerLabel(remainingSeconds);
+        countdownTimer = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            remainingSeconds--;
+            updateTimerLabel(remainingSeconds);
 
-                    if (remainingSeconds <= 0) {
-                        onTimerExpired();
-                    }
-                })
-        );
+            if (remainingSeconds <= 0) {
+                onTimerExpired();
+            }
+        }));
         countdownTimer.setCycleCount(TIMER_SECONDS);
         countdownTimer.play();
     }
@@ -231,27 +244,27 @@ public class DepositMoneyController implements Initializable {
     // =========================================================================
 
     /**
-     * Gửi Message loại "DEPOSIT_REQUEST" lên Server.
-     * Payload: Object[] { userId, amount, transferContent, bankName }
+     * Gửi Message loại "DEPOSIT_REQUEST" lên Server. Payload: Object[] { userId, amount,
+     * transferContent, bankName }
      *
-     * NOTE: Server cần xử lý case "DEPOSIT_REQUEST" trong ClientHandler.dispatch()
-     * và ServerEventListener cần thêm: void onDepositResult(boolean isSuccess, String message);
+     * NOTE: Server cần xử lý case "DEPOSIT_REQUEST" trong ClientHandler.dispatch() và
+     * ServerEventListener cần thêm: void onDepositResult(boolean isSuccess, String message);
      */
     private void sendDepositRequest() {
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client == null) {
-            System.err.println("DEPOSIT: Không có kết nối Socket.");
+            logger.error("DEPOSIT: Không có kết nối Socket.");
             return;
         }
 
         User currentUser = SessionManager.getInstance().getCurrentUser();
-        String userId     = currentUser != null ? currentUser.getId() : "GUEST";
-        long   amount     = parsedAmount();
-        String content    = lblContent.getText();
+        String userId = currentUser != null ? currentUser.getId() : "GUEST";
+        long amount = parsedAmount();
+        String content = lblContent.getText();
 
-        Object[] payload = { userId, amount, content, COMPANY_BANK_NAME };
+        Object[] payload = {userId, amount, content, COMPANY_BANK_NAME};
         client.sendToServer(new Message("DEPOSIT_REQUEST", payload));
-        System.out.println("DEPOSIT: Đã gửi yêu cầu nạp " + amount + " VNĐ cho user " + userId);
+        logger.info("DEPOSIT: Đã gửi yêu cầu nạp {} VNĐ cho user {}", amount, userId);
     }
 
     // =========================================================================
@@ -259,8 +272,7 @@ public class DepositMoneyController implements Initializable {
     // =========================================================================
 
     /**
-     * Tạo nội dung chuyển khoản gắn với user hiện tại.
-     * Ví dụ: "PKBD NAP user123 882931"
+     * Tạo nội dung chuyển khoản gắn với user hiện tại. Ví dụ: "PKBD NAP user123 882931"
      */
     private String generateTransferContent() {
         User user = SessionManager.getInstance().getCurrentUser();
@@ -268,14 +280,15 @@ public class DepositMoneyController implements Initializable {
                 ? user.getUserName().replaceAll("[^a-zA-Z0-9]", "").toUpperCase()
                 : "GUEST";
         // Rút gọn userTag nếu quá dài
-        if (userTag.length() > 8) userTag = userTag.substring(0, 8);
+        if (userTag.length() > 8)
+            userTag = userTag.substring(0, 8);
         int randomCode = 100_000 + new Random().nextInt(900_000);
         return "PKBD NAP " + userTag + " " + randomCode;
     }
 
     /**
-     * Parse số tiền từ TextField (bỏ dấu chấm định dạng).
-     * Trả về 0 nếu trường rỗng hoặc không hợp lệ.
+     * Parse số tiền từ TextField (bỏ dấu chấm định dạng). Trả về 0 nếu trường rỗng hoặc không hợp
+     * lệ.
      */
     private long parsedAmount() {
         try {
@@ -287,14 +300,19 @@ public class DepositMoneyController implements Initializable {
     }
 
     private void showInfoPanel() {
-        if (infoPanel != null) infoPanel.setVisible(true);
-        if (infoPanel != null) infoPanel.setManaged(true);
+        if (infoPanel != null)
+            infoPanel.setVisible(true);
+        if (infoPanel != null)
+            infoPanel.setManaged(true);
     }
 
     private void hideInfoPanel() {
-        if (infoPanel != null) infoPanel.setVisible(false);
-        if (infoPanel != null) infoPanel.setManaged(false);
+        if (infoPanel != null)
+            infoPanel.setVisible(false);
+        if (infoPanel != null)
+            infoPanel.setManaged(false);
     }
+
     // HÀM TẠO MÃ QR ĐỘNG TỪ API VIETQR
     // =========================================================================
     private void generateDynamicQR(long amount, String transferContent) {
@@ -306,20 +324,17 @@ public class DepositMoneyController implements Initializable {
             // 2. Lắp ghép đường dẫn (Giả sử dùng Techcombank BIN là 970407)
             String qrUrl = String.format(
                     "https://img.vietqr.io/image/970407-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
-                    COMPANY_ACCOUNT_NO,
-                    amount,
-                    encodedContent,
-                    encodedAccountName
-            );
+                    COMPANY_ACCOUNT_NO, amount, encodedContent, encodedAccountName);
 
-            // 3. Yêu cầu JavaFX tải ảnh từ URL trên một luồng ngầm (Tham số true = background loading)
+            // 3. Yêu cầu JavaFX tải ảnh từ URL trên một luồng ngầm (Tham số true = background
+            // loading)
             Image dynamicQrImage = new Image(qrUrl, true);
 
             // 4. Gắn vào ImageView trên màn hình
             imgQrCode.setImage(dynamicQrImage);
 
         } catch (Exception e) {
-            System.err.println("❌ Lỗi sinh mã QR Động: " + e.getMessage());
+            logger.error("Lỗi hiển thị mã QR động", e);
             // Fallback: Nếu mất mạng, có thể set lại cái ảnh mock_qr.png mặc định
         }
     }

@@ -1,5 +1,12 @@
 package com.nhomX.example.controller.client;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ResourceBundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
@@ -22,13 +29,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-
 public class SellerController extends BaseController implements Initializable, ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(SellerController.class);
     @FXML
     private Label lblRevenue;
     @FXML
@@ -49,10 +51,12 @@ public class SellerController extends BaseController implements Initializable, S
     private String currentFilterStatus = "ACTIVE";
 
     // Nút đang chọn: Nền vàng, chữ trắng, viền vàng (để đồng bộ)
-    private final String STYLE_ACTIVE = "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-border-color: #c9a227; -fx-border-radius: 8; -fx-border-width: 1;";
+    private final String STYLE_ACTIVE =
+            "-fx-background-color: #c9a227; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-border-color: #c9a227; -fx-border-radius: 8; -fx-border-width: 1;";
 
     // Nút không chọn: Nền trong suốt, chữ xám, viền xám nhạt
-    private final String STYLE_INACTIVE = "-fx-background-color: transparent; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-border-color: #cccccc; -fx-border-radius: 8; -fx-border-width: 1;";
+    private final String STYLE_INACTIVE =
+            "-fx-background-color: transparent; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 8 18; -fx-background-radius: 8; -fx-border-color: #cccccc; -fx-border-radius: 8; -fx-border-width: 1;";
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -114,7 +118,8 @@ public class SellerController extends BaseController implements Initializable, S
             // Sử dụng hàm .name() của Java Enum để biến AuctionStatus.ACTIVE thành chuỗi "ACTIVE"
             String statusName = item.getStatus().name();
 
-            if (statusName.equals("RUNNING") || statusName.equals("FINISHED") || statusName.equals("PAID")) {
+            if (statusName.equals("RUNNING") || statusName.equals("FINISHED")
+                    || statusName.equals("PAID")) {
                 projectedRevenue += item.getHighestBid();
             }
 
@@ -124,18 +129,18 @@ public class SellerController extends BaseController implements Initializable, S
             switch (currentFilterStatus) {
                 case "TAB_PENDING":
                     // Tab "Chờ lên sàn" -> Khớp với PENDING
-                    isMatchTab = statusName.equals("PENDING") || statusName.equals("UP_COMING") ;;
+                    isMatchTab = statusName.equals("PENDING") || statusName.equals("UP_COMING");;
                     break;
 
                 case "TAB_ACTIVE":
-                    // Tab "Đang đấu giá" -> Gom cả phiên vừa mở (OPEN) và phiên đang giành giật (RUNNING)
-                    isMatchTab = statusName.equals("RUNNING")|| statusName.equals("OPEN");
+                    // Tab "Đang đấu giá" -> Gom cả phiên vừa mở (OPEN) và phiên đang giành giật
+                    // (RUNNING)
+                    isMatchTab = statusName.equals("RUNNING") || statusName.equals("OPEN");
                     break;
 
                 case "TAB_SOLD":
                     // Tab "Đã bán" -> Gom cả phiên chốt sổ (FINISHED) và phiên đã nhận tiền (PAID)
-                    isMatchTab = statusName.equals("FINISHED")
-                            || statusName.equals("PAID")
+                    isMatchTab = statusName.equals("FINISHED") || statusName.equals("PAID")
                             || statusName.equals("CANCELED");;
                     break;
             }
@@ -143,7 +148,8 @@ public class SellerController extends BaseController implements Initializable, S
             // 3. VẼ LÊN MÀN HÌNH NẾU KHỚP VỚI TAB ĐANG MỞ
             if (isMatchTab) {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/SellerItemCard.fxml"));
+                    FXMLLoader loader = new FXMLLoader(getClass()
+                            .getResource("/com/nhomX/example/fxml/client/SellerItemCard.fxml"));
                     VBox card = loader.load();
 
                     SellerItemCardController cardController = loader.getController();
@@ -151,7 +157,8 @@ public class SellerController extends BaseController implements Initializable, S
                     // ===============================================
                     cardController.setOnStatusChangeCallback(() -> {
                         Platform.runLater(() -> {
-                            System.out.println("⏰ Tới giờ lên sàn! Tự động chuyển qua Tab Đang đấu giá...");
+                            logger.info(
+                                    "⏰ Tới giờ lên sàn! Tự động chuyển qua Tab Đang đấu giá...");
                             renderFilteredAuctions();
                         });
                     });
@@ -159,7 +166,7 @@ public class SellerController extends BaseController implements Initializable, S
 
                     contentArea.getChildren().add(card);
                 } catch (IOException e) {
-                    System.err.println("Lỗi load thẻ sản phẩm của Seller: " + e.getMessage());
+                    logger.error("Lỗi load thẻ sản phẩm của Seller: {}", e.getMessage());
                 }
             }
         }
@@ -167,16 +174,18 @@ public class SellerController extends BaseController implements Initializable, S
         // Cập nhật nhãn doanh thu lên UI
         lblRevenue.setText(CurrencyFormatter.formatVND(projectedRevenue));
     }
+
     @Override
     public void onSellerAuctionsReceived(List<Auction> sellerAuctions) {
-        // Platform.runLater để đảm bảo việc vẽ UI diễn ra trên luồng chính (JavaFX Application Thread)
+        // Platform.runLater để đảm bảo việc vẽ UI diễn ra trên luồng chính (JavaFX Application
+        // Thread)
         Platform.runLater(() -> {
             // Cập nhật lại kho dữ liệu trên RAM
             this.allMySellerItems = sellerAuctions;
 
             // Gọi lại hàm vẽ màn hình để hiển thị các món hàng
             renderFilteredAuctions();
-            System.out.println("SELLER: Đã tải xong " + sellerAuctions.size() + " sản phẩm.");
+            logger.info("SELLER: Đã tải xong {} sản phẩm.", sellerAuctions.size());
         });
     }
 
@@ -185,7 +194,8 @@ public class SellerController extends BaseController implements Initializable, S
     @FXML
     private void handleAddItem(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/AddItemcard.fxml"));
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/nhomX/example/fxml/client/AddItemcard.fxml"));
             Parent root = loader.load();
 
             // TẠO MỘT STAGE MỚI (CỬA SỔ MỚI) CHỈ DÀNH CHO POP-UP
@@ -204,16 +214,17 @@ public class SellerController extends BaseController implements Initializable, S
             // Hiển thị Pop-up và chờ đợi (Code sẽ dừng ở đây cho đến khi Pop-up đóng)
             popupStage.showAndWait();
 
-            System.out.println("Pop-up đã đóng. Đang lấy lại danh sách mới nhất từ Server...");
+            logger.info("Pop-up đã đóng. Đang lấy lại danh sách mới nhất từ Server...");
             refreshSellerAuctionsFromServer();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Lỗi khi mở popup Seller", e);
         }
     }
+
     /**
-     * [REFACTOR] Tách ra hàm riêng — có thể gọi lại ở nhiều nơi (DRY).
-     * Gửi request lên Server để lấy lại danh sách mới nhất.
+     * [REFACTOR] Tách ra hàm riêng — có thể gọi lại ở nhiều nơi (DRY). Gửi request lên Server để
+     * lấy lại danh sách mới nhất.
      */
     private void refreshSellerAuctionsFromServer() {
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
@@ -225,6 +236,7 @@ public class SellerController extends BaseController implements Initializable, S
         String myUserId = SessionManager.getInstance().getCurrentUser().getId();
         client.sendToServer(new Message("GET_SELLER_AUCTIONS", myUserId));
     }
+
     @Override
     public void onHighestBidUpdated(String auctionId, long newPrice, String bidderName) {
         Platform.runLater(() -> {
@@ -241,12 +253,14 @@ public class SellerController extends BaseController implements Initializable, S
 
                     // 3. Vẽ lại màn hình để cập nhật cả thẻ lẫn Tổng doanh thu dự kiến
                     renderFilteredAuctions();
-                    System.out.println("🔄 SELLER REAL-TIME: Phiên " + auctionId + " vừa nảy giá lên " + newPrice);
+                    logger.info("💰 SELLER REAL-TIME: Phiên {} vừa nhảy giá lên {}", auctionId,
+                            newPrice);
                     break;
                 }
             }
         });
     }
+
     // ==========================================
     // LẮNG NGHE SỰ KIỆN ĐÓNG PHIÊN ĐẤU GIÁ
     // ==========================================
@@ -258,12 +272,13 @@ public class SellerController extends BaseController implements Initializable, S
                     // Chuyển trạng thái mô hình sang FINISHED để nó tự động nhảy tab sang "Đã bán"
                     item.setStatus(AuctionStatus.FINISHED);
                     renderFilteredAuctions();
-                    System.out.println("🏁 SELLER REAL-TIME: Phiên " + auctionId + " đã kết thúc!");
+                    logger.info("🏁 SELLER REAL-TIME: Phiên {} đã kết thúc!", auctionId);
                     break;
                 }
             }
         });
     }
+
     // LẮNG NGHE SỰ KIỆN ADMIN DUYỆT SẢN PHẨM (REAL-TIME)
     // ==========================================
     @Override
@@ -284,7 +299,8 @@ public class SellerController extends BaseController implements Initializable, S
             // 2. Nếu đúng là hàng của mình, vẽ lại giao diện ngay lập tức
             if (isMyAuction) {
                 renderFilteredAuctions();
-                System.out.println("🎉 SELLER REAL-TIME: Admin vừa duyệt sản phẩm " + updatedAuction.getItem().getTitle() + "!");
+                logger.info("🎉 SELLER REAL-TIME: Admin vừa duyệt sản phẩm {}!",
+                        updatedAuction.getItem().getTitle());
             }
         });
     }

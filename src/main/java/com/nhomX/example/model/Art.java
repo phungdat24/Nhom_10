@@ -1,16 +1,20 @@
 package com.nhomX.example.model;
 
 import java.time.Year;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Art extends Items {
-    private String artistName;//ten tac gia
+    private static final Logger logger = LoggerFactory.getLogger(Art.class);
+    private String artistName;// ten tac gia
     private int yearCreated; // kiểu int chỉ để lưu trữ năm
 
-    public Art(){
+    public Art() {
         super();
     }
 
-    public Art(String id, String title, String description, RegularUser seller, String artistName, int yearCreated) {
+    public Art(String id, String title, String description, RegularUser seller, String artistName,
+            int yearCreated) {
         super(id, title, description, seller);
         this.artistName = artistName;
         this.yearCreated = yearCreated;
@@ -23,18 +27,20 @@ public class Art extends Items {
 
     @Override
     public void printItemDetails() {
-        System.out.println("--- CHI TIẾT TÁC PHẨM NGHỆ THUẬT ---");
-        System.out.println("Tác phẩm: " + getTitle());
-        System.out.println("Tác giả: " + this.artistName);
-        System.out.println("Năm sáng tác: " + this.yearCreated);
-        System.out.println("Mô tả: " + getDescription());
+        logger.info("--- CHI TIẾT TÁC PHẨM NGHỆ THUẬT ---");
+        logger.info("Tác phẩm: {}", getTitle());
+        logger.info("Tác giả: {}", this.artistName);
+        logger.info("Năm sáng tác: {}", this.yearCreated);
+        logger.info("Mô tả: {}", getDescription());
     }
 
     @Override
     public boolean validate() {
-        if (getTitle()  == null || getTitle().trim().isEmpty()) return false;
+        if (getTitle() == null || getTitle().trim().isEmpty())
+            return false;
         // Năm sáng tác không được lớn hơn năm hiện tại
-        if (this.yearCreated > Year.now().getValue()) return false;
+        if (this.yearCreated > Year.now().getValue())
+            return false;
         return true;
     }
 
@@ -42,13 +48,16 @@ public class Art extends Items {
     public String getArtistName() {
         return artistName;
     }
+
     public int getYearCreated() {
         return this.yearCreated;
     }
+
     // hàm setter:
     public void setArtistName(String artistName) {
         this.artistName = artistName;
     }
+
     public void setYearCreated(int yearCreated) {
         this.yearCreated = yearCreated;
     }

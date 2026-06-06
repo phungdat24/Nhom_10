@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.exception.AuctionClosedException;
 import com.nhomX.example.exception.InvalidBidException;
 import com.nhomX.example.model.Auction;
@@ -19,37 +22,38 @@ import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.utils.DatabaseConnection;
 
 public class BidRepositoryImpl implements BidRepository {
+  private static final Logger logger = LoggerFactory.getLogger(BidRepositoryImpl.class);
   // Kho chứa ổ khóa: Mỗi ID sản phẩm sẽ tương ứng với 1 ổ khóa riêng biệt
   private static final ConcurrentHashMap<String, ReentrantLock> auctionLocks =
-          new ConcurrentHashMap<>();
+      new ConcurrentHashMap<>();
   private static final DateTimeFormatter DB_FORMATTER =
-          DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   @Override
   public void addBid(BidTransaction bidTransaction) { // Đã đổi save -> addBid
     // 1. Lấy ổ khóa ĐỘC QUYỀN cho riêng sản phẩm này (dựa vào itemId)
     ReentrantLock lock =
-            auctionLocks.computeIfAbsent(bidTransaction.getAuction().getId(), k -> new ReentrantLock());
+        auctionLocks.computeIfAbsent(bidTransaction.getAuction().getId(), k -> new ReentrantLock());
 
     // 2. Bấm chốt khóa! Các luồng khác mua cùng sản phẩm sẽ phải đứng chờ ở đây
     lock.lock();
     // SỬ DỤNG TRY-WITH-RESOURCES ĐỂ TỰ ĐỘNG ĐÓNG KẾT NỐI
     String sql =
-            "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
+        "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
       pstmt.setString(1, bidTransaction.getId());
       pstmt.setLong(2, bidTransaction.getAmount());
       pstmt.setString(3,
-              bidTransaction.getBidTime() != null ? bidTransaction.getBidTime().toString() : null);
+          bidTransaction.getBidTime() != null ? bidTransaction.getBidTime().toString() : null);
       pstmt.setString(4, bidTransaction.getBidder().getId());
       pstmt.setString(5, bidTransaction.getAuction().getId());
 
       pstmt.executeUpdate();
-      System.out.println("✅ Đã ghi nhận lượt đấu giá thành công!");
+      logger.info("Đã ghi nhận lượt đấu giá thành công");
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lưu lượt đấu giá: " + e.getMessage());
+      logger.error("Lỗi khi lưu lượt đấu giá", e);
     } finally {
       // Mở khóa để người tiếp theo trong hàng chờ được vào mua
       lock.unlock();
@@ -61,13 +65,11 @@ public class BidRepositoryImpl implements BidRepository {
 
     List<BidTransaction> listBidTransactions = new ArrayList<>();
     // JOIN 2 bảng lại với nhau để lấy Fullname ra
-    String sql = "SELECT b.*, u.fullname, u.username " +
-            "FROM bids b " +
-            "JOIN users u ON b.user_id = u.id " +
-            "WHERE b.auction_id = ? ORDER BY b.bid_time ASC";
+    String sql = "SELECT b.*, u.fullname, u.username " + "FROM bids b "
+        + "JOIN users u ON b.user_id = u.id " + "WHERE b.auction_id = ? ORDER BY b.bid_time ASC";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionId);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -77,7 +79,7 @@ public class BidRepositoryImpl implements BidRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy danh sách đấu giá: " + e.getMessage());
+      logger.error("Lỗi khi lấy danh sách đấu giá", e);
     }
     return listBidTransactions;
   }
@@ -88,7 +90,7 @@ public class BidRepositoryImpl implements BidRepository {
     String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY amount DESC LIMIT 1";
 
     try (Connection conn = DatabaseConnection.getInstance().getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
       pstmt.setString(1, auctionId);
 
@@ -99,13 +101,14 @@ public class BidRepositoryImpl implements BidRepository {
         }
       }
     } catch (SQLException e) {
-      System.err.println("❌ Lỗi khi lấy giá cao nhất: " + e.getMessage());
+      logger.error("Lỗi khi lấy giá cao nhất", e);
     }
     return null;
   }
 
   @Override
-  public boolean executeBidTransaction(String userId, String auctionId, long bidAmount, String bidId) {
+  public boolean executeBidTransaction(String userId, String auctionId, long bidAmount,
+      String bidId) {
 
     // [FIX] Dùng lock theo auctionId để đảm bảo thread-safety trong transaction
     ReentrantLock lock = auctionLocks.computeIfAbsent(auctionId, k -> new ReentrantLock());
@@ -120,15 +123,14 @@ public class BidRepositoryImpl implements BidRepository {
           // =========================================================
           // TRẠM 1: KIỂM DUYỆT TỪ SERVER (Zero-Trust Validation)
           // =========================================================
-          String sqlCheckAuction = "SELECT a.highest_bid, a.winner_id, a.status, a.end_time, i.seller_id " +
-                  "FROM auctions a " +
-                  "JOIN items i ON a.item_id = i.id " +
-                  "WHERE a.id = ?";
+          String sqlCheckAuction =
+              "SELECT a.highest_bid, a.winner_id, a.status, a.end_time, i.seller_id "
+                  + "FROM auctions a " + "JOIN items i ON a.item_id = i.id " + "WHERE a.id = ?";
           // Gía cao nhất hiện tại
           long currentHighestBid = 0;
           // Người dẫn đầu cũ
           String oldWinnerId = null;
-          //Thời gian kết thúc
+          // Thời gian kết thúc
           LocalDateTime endTime = null;
 
           try (PreparedStatement pstmtAuction = conn.prepareStatement(sqlCheckAuction)) {
@@ -141,18 +143,22 @@ public class BidRepositoryImpl implements BidRepository {
                 oldWinnerId = rs.getString("winner_id");
 
                 String endTimeStr = rs.getString("end_time");
-                endTime = (endTimeStr != null) ? LocalDateTime.parse(endTimeStr, DB_FORMATTER) : null;
+                endTime =
+                    (endTimeStr != null) ? LocalDateTime.parse(endTimeStr, DB_FORMATTER) : null;
                 // Kiểm tra xem có phải là người bán không
                 if (userId.equals(sellerId)) {
-                  throw new InvalidBidException("Bạn không thể tự đặt giá cho sản phẩm của chính mình!");
+                  throw new InvalidBidException(
+                      "Bạn không thể tự đặt giá cho sản phẩm của chính mình!");
                 }
                 // [REFACTOR BẢO MẬT]: Chặn đứng các trạng thái không hợp lệ
                 if ("UP_COMING".equals(status)) {
-                  throw new InvalidBidException("Phiên đấu giá chưa đến giờ mở cửa! Vui lòng chờ thêm.");
+                  throw new InvalidBidException(
+                      "Phiên đấu giá chưa đến giờ mở cửa! Vui lòng chờ thêm.");
                 }
                 // Kiểm tra 1: Có đang mở bán không?
                 if (!"RUNNING".equals(status) && !"OPEN".equals(status)) {
-                  // Java Database Transaction mặc định chỉ tự động Rollback khi gặp RuntimeException
+                  // Java Database Transaction mặc định chỉ tự động Rollback khi gặp
+                  // RuntimeException
                   throw new AuctionClosedException("Phiên đấu giá đã đóng hoặc chưa bắt đầu!");
                 }
 
@@ -163,7 +169,8 @@ public class BidRepositoryImpl implements BidRepository {
 
                 // Kiểm tra 3: Giá đấm búa có thực sự lớn hơn giá DB hiện tại không?
                 if (bidAmount <= currentHighestBid) {
-                  throw new InvalidBidException("Giá đặt " + bidAmount + " không lớn hơn giá trần hiện tại " + currentHighestBid);
+                  throw new InvalidBidException("Giá đặt " + bidAmount
+                      + " không lớn hơn giá trần hiện tại " + currentHighestBid);
                 }
               } else {
                 throw new InvalidBidException("Không tìm thấy mã phiên đấu giá!");
@@ -206,7 +213,8 @@ public class BidRepositoryImpl implements BidRepository {
               pstmtDeduct.setString(2, userId);
               pstmtDeduct.executeUpdate();
             }
-            System.out.println("🔄 User " + userId + " tự nâng giá. Đã trừ thêm phần chênh lệch: " + actualRequiredAmount);
+            logger.info("User {} tự nâng giá. Đã trừ thêm phần chênh lệch: {}", userId,
+                actualRequiredAmount);
 
           } else {
 
@@ -220,7 +228,7 @@ public class BidRepositoryImpl implements BidRepository {
                 pstmtRefund.setString(2, oldWinnerId);
                 int rows = pstmtRefund.executeUpdate();
                 if (rows > 0) {
-                  System.out.println("💸 Đã hoàn trả " + currentHighestBid + " cho user cũ: " + oldWinnerId);
+                  logger.info("Đã hoàn trả {} cho user cũ: {}", currentHighestBid, oldWinnerId);
                 }
               }
             }
@@ -246,7 +254,7 @@ public class BidRepositoryImpl implements BidRepository {
             long minutesLeft = java.time.Duration.between(now, endTime).toMinutes();
             if (minutesLeft < 5) {
               newEndTime = now.plusMinutes(5); // Cộng thêm 5 phút từ thời điểm hiện tại
-              System.out.println("⏳ Kích hoạt Anti-Sniping: Gia hạn phiên đấu giá tới " + newEndTime);
+              logger.info("Kích hoạt Anti-Sniping: Gia hạn phiên đấu giá tới {}", newEndTime);
             }
           }
           String formattedEndTime = (newEndTime != null) ? newEndTime.format(DB_FORMATTER) : null;
@@ -255,7 +263,8 @@ public class BidRepositoryImpl implements BidRepository {
           // TRẠM 6: LƯU LỊCH SỬ VÀ CẬP NHẬT PHIÊN ĐẤU GIÁ
           // =========================================================
           // 6.1 Thêm lịch sử (Bids)
-          String sqlBid = "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
+          String sqlBid =
+              "INSERT INTO bids (id, amount, bid_time, user_id, auction_id) VALUES (?, ?, ?, ?, ?)";
           try (PreparedStatement pstmtBid = conn.prepareStatement(sqlBid)) {
             pstmtBid.setString(1, bidId);
             pstmtBid.setLong(2, bidAmount);
@@ -266,7 +275,8 @@ public class BidRepositoryImpl implements BidRepository {
           }
 
           // 6.2 Cập nhật trạng thái phiên (Auctions)
-          String sqlAuctionUpdate = "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING', end_time = ? WHERE id = ?";
+          String sqlAuctionUpdate =
+              "UPDATE auctions SET highest_bid = ?, winner_id = ?, status = 'RUNNING', end_time = ? WHERE id = ?";
           try (PreparedStatement pstmtAuctionUpdate = conn.prepareStatement(sqlAuctionUpdate)) {
             pstmtAuctionUpdate.setLong(1, bidAmount);
             pstmtAuctionUpdate.setString(2, userId);
@@ -277,7 +287,7 @@ public class BidRepositoryImpl implements BidRepository {
 
           // TẤT CẢ ĐỀU TRƠN TRU -> CHỐT GIAO DỊCH
           conn.commit();
-          System.out.println("✅ Giao dịch thành công! Người dùng " + userId + " đang dẫn đầu với " + bidAmount);
+          logger.info("Giao dịch thành công! Người dùng {} đang dẫn đầu với {}", userId, bidAmount);
           return true;
 
         } catch (AuctionClosedException | InvalidBidException e) {
@@ -287,14 +297,14 @@ public class BidRepositoryImpl implements BidRepository {
         } catch (SQLException e) {
           // Phải Rollback khi vướng Exception Hệ thống
           conn.rollback();
-          System.err.println("❌ Lỗi SQL! Đã Rollback: " + e.getMessage());
+          logger.error("Lỗi SQL! Đã rollback giao dịch", e);
           return false;
         } finally {
           conn.setAutoCommit(true);
         }
       } catch (SQLException e) {
         // Lỗi khi lấy connection
-        System.err.println("❌ Không thể mở kết nối Database: " + e.getMessage());
+        logger.error("Không thể mở kết nối Database", e);
         return false;
       }
     } finally {
@@ -329,16 +339,17 @@ public class BidRepositoryImpl implements BidRepository {
   }
 
   private LocalDateTime parseDateTime(String timeStr) {
-    if (timeStr == null || timeStr.trim().isEmpty()) return null;
+    if (timeStr == null || timeStr.trim().isEmpty())
+      return null;
     try {
-      return timeStr.contains("T")
-              ? LocalDateTime.parse(timeStr)
-              : LocalDateTime.parse(timeStr, DB_FORMATTER);
+      return timeStr.contains("T") ? LocalDateTime.parse(timeStr)
+          : LocalDateTime.parse(timeStr, DB_FORMATTER);
     } catch (Exception e) {
-      System.err.println("⚠️ Lỗi parse thời gian: [" + timeStr + "]");
+      logger.warn("Lỗi parse thời gian: [{}]", timeStr, e);
       return null;
     }
   }
+
   // THÊM HÀM NÀY XUỐNG CUỐI LỚP BidRepositoryImpl
   private BidTransaction mapRowToBidWithFullname(ResultSet rs) throws SQLException {
     // 1. Tận dụng hàm cũ để lấy các thông số cơ bản (id, amount, time)
