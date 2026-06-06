@@ -296,7 +296,7 @@ public class ClientHandler implements Runnable {
                     isSuccess ? "Tạo phiên đấu giá thành công." : "Lưu phiên đấu giá thất bại."}));
 
         } catch (Exception e) {
-            System.err.println("SERVER LỖI: Xử lý ảnh thất bại - " + e.getMessage());
+            logger.error("SERVER LỖI: Xử lý ảnh thất bại", e);
             sendToClient(new Message("CREATE_AUCTION_RESULT",
                     new String[] {"false", "Lỗi server khi tạo phiên đấu giá."}));
         }
@@ -319,8 +319,7 @@ public class ClientHandler implements Runnable {
         String fileName = (String) msg.getData();
         // [REFACTOR] Guard: Validate tên file — chống Path Traversal
         if (!isValidImageFileName(fileName)) {
-            System.err
-                    .println("SERVER SECURITY: Yêu cầu ảnh với tên file không hợp lệ: " + fileName);
+            logger.warn("SERVER SECURITY: Yêu cầu ảnh với tên file không hợp lệ: {}", fileName);
             sendToClient(new Message("IMAGE_RESULT", null));
             return;
         }
@@ -328,7 +327,7 @@ public class ClientHandler implements Runnable {
 
         if (!imageFile.exists()) {
             sendToClient(new Message("IMAGE_RESULT", null));
-            System.err.println("SERVER: Không tìm thấy ảnh: " + fileName);
+            logger.warn("SERVER: Không tìm thấy ảnh: {}", fileName);
             return;
         }
 
@@ -337,7 +336,7 @@ public class ClientHandler implements Runnable {
             // Payload: [fileName, byte[]] để Client biết ảnh nào vừa về
             sendToClient(new Message("IMAGE_RESULT", new Object[] {fileName, imageBytes}));
         } catch (IOException e) {
-            System.err.println("SERVER: Lỗi đọc ảnh " + fileName + " - " + e.getMessage());
+            logger.error("SERVER: Lỗi đọc ảnh {}", fileName, e);
             sendToClient(new Message("IMAGE_RESULT", null));
         }
     }
@@ -797,7 +796,7 @@ public class ClientHandler implements Runnable {
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Lỗi xử lý Forgot Password: " + e.getMessage());
+            logger.error("Lỗi xử lý Forgot Password", e);
             String[] responseData = {"false", "Lỗi máy chủ cục bộ!"};
             sendToClient(new Message("FORGOT_PASSWORD_RESULT", responseData));
         }
@@ -845,9 +844,9 @@ public class ClientHandler implements Runnable {
                 // ===== [BỔ SUNG NHÁNH ELSE Ở ĐÂY] =====
                 // Nhánh này bắt các trường hợp Repository return false (Thường do lỗi kỹ thuật của
                 // Database)
-                System.err.println(
-                        "SERVER LỖI: Giao dịch từ chối không rõ nguyên nhân (DB return false) cho user "
-                                + userId);
+                logger.error(
+                        "SERVER LỖI: Giao dịch từ chối không rõ nguyên nhân (DB return false) cho user {}",
+                        userId);
                 sendToClient(Message.bidFail(
                         "Giao dịch thất bại do lỗi máy chủ cơ sở dữ liệu. Vui lòng thử lại sau!"));
             }
@@ -856,7 +855,7 @@ public class ClientHandler implements Runnable {
             sendToClient(Message.bidFail(e.getMessage()));
         } catch (Exception e) {
             // BẮT LỖI HỆ THỐNG (Lỗi Database, NullPointer, v.v.): Tránh làm sập Server
-            System.err.println("SERVER: Lỗi hệ thống khi xử lý BID - " + e.getMessage());
+            logger.error("SERVER: Lỗi hệ thống khi xử lý BID", e);
             sendToClient(Message.error("Đã xảy ra lỗi hệ thống, vui lòng thử lại sau!"));
         }
     }
@@ -1064,7 +1063,7 @@ public class ClientHandler implements Runnable {
                 out.reset(); // Ngăn chặn Java cache lại dữ liệu cũ (Lost Update bề mặt)
             }
         } catch (IOException e) {
-            System.err.println("SERVER: Không thể gửi message tới client – " + e.getMessage());
+            logger.error("SERVER: Không thể gửi message tới client", e);
             // Nếu gửi xịt (Client rút dây mạng), lập tức dọn dẹp
             cleanup();
         }
@@ -1076,7 +1075,7 @@ public class ClientHandler implements Runnable {
             if (socket != null && !socket.isClosed())
                 socket.close();
         } catch (IOException e) {
-            System.err.println("SERVER: Lỗi đóng socket – " + e.getMessage());
+            logger.error("SERVER: Lỗi đóng socket", e);
         }
     }
 

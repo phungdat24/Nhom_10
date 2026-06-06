@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.controller.client.MainDashBoardController;
 import com.nhomX.example.dto.DashboardDataDTO;
 import com.nhomX.example.manager.AuctionManager;
@@ -21,6 +23,7 @@ import com.nhomX.example.model.Items;
 import com.nhomX.example.model.MyAuctionDTO;
 import com.nhomX.example.model.User;
 import com.nhomX.example.utils.AlertUtils;
+
 import javafx.application.Platform;
 
 public class AuctionClient {
@@ -166,7 +169,7 @@ public class AuctionClient {
             }
         } catch (Exception e) {
             // Khi Server sập, đứt mạng, luồng đọc object sẽ văng Exception nhảy vào đây
-            System.err.println("CLIENT: Mất kết nối: " + e.getMessage());
+            logger.error("CLIENT: Mất kết nối tới Server", e);
         }
     }
 
@@ -174,7 +177,7 @@ public class AuctionClient {
     // Hàm mới: Gửi bất kỳ Message nào lên Server (dùng cho Login, Register...)
     public void sendToServer(Message msg) {
         if (out == null) {
-            System.err.println("CLIENT: Chưa kết nối tới Server!");
+            logger.warn("CLIENT: Chưa kết nối tới Server");
             return;
         }
         try {
@@ -185,7 +188,7 @@ public class AuctionClient {
                 out.reset();
             }
         } catch (IOException e) {
-            System.err.println("CLIENT: Lỗi gửi message – " + e.getMessage());
+            logger.error("CLIENT: Lỗi gửi message", e);
         }
     }
 
@@ -384,8 +387,7 @@ public class AuctionClient {
                 if (msg.getData() == null)
                     break;
                 if (!(msg.getData() instanceof Auction)) {
-                    System.err.println(
-                            "CLIENT: AUCTION_APPROVED_ALERT nhận data không phải Auction!");
+                    logger.warn("CLIENT: AUCTION_APPROVED_ALERT nhận data không phải Auction");
                     break;
                 }
                 Auction approvedAuction = (Auction) msg.getData();
@@ -397,7 +399,7 @@ public class AuctionClient {
                 break;
 
             case "ERROR":
-                System.err.println("CLIENT nhận lỗi từ Server: " + msg.getData());
+                logger.error("CLIENT nhận lỗi từ Server: {}", msg.getData());
                 break;
 
             case "DASHBOARD_DATA_RESULT":
@@ -540,7 +542,7 @@ public class AuctionClient {
                 break;
 
             default:
-                System.err.println("CLIENT: Loại message không xác định – " + type);
+                logger.warn("CLIENT: Loại message không xác định: {}", type);
         }
     }
 
