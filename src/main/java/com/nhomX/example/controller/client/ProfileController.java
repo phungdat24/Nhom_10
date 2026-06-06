@@ -3,8 +3,10 @@ package com.nhomX.example.controller.client;
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.User;
 import com.nhomX.example.networking.AuctionClient;
@@ -13,18 +15,23 @@ import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+
 
 public class ProfileController extends BaseController
         implements Initializable, ServerEventListener {
@@ -201,4 +208,8 @@ public class ProfileController extends BaseController
     }
 
     public void handleWithDraw(ActionEvent event) {}
+
+    private PasswordField txtPass;
+    private Dialog dialog;
+    private ButtonType btn;
 }
