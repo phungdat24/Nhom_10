@@ -1,28 +1,42 @@
 package com.nhomX.example.controller.client;
 
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.AuctionManager;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
-import java.io.IOException;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
 public class LiveAuctionController extends BaseController
         implements Initializable, ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(LiveAuctionController.class);
     // Nơi chứa các thẻ sản phẩm. Hãy đảm bảo trong file LiveAuction.fxml bạn có một FlowPane với
     // fx:id này
     @FXML
@@ -30,7 +44,7 @@ public class LiveAuctionController extends BaseController
     @FXML
     private TextField txtSearch; // Đã liên kết với fx:id trong FXML
     @FXML
-    private Label lblItem;       // Đã liên kết với fx:id trong FXML
+    private Label lblItem; // Đã liên kết với fx:id trong FXML
     // Ổ LƯU TRỮ TRÊN RAM CỦA CLIENT
     private final List<Auction> originalAuctions = new ArrayList<>();
 
@@ -40,7 +54,8 @@ public class LiveAuctionController extends BaseController
 
     // BIẾN QUẢN LÝ TIÊU CHÍ LỌC HIỆN TẠI
     private String selectedCategory = "TẤT CẢ";
-    private String selectedSortOrder = "MẶC ĐỊNH"; // "MẶC ĐỊNH", "GIÁ_TĂNG", "GIÁ_GIẢM", "SẮP_HẾT_GIỜ"
+    private String selectedSortOrder = "MẶC ĐỊNH"; // "MẶC ĐỊNH", "GIÁ_TĂNG", "GIÁ_GIẢM",
+                                                   // "SẮP_HẾT_GIỜ"
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -61,29 +76,28 @@ public class LiveAuctionController extends BaseController
 
             // 3. Gửi yêu cầu lấy danh sách lên Server
             client.sendToServer(new Message("GET_ALL_AUCTIONS", null));
-            System.out.println("LIVE AUCTION: Đã gửi yêu cầu lấy danh sách phiên đấu giá.");
+            logger.info("LIVE AUCTION: Đã gửi yêu cầu lấy danh sách phiên đấu giá.");
         } else {
-            System.err.println("LIVE AUCTION: Lỗi! Không tìm thấy kết nối Socket.");
+            logger.error("LIVE AUCTION: Lỗi! Không tìm thấy kết nối Socket.");
         }
     }
+
     // THUẬT TOÁN LỌC CỘNG DỒN SỬ DỤNG JAVA STREAM API (CORE LOGIC)
     // =========================================================================
     private void applyCompoundFilter() {
         String searchKeyword = (txtSearch != null) ? txtSearch.getText().trim().toLowerCase() : "";
 
         // Bước 1: Lọc dữ liệu bằng Stream
-        List<Auction> filteredList = originalAuctions.stream()
-                .filter(auction -> {
-                    // 1.1 Lọc theo từ khóa Tìm kiếm (Khớp tên sản phẩm )
-                    String title = auction.getItem().getTitle().toLowerCase();
-                    return title.contains(searchKeyword);
-                })
-                .filter(auction -> {
-                    // 1.2 Lọc theo Danh mục sản phẩm (Category)
-                    if ("TẤT CẢ".equals(selectedCategory)) return true;
-                    return selectedCategory.equalsIgnoreCase(auction.getItem().getCategory());
-                })
-                .collect(Collectors.toList());
+        List<Auction> filteredList = originalAuctions.stream().filter(auction -> {
+            // 1.1 Lọc theo từ khóa Tìm kiếm (Khớp tên sản phẩm )
+            String title = auction.getItem().getTitle().toLowerCase();
+            return title.contains(searchKeyword);
+        }).filter(auction -> {
+            // 1.2 Lọc theo Danh mục sản phẩm (Category)
+            if ("TẤT CẢ".equals(selectedCategory))
+                return true;
+            return selectedCategory.equalsIgnoreCase(auction.getItem().getCategory());
+        }).collect(Collectors.toList());
 
         // Bước 2: Sắp xếp dữ liệu (Sorting)
         switch (selectedSortOrder) {
@@ -104,6 +118,7 @@ public class LiveAuctionController extends BaseController
         // Bước 3: Đổ dữ liệu đã lọc sạch ra màn hình
         renderAuctionsToUI(filteredList);
     }
+
     // HÀM VẼ THẺ CARD LÊN GIAO DIỆN HÌNH THỂ
     // =========================================================================
     private void renderAuctionsToUI(List<Auction> auctions) {
@@ -117,7 +132,8 @@ public class LiveAuctionController extends BaseController
 
         for (Auction auction : auctions) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/client/Itemcard.fxml"));
+                FXMLLoader loader = new FXMLLoader(
+                        getClass().getResource("/com/nhomX/example/fxml/client/Itemcard.fxml"));
                 VBox cardItem = loader.load();
 
                 ItemCardController cardController = loader.getController();
@@ -127,10 +143,11 @@ public class LiveAuctionController extends BaseController
                 activeAuctionCards.put(auction.getId(), cardController);
                 liveAuctionContainer.getChildren().add(cardItem);
             } catch (IOException e) {
-                System.err.println("Không thể load giao diện thẻ sản phẩm: " + e.getMessage());
+                logger.error("Không thể load giao diện thẻ sản phẩm", e);
             }
         }
     }
+
     // XỬ LÝ SỰ KIỆN CHỌN DANH MỤC (CATEGORY MOUSE POPUP)
     // =========================================================================
     @FXML
@@ -145,15 +162,19 @@ public class LiveAuctionController extends BaseController
             MenuItem item = new MenuItem(cat);
             item.setOnAction(e -> {
                 this.selectedCategory = cat.toUpperCase();
-                btn.setText("🛒 " + cat); // Đổi text trên nút để báo hiệu cho người dùng biết họ đang chọn gì
-                applyCompoundFilter();     // Chạy lại bộ lọc
+                btn.setText("🛒 " + cat); // Đổi text trên nút để báo hiệu cho người dùng biết họ
+                                          // đang chọn gì
+                applyCompoundFilter(); // Chạy lại bộ lọc
             });
             categoryMenu.getItems().add(item);
         }
 
         // Hiển thị menu ngay dưới chân nút bấm
-        categoryMenu.show(btn, btn.getScene().getWindow().getX() + btn.localToScene(btn.getBoundsInLocal()).getMinX(),
-                btn.getScene().getWindow().getY() + btn.localToScene(btn.getBoundsInLocal()).getMaxY() + 30);
+        categoryMenu.show(btn,
+                btn.getScene().getWindow().getX()
+                        + btn.localToScene(btn.getBoundsInLocal()).getMinX(),
+                btn.getScene().getWindow().getY()
+                        + btn.localToScene(btn.getBoundsInLocal()).getMaxY() + 30);
     }
 
     // XỬ LÝ SỰ KIỆN CHỌN BỘ LỌC SẮP XẾP (FILTER MOUSE POPUP)
@@ -163,20 +184,39 @@ public class LiveAuctionController extends BaseController
         ContextMenu filterMenu = new ContextMenu();
 
         MenuItem m1 = new MenuItem("Mặc định");
-        m1.setOnAction(e -> { this.selectedSortOrder = "MẶC ĐỊNH"; btn.setText("⏳ Mặc định"); applyCompoundFilter(); });
+        m1.setOnAction(e -> {
+            this.selectedSortOrder = "MẶC ĐỊNH";
+            btn.setText("⏳ Mặc định");
+            applyCompoundFilter();
+        });
 
         MenuItem m2 = new MenuItem("Giá: Thấp đến Cao");
-        m2.setOnAction(e -> { this.selectedSortOrder = "GIÁ_TĂNG"; btn.setText("📉 Giá tăng dần"); applyCompoundFilter(); });
+        m2.setOnAction(e -> {
+            this.selectedSortOrder = "GIÁ_TĂNG";
+            btn.setText("📉 Giá tăng dần");
+            applyCompoundFilter();
+        });
 
         MenuItem m3 = new MenuItem("Giá: Cao đến Thấp");
-        m3.setOnAction(e -> { this.selectedSortOrder = "GIÁ_GIẢM"; btn.setText("📈 Giá giảm dần"); applyCompoundFilter(); });
+        m3.setOnAction(e -> {
+            this.selectedSortOrder = "GIÁ_GIẢM";
+            btn.setText("📈 Giá giảm dần");
+            applyCompoundFilter();
+        });
 
         MenuItem m4 = new MenuItem("Thời gian: Sắp kết thúc");
-        m4.setOnAction(e -> { this.selectedSortOrder = "SẮP_HẾT_GIỜ"; btn.setText("⏱ Sắp hết hạn"); applyCompoundFilter(); });
+        m4.setOnAction(e -> {
+            this.selectedSortOrder = "SẮP_HẾT_GIỜ";
+            btn.setText("⏱ Sắp hết hạn");
+            applyCompoundFilter();
+        });
 
         filterMenu.getItems().addAll(m1, m2, m3, m4);
-        filterMenu.show(btn, btn.getScene().getWindow().getX() + btn.localToScene(btn.getBoundsInLocal()).getMinX(),
-                btn.getScene().getWindow().getY() + btn.localToScene(btn.getBoundsInLocal()).getMaxY() + 30);
+        filterMenu.show(btn,
+                btn.getScene().getWindow().getX()
+                        + btn.localToScene(btn.getBoundsInLocal()).getMinX(),
+                btn.getScene().getWindow().getY()
+                        + btn.localToScene(btn.getBoundsInLocal()).getMaxY() + 30);
     }
 
     @Override
@@ -186,9 +226,7 @@ public class LiveAuctionController extends BaseController
             liveAuctionContainer.getChildren().clear();
             activeAuctionCards.clear();
             originalAuctions.clear();
-            originalAuctions.addAll(
-                    AuctionManager.getInstance().getActiveAuctions()
-            );
+            originalAuctions.addAll(AuctionManager.getInstance().getActiveAuctions());
             // Vẽ bằng bộ lọc
             applyCompoundFilter();
         });
@@ -198,7 +236,8 @@ public class LiveAuctionController extends BaseController
     public void onHighestBidUpdated(String itemId, long newPrice, String bidderName) {
         // Nhận tín hiệu giá mới từ Server
         Platform.runLater(() -> {
-            // 1. Cập nhật giá tươi vào kho dữ liệu gốc RAM trước để nhỡ người dùng đang lọc không bị mất giá mới
+            // 1. Cập nhật giá tươi vào kho dữ liệu gốc RAM trước để nhỡ người dùng đang lọc không
+            // bị mất giá mới
             for (Auction a : originalAuctions) {
                 if (a.getId().equals(itemId)) {
                     a.setHighestBid(newPrice);
@@ -216,8 +255,7 @@ public class LiveAuctionController extends BaseController
                 }
                 // Gọi hàm cập nhật giá đơn lẻ trên thẻ đó
                 card.updateRealtimePrice(newPrice, newEndTime);
-                System.out.println(
-                        "LIVE AUCTION: Đã nháy giá mới " + newPrice + " cho món " + itemId);
+                logger.info("LIVE AUCTION: Đã nhảy giá mới {} cho món {}", newPrice, itemId);
             }
         });
     }

@@ -3,8 +3,11 @@ package com.nhomX.example.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Auction extends Entity {
+    private static final Logger logger = LoggerFactory.getLogger(Auction.class);
     // Tham chiếu đến món đồ đang được đấu giá
     private Items item;
     // Thời điểm bắt đâu đấu giá:
@@ -35,38 +38,39 @@ public class Auction extends Entity {
         super();
         // Mặc định khi mới tạo
         this.status = AuctionStatus.PENDING;
-        this.observers= new ArrayList<>();
+        this.observers = new ArrayList<>();
     }
 
     // 2. Hàm tạo đầy đủ tham số
-    public Auction(String id, Items item, LocalDateTime startTime, LocalDateTime endTime, long startingPrice) {
+    public Auction(String id, Items item, LocalDateTime startTime, LocalDateTime endTime,
+            long startingPrice) {
         super(id);
         this.item = item;
-        this.startTime=startTime;
+        this.startTime = startTime;
         this.endTime = endTime;
         this.setStartingPrice(startingPrice);
         this.highestBid = startingPrice;
         this.status = AuctionStatus.PENDING;
-        this.observers= new ArrayList<>();
+        this.observers = new ArrayList<>();
     }
 
     // OBSERVER PATTERN
 
-    //Đăng ký một observer (client muốn nhận thông báo khi có bid mới).
+    // Đăng ký một observer (client muốn nhận thông báo khi có bid mới).
     public void addObserver(AuctionObserver observer) {
         if (!observers.contains(observer)) {
             observers.add(observer);
         }
     }
 
-    //Hủy đăng ký observer (client rời khỏi phòng đấu giá).
+    // Hủy đăng ký observer (client rời khỏi phòng đấu giá).
     public void removeObserver(AuctionObserver observer) {
         observers.remove(observer);
     }
 
     /**
-     * Thông báo toàn bộ observer khi có bid mới.
-     * Được gọi sau mỗi lần cập nhật highestBid thành công.
+     * Thông báo toàn bộ observer khi có bid mới. Được gọi sau mỗi lần cập nhật highestBid thành
+     * công.
      */
     public void notifyObservers(BidTransaction newBid) {
         for (AuctionObserver observer : observers) {
@@ -93,26 +97,29 @@ public class Auction extends Entity {
     }
 
     /**
-     * Hàm gia hạn thời gian (Dùng cho tính năng Anti-sniping).
-     * Ví dụ: Nếu có người đặt giá ở 30 giây cuối, cộng thêm 60 giây.
+     * Hàm gia hạn thời gian (Dùng cho tính năng Anti-sniping). Ví dụ: Nếu có người đặt giá ở 30
+     * giây cuối, cộng thêm 60 giây.
      */
     public void extendTime(int seconds) {
         this.endTime = this.endTime.plusSeconds(seconds);
         // Thông báo observers rằng thời gian đã thay đổi
         notifyObservers(null);
     }
+
     /**
-     * [THÊM MỚI] Kiểm tra và tự động gia hạn nếu bid xảy ra trong ngưỡng anti-snipe.
-     * Được gọi từ AuctionService sau khi xác nhận bid hợp lệ.
+     * [THÊM MỚI] Kiểm tra và tự động gia hạn nếu bid xảy ra trong ngưỡng anti-snipe. Được gọi từ
+     * AuctionService sau khi xác nhận bid hợp lệ.
      */
     public void applyAntiSnipe() {
-        long secondsRemaining = java.time.Duration.between(LocalDateTime.now(), endTime).getSeconds();
+        long secondsRemaining =
+                java.time.Duration.between(LocalDateTime.now(), endTime).getSeconds();
         if (secondsRemaining > 0 && secondsRemaining <= ANTI_SNIPE_THRESHOLD_SECONDS) {
             extendTime(ANTI_SNIPE_EXTENSION_SECONDS);
-            System.out.println("⏱ Anti-snipe: Gia hạn thêm " + ANTI_SNIPE_EXTENSION_SECONDS
-                    + "s cho phiên " + this.getId());
+            logger.info("⏱️ Anti-snipe: Gia hạn thêm {}s cho phiên {}",
+                    ANTI_SNIPE_EXTENSION_SECONDS, this.getId());
         }
     }
+
     /**
      * Chốt phiên đấu giá và cập nhật trạng thái thành FINISHED.
      */
@@ -123,15 +130,17 @@ public class Auction extends Entity {
             this.status = AuctionStatus.CANCELED; // Không có ai mua
         }
     }
+
     // Kiểm tra trạng thái đóng:
     public boolean isClosed() {
-        return this.status == AuctionStatus.FINISHED
-                || this.status == AuctionStatus.CANCELED
+        return this.status == AuctionStatus.FINISHED || this.status == AuctionStatus.CANCELED
                 || this.status == AuctionStatus.PAID;
     }
+
     // Kiểm tra điều kiện để chốt:
     public void determineWinner() {
-        if (isExpired() && (this.status == AuctionStatus.RUNNING || this.status == AuctionStatus.OPEN)) {
+        if (isExpired()
+                && (this.status == AuctionStatus.RUNNING || this.status == AuctionStatus.OPEN)) {
             // winner đã được set qua các lần placeBid — chỉ cần chốt
             closeAuction();
         }
@@ -141,24 +150,34 @@ public class Auction extends Entity {
     public Items getItem() {
         return item;
     }
+
     public void setItem(Items item) {
         this.item = item;
     }
 
     public LocalDateTime getEndTime() {
-        return endTime; }
+        return endTime;
+    }
+
     public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime; }
+        this.endTime = endTime;
+    }
 
     public AuctionStatus getStatus() {
-        return status; }
+        return status;
+    }
+
     public void setStatus(AuctionStatus status) {
-        this.status = status; }
+        this.status = status;
+    }
 
     public RegularUser getWinner() {
-        return winner; }
+        return winner;
+    }
+
     public void setWinner(RegularUser winner) {
-        this.winner = winner; }
+        this.winner = winner;
+    }
 
     public void setApprovedBy(String approvedBy) {
         this.approvedBy = approvedBy;
@@ -173,9 +192,8 @@ public class Auction extends Entity {
     }
 
     /**
-     * Cập nhật giá cao nhất mới.
-     * Lưu ý: Việc kiểm tra giá mới > giá cũ nên được thực hiện ở tầng Service/Repository
-     * để đảm bảo tính nhất quán dữ liệu trước khi set vào đây.
+     * Cập nhật giá cao nhất mới. Lưu ý: Việc kiểm tra giá mới > giá cũ nên được thực hiện ở tầng
+     * Service/Repository để đảm bảo tính nhất quán dữ liệu trước khi set vào đây.
      */
     public void setHighestBid(long highestBid) {
         this.highestBid = highestBid;

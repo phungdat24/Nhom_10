@@ -1,11 +1,17 @@
 package com.nhomX.example.controller.admin;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.CurrencyFormatter;
 import com.nhomX.example.utils.ImageLoader;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -15,26 +21,32 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 
-import java.util.List;
-
 
 public class AdminPendingProductCardController {
+    private static final Logger logger =
+            LoggerFactory.getLogger(AdminPendingProductCardController.class);
     // 1. ÁNH XẠ CÁC THÀNH PHẦN GIAO DIỆN TỪ FXML
-    @FXML private ImageView imgProduct;
-    @FXML private Label lblProductName;
-    @FXML private Label lblSellerName;
-    @FXML private Label lblPriceValue;
+    @FXML
+    private ImageView imgProduct;
+    @FXML
+    private Label lblProductName;
+    @FXML
+    private Label lblSellerName;
+    @FXML
+    private Label lblPriceValue;
 
-    @FXML private Button    btnApprove;
-    @FXML private Button btnReject;
+    @FXML
+    private Button btnApprove;
+    @FXML
+    private Button btnReject;
 
     // 2. BIẾN LƯU TRỮ TRẠNG THÁI (STATE)
     // Lưu lại toàn bộ dữ liệu của phiên đấu giá này để dùng khi bấm nút Duyệt/Từ chối
     private Auction currentAuction;
 
     /**
-     * HÀM BƠM DỮ LIỆU (DATA BINDING)
-     * Hàm này sẽ được AdminProductManagementController gọi khi dùng vòng lặp tạo thẻ.
+     * HÀM BƠM DỮ LIỆU (DATA BINDING) Hàm này sẽ được AdminProductManagementController gọi khi dùng
+     * vòng lặp tạo thẻ.
      */
     public void setData(Auction auction) {
         this.currentAuction = auction;
@@ -65,9 +77,10 @@ public class AdminPendingProductCardController {
      */
     @FXML
     public void handleRejected(ActionEvent event) {
-        if (currentAuction == null) return;
+        if (currentAuction == null)
+            return;
 
-        System.out.println("ADMIN: Đang gửi lệnh TỪ CHỐI sản phẩm " + currentAuction.getId());
+        logger.info("ADMIN: Đang gửi lệnh TỪ CHỐI sản phẩm {}", currentAuction.getId());
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client != null) {
             // Gọi hàm rejectAuction mà ta đã thiết kế ở Networking
@@ -80,23 +93,27 @@ public class AdminPendingProductCardController {
      */
     @FXML
     public void handleApproved(ActionEvent event) {
-        if (currentAuction == null) return;
+        if (currentAuction == null)
+            return;
 
-        System.out.println("ADMIN: Đang gửi lệnh DUYỆT sản phẩm " + currentAuction.getId());
+        logger.info("ADMIN: Đang gửi lệnh DUYỆT sản phẩm {}", currentAuction.getId());
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
         if (client != null) {
             // Gọi hàm approveAuction mà ta đã thiết kế ở Networking
             client.approveAuction(currentAuction.getId());
         }
     }
+
     @FXML
     private void handleViewDetail(MouseEvent mouseEvent) {
-        if (currentAuction == null) return;
+        if (currentAuction == null)
+            return;
 
         try {
             // 1. Nạp file giao diện chi tiết kiểm duyệt
             // (Lưu ý: Sửa lại đường dẫn file FXML cho khớp với project của em nếu cần)
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/nhomX/example/fxml/admin/AdminItemDetail.fxml"));
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/nhomX/example/fxml/admin/AdminItemDetail.fxml"));
             Parent root = loader.load();
 
             // 2. Lấy Controller và truyền dữ liệu
@@ -106,14 +123,15 @@ public class AdminPendingProductCardController {
             // 3. Gọi Quản gia đổi khung hình trung tâm
             if (AdminLayoutController.instance != null) {
                 // Sử dụng cơ chế View Caching ta đã làm để cất trang danh sách đi
-                AdminLayoutController.instance.saveCurrentViewAndNavigate(root, "Chi tiết kiểm duyệt");
+                AdminLayoutController.instance.saveCurrentViewAndNavigate(root,
+                        "Chi tiết kiểm duyệt");
             } else {
-                System.err.println("Lỗi: Không tìm thấy AdminLayoutController!");
+                logger.error("Không tìm thấy AdminLayoutController");
             }
 
         } catch (java.io.IOException e) {
-            System.err.println("❌ Lỗi chuyển hướng trang chi tiết kiểm duyệt: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Lỗi chuyển hướng trang chi tiết kiểm duyệt", e);
+
         }
     }
 }

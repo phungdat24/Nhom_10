@@ -3,13 +3,16 @@ package com.nhomX.example.model;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RegularUser extends User {
+    private static final Logger logger = LoggerFactory.getLogger(RegularUser.class);
     // Thuộc tính cực kỳ quan trọng: Tập hợp các quyền của người dùng này
     // Dùng Set thay vì List để đảm bảo 1 người không bị add 2 quyền SELLER trùng nhau
     private Set<Role> roles;
 
-    //  Hàm tạo rỗng (Rất quan trọng để không bị lỗi NullPointerException)
+    // Hàm tạo rỗng (Rất quan trọng để không bị lỗi NullPointerException)
     public RegularUser() {
         // Gọi hàm tạo của lớp cha User
         super();
@@ -18,7 +21,8 @@ public class RegularUser extends User {
     }
 
     // 2. Hàm tạo có tham số (Dùng khi lấy từ Database lên)
-    public RegularUser(String id, String userName, String passwordHash, String fullName, long balance) {
+    public RegularUser(String id, String userName, String passwordHash, String fullName,
+            long balance) {
         super(id, userName, passwordHash, fullName, balance);
         this.roles = new HashSet<>();
     }
@@ -39,8 +43,8 @@ public class RegularUser extends User {
     }
 
     /**
-     * HÀM QUAN TRỌNG NHẤT: Kiểm tra User có quyền thực hiện hành động không
-     * Trả về true nếu có quyền, false nếu không.
+     * HÀM QUAN TRỌNG NHẤT: Kiểm tra User có quyền thực hiện hành động không Trả về true nếu có
+     * quyền, false nếu không.
      */
     public boolean hasRole(Role role) {
         return this.roles.contains(role);
@@ -54,9 +58,7 @@ public class RegularUser extends User {
             return "GUEST";
         }
         // Dùng Java 8 Stream để nối các quyền lại thành 1 chuỗi String có dấu phẩy
-        return roles.stream()
-                .map(Enum::name)
-                .collect(Collectors.joining(", "));
+        return roles.stream().map(Enum::name).collect(Collectors.joining(", "));
     }
 
     public void setRoles(Set<Role> roles) {
@@ -74,7 +76,8 @@ public class RegularUser extends User {
     public BidTransaction placeBid(Auction auction, long amount) {
         // Kiểm tra quyền (Bảo mật 2 lớp)
         if (!this.hasRole(Role.BIDDER)) {
-            throw new IllegalStateException("Tài khoản của bạn chưa được cấp quyền tham gia đấu giá!");
+            throw new IllegalStateException(
+                    "Tài khoản của bạn chưa được cấp quyền tham gia đấu giá!");
         }
         if (!auction.canAcceptBids()) {
             throw new IllegalStateException("Phiên đấu giá này đã đóng hoặc chưa bắt đầu!");
@@ -87,16 +90,17 @@ public class RegularUser extends User {
         BidTransaction newBid = new BidTransaction();
         newBid.generateId(); // Hàm từ Entity
         newBid.setAmount(amount);
-        newBid.setBidder(this);   // Tham chiếu Object: Người đặt là TÔI
+        newBid.setBidder(this); // Tham chiếu Object: Người đặt là TÔI
         newBid.setAuction(auction); // Tham chiếu Object: Đặt vào phiên này
         newBid.setBidTime(java.time.LocalDateTime.now());
 
         return newBid;
     }
+
     /**
-     * Thiết lập cấu hình đấu giá tự động (Auto Bid).
-     * Chỉ thực hiện được nếu user có quyền BIDDER và phiên đấu giá đang mở.
-     * * @param auction Phiên đấu giá muốn thiết lập Auto-bid
+     * Thiết lập cấu hình đấu giá tự động (Auto Bid). Chỉ thực hiện được nếu user có quyền BIDDER và
+     * phiên đấu giá đang mở. * @param auction Phiên đấu giá muốn thiết lập Auto-bid
+     * 
      * @param maxLimit Giới hạn giá cao nhất sẵn sàng trả
      * @param increment Bước giá tự động cộng thêm mỗi lần
      * @return Đối tượng cấu hình AutoBidConfig đã được tạo
@@ -104,7 +108,8 @@ public class RegularUser extends User {
     public AutoBidConfig setupAutoBid(Auction auction, long maxLimit, long increment) {
         // 1. Kiểm tra quyền của người dùng (Giống hệt lúc placeBid)
         if (!this.hasRole(Role.BIDDER)) {
-            throw new IllegalStateException("Tài khoản của bạn chưa được cấp quyền tham gia đấu giá!");
+            throw new IllegalStateException(
+                    "Tài khoản của bạn chưa được cấp quyền tham gia đấu giá!");
         }
 
         // 2. Kiểm tra xem phiên đấu giá còn nhận đặt giá không
@@ -120,11 +125,11 @@ public class RegularUser extends User {
         AutoBidConfig config = new AutoBidConfig();
         config.generateId(); // Sinh ID ngẫu nhiên từ Entity
         config.setAuction(auction); // Tham chiếu đến phiên đấu giá
-        config.setBidder(this);     // Tham chiếu đến chính người dùng này (TÔI)
+        config.setBidder(this); // Tham chiếu đến chính người dùng này (TÔI)
         config.setMaxLimit(maxLimit);
         config.setIncrement(increment);
-
-        System.out.println("Đã cài đặt Auto-Bid cho " + this.getUserName() + " với ngưỡng tối đa: " + maxLimit);
+        logger.info("Đã cài đặt Auto-Bid cho {} với ngưỡng tối đa: {}", this.getUserName(),
+                maxLimit);
 
         return config;
     }
@@ -134,7 +139,8 @@ public class RegularUser extends User {
      */
     public void addProduct(Items item) {
         if (!this.hasRole(Role.SELLER)) {
-            throw new IllegalStateException("Tài khoản của bạn chưa được cấp quyền đăng bán sản phẩm!");
+            throw new IllegalStateException(
+                    "Tài khoản của bạn chưa được cấp quyền đăng bán sản phẩm!");
         }
         // Gán tôi làm chủ nhân của món đồ này
         item.setSeller(this);
@@ -152,10 +158,12 @@ public class RegularUser extends User {
             // 2. Nếu đúng là chủ, mới gọi hàm logic nội bộ của Auction để thực hiện chốt
             auction.closeAuction();
 
-            System.out.println("Người bán " + this.getUserName() + " đã chủ động kết thúc phiên: " + auction.getId());
+            logger.info("Người bán {} đã chủ động kết thúc phiên: {}", this.getUserName(),
+                    auction.getId());
         } else {
             // 3. Nếu kẻ lạ định đóng phiên, ném ra lỗi bảo mật
-            throw new IllegalStateException("Lỗi bảo mật: Bạn không có quyền kết thúc phiên đấu giá không phải của mình!");
+            throw new IllegalStateException(
+                    "Lỗi bảo mật: Bạn không có quyền kết thúc phiên đấu giá không phải của mình!");
         }
     }
 }

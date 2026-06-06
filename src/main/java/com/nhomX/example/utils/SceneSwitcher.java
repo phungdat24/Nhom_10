@@ -1,6 +1,12 @@
 package com.nhomX.example.utils;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.controller.client.MainDashBoardController;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -8,13 +14,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class SceneSwitcher {
+    private static final Logger logger = LoggerFactory.getLogger(SceneSwitcher.class);
 
     public static Stage mainStage;
 
-    public static void switchScene(ActionEvent event, String fxmlPath){
+    public static void switchScene(ActionEvent event, String fxmlPath) {
         try {
             // 1. Tải phần giao diện mới (.fxml)
             Parent newRoot = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
@@ -25,13 +30,13 @@ public class SceneSwitcher {
             // 3. Thay lõi (root) của Scene hiện tại bằng giao diện mới
             currentScene.setRoot(newRoot);
 
-        } catch (IOException e){
-            System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
-            e.printStackTrace();
+        } catch (IOException e) {
+            logger.error("Không tìm thấy file giao diện: {}", fxmlPath, e);
+
         }
     }
 
-    public static void switchScene(String fxmlPath){
+    public static void switchScene(String fxmlPath) {
         try {
             // 1. Tải phần giao diện mới (.fxml)
             Parent newRoot = FXMLLoader.load(SceneSwitcher.class.getResource(fxmlPath));
@@ -45,9 +50,8 @@ public class SceneSwitcher {
                 mainStage.show();
             }
 
-        } catch (IOException e){
-            System.out.println("Lỗi không tìm thấy file giao diện: " + fxmlPath);
-            e.printStackTrace();
+        } catch (IOException e) {
+            logger.error("Không tìm thấy file giao diện: {}", fxmlPath, e);
         }
     }
 
@@ -58,9 +62,10 @@ public class SceneSwitcher {
         if (MainDashBoardController.instance != null) {
             MainDashBoardController.instance.loadView(fxmlPath);
         } else {
-            System.err.println("Lỗi: MainController chưa được khởi tạo!");
+            logger.error("MainController chưa được khởi tạo");
         }
     }
+
     public static void switchSceneInline(Node activeNode, String fxmlPath) {
         try {
             // 1. Tải file FXML mới
@@ -76,8 +81,7 @@ public class SceneSwitcher {
             currentStage.centerOnScreen(); // Căn giữa màn hình
 
         } catch (IOException e) {
-            System.err.println("❌ Lỗi nghiêm trọng: Không thể chuyển cảnh sang " + fxmlPath);
-            e.printStackTrace();
+            logger.error("Không thể chuyển cảnh sang {}", fxmlPath, e);
         }
     }
 }

@@ -1,5 +1,9 @@
 package com.nhomX.example.controller.shared;
 
+import java.net.URL;
+import java.util.ResourceBundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
@@ -20,10 +24,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
-public class OTPContentController implements Initializable , ServerEventListener {
+public class OTPContentController implements Initializable, ServerEventListener {
+    private static final Logger logger = LoggerFactory.getLogger(OTPContentController.class);
     // Khai báo 6 ô nhập OTP
     @FXML
     private TextField otp1;
@@ -38,7 +40,7 @@ public class OTPContentController implements Initializable , ServerEventListener
     @FXML
     private TextField otp6;
     @FXML
-    private Label lblResendTimer;   // Thêm một Label cạnh nút gửi lại để hiện: (60s)
+    private Label lblResendTimer; // Thêm một Label cạnh nút gửi lại để hiện: (60s)
     @FXML
     private Hyperlink btnResend;
     @FXML
@@ -54,11 +56,11 @@ public class OTPContentController implements Initializable , ServerEventListener
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Gom các ô vào mảng theo đúng thứ tự
-        otpFields = new TextField[]{otp1, otp2, otp3, otp4, otp5, otp6};
+        otpFields = new TextField[] {otp1, otp2, otp3, otp4, otp5, otp6};
 
         setupOtpInputLogic();
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        if(client != null ){
+        if (client != null) {
             client.setServerEventListener(this);
         }
         startResendCountdown();
@@ -72,6 +74,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             }
         }
     }
+
     // Thêm hàm dọn dẹp chuyên nghiệp (Garbage Collection Helper)
     private void cleanup() {
         if (countdownTimeline != null) {
@@ -82,6 +85,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             client.setServerEventListener(null); // Trả lại micro
         }
     }
+
     /**
      * Kích hoạt đồng hồ đếm ngược khóa nút gửi lại mã
      */
@@ -99,7 +103,7 @@ public class OTPContentController implements Initializable , ServerEventListener
         lblResendTimer.setVisible(true);
         lblResendTimer.setManaged(true);
         lblResendTimer.setStyle("-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 12px;");
-        timeLeftSeconds = 60;       // Đặt lại thời gian chờ
+        timeLeftSeconds = 60; // Đặt lại thời gian chờ
 
         countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
             timeLeftSeconds--;
@@ -109,10 +113,12 @@ public class OTPContentController implements Initializable , ServerEventListener
                 if (timeLeftSeconds <= 10) {
                     if (timeLeftSeconds % 2 == 0) {
                         // Giây chẵn: Đổi sang màu đỏ, in đậm
-                        lblResendTimer.setStyle("-fx-text-fill: #ff4444; -fx-font-size: 12px; -fx-font-weight: bold;");
+                        lblResendTimer.setStyle(
+                                "-fx-text-fill: #ff4444; -fx-font-size: 12px; -fx-font-weight: bold;");
                     } else {
                         // Giây lẻ: Trả về màu mờ mặc định để tạo cảm giác chớp nháy
-                        lblResendTimer.setStyle("-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 12px;");
+                        lblResendTimer.setStyle(
+                                "-fx-text-fill: rgba(255,220,160,0.50); -fx-font-size: 12px;");
                     }
                 }
             } else {
@@ -178,8 +184,8 @@ public class OTPContentController implements Initializable , ServerEventListener
     @FXML
     private void handleConfirmOtp(ActionEvent event) {
         // Nối chuỗi từ 6 ô lại với nhau
-        String otpCode = otp1.getText() + otp2.getText() + otp3.getText() +
-                otp4.getText() + otp5.getText() + otp6.getText();
+        String otpCode = otp1.getText() + otp2.getText() + otp3.getText() + otp4.getText()
+                + otp5.getText() + otp6.getText();
 
         // Kiểm tra xem đã nhập đủ 6 số chưa
         if (otpCode.length() < 6) {
@@ -204,10 +210,10 @@ public class OTPContentController implements Initializable , ServerEventListener
 
             // Phân luồng: Nếu em set cờ là FORGOT_PASSWORD thì bắn gói tin khác
             if ("FORGOT_PASSWORD".equals(activeFlow)) {
-                System.out.println("CLIENT: Gửi xác thực OTP QUÊN MẬT KHẨU...");
+                logger.info("CLIENT: Gửi xác thực OTP QUÊN MẬT KHẨU...");
                 client.sendToServer(new Message("VERIFY_FORGOT_PW_OTP", payload));
             } else {
-                System.out.println("CLIENT: Gửi xác thực OTP ĐĂNG KÝ...");
+                logger.info("CLIENT: Gửi xác thực OTP ĐĂNG KÝ...");
                 client.sendToServer(new Message("VERIFY_REGISTER_OTP", payload));
             }
         } else {
@@ -233,7 +239,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             String targetEmail = SessionManager.getInstance().getTempEmail();
             String activeFlow = SessionManager.getInstance().getCurrentFlow();
             String[] payload = {targetEmail, activeFlow};
-            System.out.println("CLIENT: Yêu cầu gửi lại mã OTP lên Server...");
+            logger.info("CLIENT: Yêu cầu gửi lại mã OTP lên Server...");
 
             // [FIX BUG 1]: PHẢI CÓ LỆNH NÀY THÌ SERVER MỚI NHẬN ĐƯỢC YÊU CẦU!
             client.sendToServer(new Message("RESEND_OTP", payload));
@@ -242,6 +248,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             startResendCountdown();
         }
     }
+
     @FXML
     private void handleBack(ActionEvent event) {
         cleanup(); // Chống tràn RAM khi bấm nút Back
@@ -257,6 +264,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/RegisterView.fxml");
         }
     }
+
     // Lắng nghe kết quả từ Server trả về
     @Override
     public void onRegisterResult(boolean isSuccess, String message) {
@@ -265,7 +273,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             btnConfirm.setDisable(false); // Mở khóa nút bấm
 
             if (isSuccess) {
-                cleanup(); //Chống tràn RAM khi đky thành công
+                cleanup(); // Chống tràn RAM khi đky thành công
                 AlertUtils.showSuccess("Thành công", message);
                 // Chuyển thẳng về trang Đăng nhập sau khi OTP đúng
                 SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/login.fxml");
@@ -275,6 +283,7 @@ public class OTPContentController implements Initializable , ServerEventListener
             }
         });
     }
+
     // LUỒNG 2: XỬ LÝ KẾT QUẢ QUÊN MẬT KHẨU
     @Override
     public void onForgotPasswordResult(boolean isSuccess, String message) {
@@ -292,15 +301,19 @@ public class OTPContentController implements Initializable , ServerEventListener
             }
         });
     }
+
     // Hàm phụ trợ che giấu Email (VD: nguyenvanban@gmail.com -> ngu***@gmail.com)
     private String maskEmail(String email) {
-        if (!email.contains("@")) return email;
+        if (!email.contains("@"))
+            return email;
         String[] parts = email.split("@");
         String name = parts[0];
         String domain = parts[1];
-        if (name.length() <= 3) return name + "***@" + domain;
+        if (name.length() <= 3)
+            return name + "***@" + domain;
         return name.substring(0, 3) + "***@" + domain;
     }
+
     // Hàm phụ trợ chuyên dọn dẹp các ô OTP khi nhập sai (Clean Code)
     private void clearOtpFieldsForRetry() {
         for (TextField field : otpFields) {

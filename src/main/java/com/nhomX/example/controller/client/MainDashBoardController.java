@@ -5,9 +5,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.utils.SceneSwitcher;
+
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -27,6 +31,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 public class MainDashBoardController extends BaseController implements Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(MainDashBoardController.class);
 
     // ===== Sidebar =====
     @FXML
@@ -185,10 +190,10 @@ public class MainDashBoardController extends BaseController implements Initializ
             mainContentArea.getChildren().clear();
             mainContentArea.getChildren().add(newNode);
         } catch (java.io.IOException e) {
-            e.printStackTrace();
-            System.err.println("Lỗi không thể tải trang con: " + fxmlPath);
+            logger.error("Không thể tải trang con: {}", fxmlPath, e);
         }
     }
+
     @FXML
     public void toggleWalletPanel(MouseEvent mouseEvent) {
         isWalletOpen = !isWalletOpen;
@@ -204,6 +209,7 @@ public class MainDashBoardController extends BaseController implements Initializ
             walletArrowIcon.setRotate(0);
         }
     }
+
     // ===== CƠ CHẾ REAL-TIME CẬP NHẬT SỐ DƯ =====
     // Hàm này có thể gọi từ BẤT KỲ ĐÂU (VD: AuctionClient, DepositController)
     public void updateBalanceGlobally() {
@@ -212,11 +218,14 @@ public class MainDashBoardController extends BaseController implements Initializ
 
             // BẮT BUỘC dùng Platform.runLater vì hàm này có thể bị gọi từ luồng Socket (Thread con)
             Platform.runLater(() -> {
-                // Giả định em đã có CurrencyFormatter. Nếu chưa, dùng String.format("%,d đ", currentBalance)
-                lblCurrentBalance.setText(com.nhomX.example.utils.CurrencyFormatter.formatVND(currentBalance));
+                // Giả định em đã có CurrencyFormatter. Nếu chưa, dùng String.format("%,d đ",
+                // currentBalance)
+                lblCurrentBalance.setText(
+                        com.nhomX.example.utils.CurrencyFormatter.formatVND(currentBalance));
             });
         }
     }
+
     // ===== LOGIC HIỂN THỊ DỰA TRÊN TRẠNG THÁI LOGIN =====
     public void checkUserLoginStatus() {
         if (SessionManager.getInstance().isLoggedIn()) {
@@ -226,7 +235,8 @@ public class MainDashBoardController extends BaseController implements Initializ
 
             // Nạp tên người dùng
             var currentUser = SessionManager.getInstance().getCurrentUser();
-            String displayName = currentUser.getFullName() != null ? currentUser.getFullName() : currentUser.getUserName();
+            String displayName = currentUser.getFullName() != null ? currentUser.getFullName()
+                    : currentUser.getUserName();
             lblSidebarUserName.setText(displayName);
 
             // Cập nhật số dư lần đầu
@@ -242,13 +252,15 @@ public class MainDashBoardController extends BaseController implements Initializ
             walletPanel.setManaged(false);
         }
     }
+
     /**
      * Cất View hiện tại vào bộ đệm và chuyển sang màn hình Chi tiết mới.
      */
     public void saveCurrentViewAndNavigate(Node newDetailNode) {
         // Kiểm tra xem hiện tại đang có màn hình nào không
         if (!mainContentArea.getChildren().isEmpty()) {
-            previousNode = mainContentArea.getChildren().get(0); // Lưu lại Node gốc (VD: Dashboard, LiveAuction)
+            previousNode = mainContentArea.getChildren().get(0); // Lưu lại Node gốc (VD: Dashboard,
+                                                                 // LiveAuction)
         }
 
         // Gắn Node chi tiết mới vào

@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
 import com.nhomX.example.model.User;
 
 public class AuctionScheduler {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionScheduler.class);
     private static final int CHECK_INTERVAL_SECONDS = 5;
 
     private final ScheduledExecutorService scheduler =
@@ -26,13 +28,12 @@ public class AuctionScheduler {
     }
 
     public void start() {
-        System.out.println("SCHEDULER: Khoi dong, kiem tra "
-                + CHECK_INTERVAL_SECONDS + "s/lan...");
+        logger.info("SCHEDULER: Khởi động, kiểm tra mỗi {} giây.", CHECK_INTERVAL_SECONDS);
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 processAuctionStates();
             } catch (Exception e) {
-                System.err.println("SCHEDULER LOI: " + e.getMessage());
+                logger.error("SCHEDULER LỖI", e);
             }
         }, 0, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
@@ -40,15 +41,14 @@ public class AuctionScheduler {
     private void processAuctionStates() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<Auction> readyAuctions =
-                server.getAuctionRepository().findReadyToOpenAuctions();
+        List<Auction> readyAuctions = server.getAuctionRepository().findReadyToOpenAuctions();
 
         if (readyAuctions != null && !readyAuctions.isEmpty()) {
             for (Auction auction : readyAuctions) {
                 auction.setStatus(AuctionStatus.OPEN);
                 boolean saved = server.getAuctionRepository().updateAuctionStatus(auction);
                 if (saved) {
-                    System.out.println("SCHEDULER: Da mo cua phien " + auction.getId());
+                    logger.info("SCHEDULER: Đã mở phiên {}", auction.getId());
                 }
             }
         }
@@ -77,14 +77,13 @@ public class AuctionScheduler {
                     if (winnerId != null && sellerId != null) {
                         User sellerDb = server.getUserRepository().findById(sellerId);
                         if (sellerDb != null) {
-                            server.sendToUser(sellerId,
-                                    new Message("DEPOSIT_RESULT",
-                                            new Object[] {true, sellerDb.getBalance()}));
+                            server.sendToUser(sellerId, new Message("DEPOSIT_RESULT",
+                                    new Object[] {true, sellerDb.getBalance()}));
                         }
                     }
 
-                    System.out.println("SCHEDULER: Da dong phien " + auction.getId()
-                            + " | Winner: " + (winnerId != null ? winnerId : "Khong co"));
+                    logger.info("SCHEDULER: Đã đóng phiên {} | Winner: {}", auction.getId(),
+                            winnerId != null ? winnerId : "Không có");
                 }
             }
         }
@@ -100,7 +99,7 @@ public class AuctionScheduler {
     public void shutdown() {
         if (!scheduler.isShutdown()) {
             scheduler.shutdown();
-            System.out.println("SCHEDULER: Da tat.");
+            logger.info("SCHEDULER: Đã tắt.");
         }
     }
 }

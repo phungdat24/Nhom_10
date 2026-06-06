@@ -1,18 +1,24 @@
 package com.nhomX.example.model;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Electronics extends Items {
+    private static final Logger logger = LoggerFactory.getLogger(Electronics.class);
     private String brand; // nhãn hàng
     private int warrantyPeriod;
 
-    public Electronics(){
+    public Electronics() {
         super();
     }
 
-    public Electronics(String id, String title,String description, RegularUser seller, String brand,int warrantyPeriod) {
-        super(id, title,description, seller);
+    public Electronics(String id, String title, String description, RegularUser seller,
+            String brand, int warrantyPeriod) {
+        super(id, title, description, seller);
         this.brand = brand;
         this.warrantyPeriod = warrantyPeriod;
     }
+
     @Override
     public String getCategory() {
         return "Electronics";
@@ -20,17 +26,19 @@ public class Electronics extends Items {
 
     @Override
     public void printItemDetails() {
-        System.out.println("--- CHI TIẾT ĐỒ ĐIỆN TỬ ---");
-        System.out.println("Tên SP: " + getTitle());
-        System.out.println("Thương hiệu: " + this.brand);
-        System.out.println("Bảo hành: " + this.warrantyPeriod + " tháng");
+        logger.info("--- CHI TIẾT ĐỒ ĐIỆN TỬ ---");
+        logger.info("Tên SP: {}", getTitle());
+        logger.info("Thương hiệu: {}", this.brand);
+        logger.info("Bảo hành: {} tháng", this.warrantyPeriod);
     }
 
     @Override
     public boolean validate() {
         // Kiểm tra hợp lệ: Tên không được rỗng, giá >= 0 và bảo hành không được âm
-        if (getTitle() == null || getTitle().trim().isEmpty()) return false;
-        if (this.warrantyPeriod < 0) return false;
+        if (getTitle() == null || getTitle().trim().isEmpty())
+            return false;
+        if (this.warrantyPeriod < 0)
+            return false;
         return true;
     }
 

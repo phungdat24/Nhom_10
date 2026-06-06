@@ -1,12 +1,21 @@
 package com.nhomX.example.service;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
-public class GmailServiceImpl implements EmailService{
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class GmailServiceImpl implements EmailService {
+    private static final Logger logger = LoggerFactory.getLogger(GmailServiceImpl.class);
     // Điền Email của em và cái Mật khẩu 16 chữ cái vừa tạo ở Bước 2 vào đây
     private static final String MY_EMAIL = "phungtiendat.it@gmail.com";
     private static final String APP_PASSWORD = "eouk bhen qngk dpjw";
@@ -37,12 +46,14 @@ public class GmailServiceImpl implements EmailService{
                 // 3. Soạn nội dung Bức thư
                 Message message = new MimeMessage(session);
                 message.setFrom(new InternetAddress(MY_EMAIL, "Hệ Thống Đấu Giá Nhóm X", "UTF-8"));
-                message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+                message.setRecipients(Message.RecipientType.TO,
+                        InternetAddress.parse(recipientEmail));
                 message.setSubject("Mã xác thực đăng ký tài khoản (OTP)");
 
                 // Trình bày nội dung đẹp mắt bằng HTML
                 String htmlContent = "<h2 style='color: #c9a227;'>Xin chào,</h2>"
-                        + "<p>Mã xác thực (OTP) của bạn là: <b style='font-size: 24px; color: red;'>" + otpCode + "</b></p>"
+                        + "<p>Mã xác thực (OTP) của bạn là: <b style='font-size: 24px; color: red;'>"
+                        + otpCode + "</b></p>"
                         + "<p>Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.</p>"
                         + "<p>Trân trọng,<br>Ban quản trị Nhom X</p>";
 
@@ -50,10 +61,10 @@ public class GmailServiceImpl implements EmailService{
 
                 // 4. Bấm nút "Gửi"
                 Transport.send(message);
-                System.out.println("✅ Đã gửi OTP " + otpCode + " tới email: " + recipientEmail);
+                logger.info("Đã gửi OTP tới email: {}", recipientEmail);
                 return true;
             } catch (Exception e) {
-                System.err.println("❌ Lỗi khi gửi mail: " + e.getMessage());
+                logger.error("Lỗi khi gửi mail", e);
                 return false;
             }
         });

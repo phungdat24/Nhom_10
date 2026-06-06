@@ -1,5 +1,9 @@
 package com.nhomX.example.controller.shared;
 
+import java.net.URL;
+import java.util.ResourceBundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Admin;
 import com.nhomX.example.model.User;
@@ -17,17 +21,20 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
-public class LoginController implements ServerEventListener , Initializable {
+public class LoginController implements ServerEventListener, Initializable {
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     private AuctionClient auctionClient;
 
-    @FXML private TextField     account;
-    @FXML private PasswordField password;
-    @FXML private TextField passwordVisible;
-    @FXML private Label togglePasswordIcon;
+    @FXML
+    private TextField account;
+    @FXML
+    private PasswordField password;
+    @FXML
+    private TextField passwordVisible;
+    @FXML
+    private Label togglePasswordIcon;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Đồng bộ dữ liệu 2 chiều giữa ô Password và ô TextField
@@ -35,15 +42,16 @@ public class LoginController implements ServerEventListener , Initializable {
             passwordVisible.textProperty().bindBidirectional(password.textProperty());
         }
     }
+
     // Method khi bấm nút Login
     @FXML
-    void login(ActionEvent event){
+    void login(ActionEvent event) {
 
         String email = account.getText();
         String pass = password.getText();
 
         // Kiểm tra xem có trống không
-        if(email.isEmpty() || pass.isEmpty()){
+        if (email.isEmpty() || pass.isEmpty()) {
             AlertUtils.showWarning("Lỗi!", "Vui lòng nhập đầy đủ email và mật khẩu!");
             return;
         }
@@ -54,23 +62,25 @@ public class LoginController implements ServerEventListener , Initializable {
         }
         String securedPass = SecurityUtils.hashPassword(pass);
         String[] loginData = {email, securedPass};
-        Message loginMsg= new Message("LOGIN", loginData);
+        Message loginMsg = new Message("LOGIN", loginData);
 
-        auctionClient= SessionManager.getInstance().getAuctionClient();
-        if(auctionClient != null) {
-            //Dành quyền kết nối
+        auctionClient = SessionManager.getInstance().getAuctionClient();
+        if (auctionClient != null) {
+            // Dành quyền kết nối
             auctionClient.setServerEventListener(this);
 
             auctionClient.sendToServer(loginMsg);
-        }else {
+        } else {
             AlertUtils.showError("Lỗi kết nối", "Hệ thống chưa kết nối đến Server!");
         }
 
     }
+
     @FXML
-    void handleRegister(ActionEvent event){
+    void handleRegister(ActionEvent event) {
         // [REFACTOR 1]: Hủy đăng ký lắng nghe trước khi rời đi để chống Memory Leak
-        if (auctionClient != null) auctionClient.setServerEventListener(null);
+        if (auctionClient != null)
+            auctionClient.setServerEventListener(null);
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/RegisterView.fxml");
     }
 
@@ -81,9 +91,9 @@ public class LoginController implements ServerEventListener , Initializable {
             SessionManager.getInstance().login(userData);
             if (userData instanceof Admin) {
                 // Nếu là Admin -> Mở Không gian Quản trị
-                System.out.println("Đăng nhập quyền ADMIN thành công!");
+                logger.info("Đăng nhập quyền ADMIN thành công!");
                 SceneSwitcher.switchScene("/com/nhomX/example/fxml/admin/AdminLayout.fxml");
-            }else {
+            } else {
                 // 2. Báo cho kết nối mạng biết tên (dùng Email hoặc ID đều được)
                 AuctionClient client = SessionManager.getInstance().getAuctionClient();
                 if (client != null) {
@@ -97,6 +107,7 @@ public class LoginController implements ServerEventListener , Initializable {
             AlertUtils.showError("Đăng nhập thất bại", message);
         }
     }
+
     @FXML
     private void handleForgotPassword(ActionEvent event) {
         if (auctionClient != null) {
@@ -104,13 +115,15 @@ public class LoginController implements ServerEventListener , Initializable {
         }
         SceneSwitcher.switchScene(event, "/com/nhomX/example/fxml/client/ForgotPwEmail.fxml");
     }
+
     @FXML
     public void handleBackToHome() {
-        if (auctionClient != null){
+        if (auctionClient != null) {
             auctionClient.setServerEventListener(null);
         }
         SceneSwitcher.switchScene("/com/nhomX/example/fxml/client/dashboard.fxml");
     }
+
     @FXML
     private void handleTogglePassword() {
         if (password.isVisible()) {
