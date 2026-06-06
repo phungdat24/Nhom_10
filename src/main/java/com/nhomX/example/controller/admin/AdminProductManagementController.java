@@ -6,13 +6,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -122,8 +125,7 @@ public class AdminProductManagementController implements Initializable, ServerEv
             flowPaneContainer.getChildren().add(card);
 
         } catch (IOException e) {
-            System.err.println("Lỗi khi render thẻ sản phẩm chờ duyệt: " + e.getMessage());
-            e.printStackTrace(); // In ra chi tiết để dễ bắt bug
+            logger.error("Lỗi khi render thẻ sản phẩm chờ duyệt", e);// In ra chi tiết để dễ bắt bug
         }
     }
 }

@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.nhomX.example.factory.ItemFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
@@ -25,6 +27,7 @@ import com.nhomX.example.networking.AuctionClient;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
+
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -183,7 +186,7 @@ public class AddItemcardController implements Initializable, ServerEventListener
             } catch (Exception e) {
                 // Lỡ có lỗi không xác định, khôi phục lại giá trị cũ an toàn
                 txtStartPrice.setText(oldValue);
-                System.err.println("Lỗi format tiền: " + e.getMessage());
+                logger.error("Lỗi format tiền", e);
             } finally {
                 // 4. CHÌA KHÓA VÀNG: Khối finally LUÔN LUÔN CHẠY dù có lỗi hay không.
                 // Đảm bảo cờ trạng thái không bao giờ bị kẹt lại!
@@ -301,7 +304,7 @@ public class AddItemcardController implements Initializable, ServerEventListener
             client.requestCreateAuction(newItem, newAuction, imageDataMap);
 
         } catch (Exception e) {
-            System.err.println("ADD ITEM: Lỗi đóng gói dữ liệu - " + e.getMessage());
+            logger.error("ADD ITEM: Lỗi đóng gói dữ liệu", e);
             AlertUtils.showError("Lỗi", "Không thể đọc hoặc nén dữ liệu ảnh. Vui lòng thử lại.");
             setSubmitLoading(false);
         }
