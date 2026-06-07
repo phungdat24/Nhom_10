@@ -204,9 +204,15 @@ public class ClientHandler implements Runnable {
                 case "DEPOSIT_REQUEST":
                     handleDepositRequest(msg);
                     break;
+
+                case "WITHDRAW_REQUEST":
+                    handleWithdrawRequest(msg);
+                    break;
+
                 case "GET_IMAGE":
                     handleGetImage(msg);
                     break;
+
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
@@ -512,6 +518,94 @@ public class ClientHandler implements Runnable {
             logger.error("SERVER LỖI: Xử lý giao dịch nạp tiền thất bại: {}", e.getMessage(), e);
             Object[] responseData = {false, 0L};
             sendToClient(new Message("ERROR", responseData));
+        }
+    }
+
+    private void handleWithdrawRequest(Message msg) {
+        try {
+            Object[] payload = (Object[]) msg.getData();
+
+            String userId = (String) payload[0];
+            long amount = (Long) payload[1];
+            String bankName = (String) payload[2];
+            String accountNumber = (String) payload[3];
+
+            if (amount <= 0) {
+                sendToClient(new Message("WITHDRAW_RESULT",
+                        new Object[]{false, 0L, "Số tiền rút không hợp lệ."}));
+                return;
+            }
+
+            if (bankName == null || bankName.isBlank()) {
+                sendToClient(new Message("WITHDRAW_RESULT",
+                        new Object[]{false, 0L, "Vui lòng chọn ngân hàng thụ hưởng."}));
+                return;
+            }
+
+            if (accountNumber == null || accountNumber.isBlank()) {
+                sendToClient(new Message("WITHDRAW_RESULT",
+                        new Object[]{false, 0L, "Vui lòng nhập số tài khoản thụ hưởng."}));
+                return;
+            }
+
+            if (currentUser == null || !currentUser.getId().equals(userId)) {
+                logger.warn("SERVER SECURITY: userId không khớp session, từ chối rút tiền.");
+
+                sendToClient(new Message("WITHDRAW_RESULT",
+                        new Object[]{false, 0L, "Phiên đăng nhập không hợp lệ."}));
+                return;
+            }
+
+            boolean success = userRepository.withdrawBalance(userId, amount);
+
+            if (!success) {
+                User latestUser = userRepository.findById(userId);
+                long currentBalance = latestUser != null ? latestUser.getBalance() : 0L;
+
+                sendToClient(new Message("WITHDRAW_RESULT",
+                        new Object[]{
+                                false,
+                                currentBalance,
+                                "Số dư không đủ hoặc tài khoản không tồn tại."
+                        }));
+                return;
+            }
+
+            User updatedUser = userRepository.findById(userId);
+
+            if (updatedUser == null) {
+                sendToClient(new Message("WITHDRAW_RESULT",
+                        new Object[]{
+                                false,
+                                0L,
+                                "Đã trừ tiền nhưng không đọc lại được thông tin người dùng."
+                        }));
+                return;
+            }
+
+            this.currentUser = updatedUser;
+
+            String successMessage = "Bạn đã tạo lệnh rút "
+                    + amount
+                    + " VNĐ về ngân hàng "
+                    + bankName
+                    + ".";
+
+            sendToClient(new Message("WITHDRAW_RESULT",
+                    new Object[]{
+                            true,
+                            updatedUser.getBalance(),
+                            successMessage
+                    }));
+
+            logger.info("SERVER: Rút tiền thành công. userId={}, amount={}, bank={}, account={}",
+                    userId, amount, bankName, accountNumber);
+
+        } catch (Exception e) {
+            logger.error("SERVER LỖI: Xử lý giao dịch rút tiền thất bại: {}", e.getMessage(), e);
+
+            sendToClient(new Message("WITHDRAW_RESULT",
+                    new Object[]{false, 0L, "Lỗi server khi xử lý rút tiền."}));
         }
     }
 
