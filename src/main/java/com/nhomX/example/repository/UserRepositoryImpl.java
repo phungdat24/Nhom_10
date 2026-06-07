@@ -141,7 +141,39 @@ public class UserRepositoryImpl implements UserRepository {
       logger.error("Lỗi cập nhật số dư", e);
     }
   }
+  //rut tien
+  @Override
+  public boolean withdrawBalance(String userId, long amount) {
+    if (userId == null || userId.isBlank() || amount <= 0) {
+      logger.warn("Rút tiền thất bại: dữ liệu không hợp lệ. userId={}, amount={}", userId, amount);
+      return false;
+    }
 
+    String sql = "UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setLong(1, amount);
+      pstmt.setString(2, userId);
+      pstmt.setLong(3, amount);
+
+      int rows = pstmt.executeUpdate();
+
+      if (rows > 0) {
+        logger.info("Rút tiền thành công: userId={}, amount={}", userId, amount);
+        return true;
+      }
+
+      logger.warn("Rút tiền thất bại: số dư không đủ hoặc user không tồn tại. userId={}, amount={}",
+              userId, amount);
+      return false;
+
+    } catch (SQLException e) {
+      logger.error("Lỗi khi rút tiền", e);
+      return false;
+    }
+  }
   @Override
   public User findByUsername(String username) {
     String sql = "SELECT * FROM users WHERE username = ?";

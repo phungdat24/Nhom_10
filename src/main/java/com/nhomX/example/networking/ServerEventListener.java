@@ -83,4 +83,5 @@ public interface ServerEventListener {
     default void onUserStatusChanged(String userId, boolean isActive) {}
     default void onLiveAuctionsReceived(List<Auction> liveAuctions){}
     default void onServerTick(String currentServerTimeStr){}
+    default void onWithdrawResult(boolean isSuccess, long newBalance, String message) {}
 }

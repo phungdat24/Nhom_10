@@ -150,7 +150,17 @@ public class AuctionClient {
         Object[] data = {username, passwordHash, fullName, 0L};
         sendToServer(new Message("REGISTER", username, null, 0, data));
     }
+    //yeu cau rut tien
+    public void requestWithdraw(String userId, long amount, String bankName, String accountNumber) {
+        Object[] payload = {
+                userId,
+                amount,
+                bankName,
+                accountNumber
+        };
 
+        sendToServer(new Message("WITHDRAW_REQUEST", payload));
+    }
     /** Thiết lập auto-bid cho một phiên. */
     public void setupAutoBid(String auctionId, long maxLimit, long increment) {
         Object[] data = {auctionId, maxLimit, increment};
@@ -275,6 +285,22 @@ public class AuctionClient {
             case "BID_FAIL":
                 runOnUiThread(() -> notifyListeners(currentListener ->
                         currentListener.onBidResult(false, (String) msg.getData())
+                ));
+                break;
+
+            case "WITHDRAW_RESULT":
+                Object[] withdrawData = (Object[]) msg.getData();
+
+                boolean withdrawSuccess = (Boolean) withdrawData[0];
+                long withdrawNewBalance = (Long) withdrawData[1];
+                String withdrawMessage = (String) withdrawData[2];
+
+                runOnUiThread(() -> notifyListeners(currentListener ->
+                        currentListener.onWithdrawResult(
+                                withdrawSuccess,
+                                withdrawNewBalance,
+                                withdrawMessage
+                        )
                 ));
                 break;
 

@@ -251,7 +251,13 @@ public class ProfileController extends BaseController
         });
     }
 
-    public void handleWithDraw(ActionEvent event) {}
+    @FXML
+    public void handleWithDraw(ActionEvent event) {
+        SceneSwitcher.switchScene(
+                event,
+                "/com/nhomX/example/fxml/client/WithdrawContent.fxml"
+        );
+    }
 
     @FXML
     private void handleBack(ActionEvent event) {
