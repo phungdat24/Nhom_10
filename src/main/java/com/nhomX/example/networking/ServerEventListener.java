@@ -77,7 +77,7 @@ public interface ServerEventListener {
      * @param reason Lý do bị tắt
      */
     default void onAutoBidStopped(String auctionId, String reason) {}
-    
+    default void onAutoBidSetupResult(boolean isSuccess, String message) {}
     default void onAllUsersReceived(List<User> users) {}
     default void onUserBalanceUpdated(String userId, long newBalance) {}
     default void onUserStatusChanged(String userId, boolean isActive) {}

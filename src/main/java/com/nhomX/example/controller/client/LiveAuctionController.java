@@ -71,10 +71,10 @@ public class LiveAuctionController extends BaseController
 
         // 2. Thiết lập kết nối mạng và giành quyền lắng nghe sự kiện
         AuctionClient client = SessionManager.getInstance().getAuctionClient();
-        if (client != null) {
-            client.setServerEventListener(this);
 
-            // 3. Gửi yêu cầu lấy danh sách lên Server
+        if (client != null) {
+            client.addListener(this);
+
             client.sendToServer(new Message("GET_ALL_AUCTIONS", null));
             logger.info("LIVE AUCTION: Đã gửi yêu cầu lấy danh sách phiên đấu giá.");
         } else {
@@ -233,29 +233,46 @@ public class LiveAuctionController extends BaseController
     }
 
     @Override
-    public void onHighestBidUpdated(String itemId, long newPrice, String bidderName) {
-        // Nhận tín hiệu giá mới từ Server
+    public void onHighestBidUpdated(String auctionId, long newPrice, String bidderName) {
         Platform.runLater(() -> {
-            // 1. Cập nhật giá tươi vào kho dữ liệu gốc RAM trước để nhỡ người dùng đang lọc không
-            // bị mất giá mới
-            for (Auction a : originalAuctions) {
-                if (a.getId().equals(itemId)) {
-                    a.setHighestBid(newPrice);
+
+            AuctionManager.getInstance().updateAuctionPrice(
+                    auctionId,
+                    newPrice,
+                    null,
+                    bidderName
+            );
+
+            LocalDateTime newEndTime = null;
+
+            Auction cachedAuction = AuctionManager.getInstance().getAuctionById(auctionId);
+
+            if (cachedAuction != null) {
+                cachedAuction.setHighestBid(newPrice);
+                newEndTime = cachedAuction.getEndTime();
+            }
+
+            for (Auction auction : originalAuctions) {
+                if (auction.getId().equals(auctionId)) {
+                    auction.setHighestBid(newPrice);
+
+                    if (newEndTime != null) {
+                        auction.setEndTime(newEndTime);
+                    }
+
                     break;
                 }
             }
-            ItemCardController card = activeAuctionCards.get(itemId);
+
+            ItemCardController card = activeAuctionCards.get(auctionId);
+
             if (card != null) {
-                // TÌM KIẾM THỜI GIAN MỚI TỪ CACHE (AUCTION MANAGER)
-                // ========================================================
-                LocalDateTime newEndTime = null;
-                Auction cachedAuction = AuctionManager.getInstance().getAuctionById(itemId);
-                if (cachedAuction != null) {
-                    newEndTime = cachedAuction.getEndTime();
-                }
-                // Gọi hàm cập nhật giá đơn lẻ trên thẻ đó
                 card.updateRealtimePrice(newPrice, newEndTime);
-                logger.info("LIVE AUCTION: Đã nhảy giá mới {} cho món {}", newPrice, itemId);
+                logger.info("LIVE AUCTION: Đã cập nhật realtime giá {} cho phiên {}",
+                        newPrice, auctionId);
+            } else {
+                logger.info("LIVE AUCTION: Phiên {} hiện không nằm trong danh sách đang hiển thị.",
+                        auctionId);
             }
         });
     }
