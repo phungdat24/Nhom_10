@@ -31,7 +31,7 @@ public abstract class DatabaseBackedTest {
 
   protected RegularUser regularUser(String id, String email, long balance, Role... roles) {
     RegularUser user =
-        new RegularUser(id, email, SecurityUtils.hashPassword("password"), email, balance);
+        new RegularUser(id, email, SecurityUtils.hashPassword("password"), email, balance,true);
     for (Role role : roles) {
       user.addRole(role);
     }

@@ -81,5 +81,6 @@ public interface ServerEventListener {
     default void onAllUsersReceived(List<User> users) {}
     default void onUserBalanceUpdated(String userId, long newBalance) {}
     default void onUserStatusChanged(String userId, boolean isActive) {}
-
+    default void onLiveAuctionsReceived(List<Auction> liveAuctions){}
+    default void onServerTick(String currentServerTimeStr){}
 }

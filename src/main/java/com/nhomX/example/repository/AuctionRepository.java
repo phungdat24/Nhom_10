@@ -53,6 +53,7 @@ public interface AuctionRepository {
     // [THÊM MỚI] Dành riêng cho Scheduler quét các phiên chuẩn bị mở
     List<Auction> findReadyToOpenAuctions();
 
-
+    List<Auction> findLiveAuctions();
+    boolean cancelAuction(String auctionId);
 }
 

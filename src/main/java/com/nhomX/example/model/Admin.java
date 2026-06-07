@@ -12,8 +12,8 @@ public class Admin extends User {
     }
 
     // 2. Hàm tạo đầy đủ tham số
-    public Admin(String id, String userName, String passwordHash, String fullName, long balance) {
-        super(id, userName, passwordHash, fullName, balance);
+    public Admin(String id, String userName, String passwordHash, String fullName, long balance, boolean is_active) {
+        super(id, userName, passwordHash, fullName, balance, is_active);
     }
     // TRIỂN KHAI HÀM CỦA LỚP CHA (OVERRIDE)
 
@@ -30,7 +30,7 @@ public class Admin extends User {
     /**
      * Quyền lực 1: Hủy bỏ một phiên đấu giá khẩn cấp. (Ví dụ: Khi phát hiện người bán đăng sản phẩm
      * giả mạo, vi phạm pháp luật). * @param auction Phiên đấu giá cần hủy
-     * 
+     *
      * @param reason Lý do hủy để ghi log
      */
     public void forceCancelAuction(Auction auction, String reason) {
@@ -52,10 +52,9 @@ public class Admin extends User {
      * * @param user Tài khoản RegularUser bị khóa
      */
     public void banUser(RegularUser user) {
-        // Xóa toàn bộ quyền Mua và Bán của user này
-        user.removeRole(Role.BIDDER);
-        user.removeRole(Role.SELLER);
-        logger.warn("🚫 ADMIN {} ĐÃ KHÓA tài khoản {}", this.getUserName(), user.getUserName());
+        // [ĐÃ SỬA]: Gọi thẳng hàm khóa tài khoản của Model, không cần xóa Role
+        user.lockAccount();
+        logger.warn("🚫 ADMIN {} ĐÃ KHÓA tài khoản {} " ,this.getUserName(), user.getUserName());
     }
 
     /**

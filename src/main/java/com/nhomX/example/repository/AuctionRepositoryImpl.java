@@ -246,7 +246,100 @@ public class AuctionRepositoryImpl implements AuctionRepository {
 
   // ====== NHÓM TRUY VẤN DỮ LIỆU ĐƠN LẺ VÀ DANH SÁCH===========
   // ===========================================================
+  @Override
+  public List<Auction> findLiveAuctions() {
+    List<Auction> list = new ArrayList<>();
+    // Lọc các phiên đang ở trạng thái chuẩn bị hoặc đang diễn ra
+    String sql = "SELECT * FROM auctions WHERE status IN ('PENDING', 'UP_COMING', 'OPEN', 'RUNNING')";
 
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql);
+         ResultSet rs = pstmt.executeQuery()) {
+
+      while (rs.next()) {
+        list.add(mapRowToAuction(rs));
+      }
+    } catch (SQLException e) {
+      logger.error("Lỗi khi lấy danh sách Live Auctions cho Admin", e);
+    }
+    return list;
+  }
+  // ======================================================================
+  // HÀM CHO ADMIN: HỦY ÉP BUỘC VÀ HOÀN TIỀN (FORCE CANCEL & REFUND)
+  // ======================================================================
+  @Override
+  public boolean cancelAuction(String auctionId) {
+    String sqlSelect = "SELECT highest_bid, winner_id, status FROM auctions WHERE id = ?";
+    String sqlRefund = "UPDATE users SET balance = balance + ? WHERE id = ?";
+    String sqlUpdate = "UPDATE auctions SET status = 'CANCELED' WHERE id = ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+      // 1. Tắt Auto-commit để gom nhóm lệnh (Đảm bảo an toàn tài chính)
+      conn.setAutoCommit(false);
+
+      try {
+        long highestBid = 0;
+        String winnerId = null;
+        String currentStatus = null;
+
+        // BƯỚC 1: Lấy thông tin phiên đấu giá hiện tại
+        try (PreparedStatement pstSelect = conn.prepareStatement(sqlSelect)) {
+          pstSelect.setString(1, auctionId);
+          try (ResultSet rs = pstSelect.executeQuery()) {
+            if (!rs.next()) {
+              rollbackSilently(conn);
+              return false; // Không tìm thấy phiên
+            }
+            highestBid = rs.getLong("highest_bid");
+            winnerId = rs.getString("winner_id");
+            currentStatus = rs.getString("status");
+          }
+        }
+
+        // Kiểm tra an toàn: Nếu đã bị hủy hoặc đã hoàn tất thanh toán rồi thì chặn lại
+        if (AuctionStatus.CANCELED.name().equalsIgnoreCase(currentStatus)
+                || AuctionStatus.PAID.name().equalsIgnoreCase(currentStatus)
+                || AuctionStatus.FINISHED.name().equalsIgnoreCase(currentStatus)) {
+          rollbackSilently(conn);
+          return false;
+        }
+
+        // BƯỚC 2: Hoàn tiền cho người dùng đang giữ Top 1 (Nếu có)
+        // Khi người dùng đặt giá, hệ thống đã trừ tiền của họ. Giờ Admin hủy, phải trả lại.
+        if (winnerId != null && !winnerId.isBlank() && highestBid > 0) {
+          try (PreparedStatement pstRefund = conn.prepareStatement(sqlRefund)) {
+            pstRefund.setLong(1, highestBid);
+            pstRefund.setString(2, winnerId);
+            pstRefund.executeUpdate();
+            logger.info("ADMIN FORCE CANCEL: Đã hoàn trả {} VNĐ cho user {}", highestBid, winnerId);
+          }
+        }
+
+        // BƯỚC 3: Cập nhật trạng thái phiên thành CANCELED
+        try (PreparedStatement pstUpdate = conn.prepareStatement(sqlUpdate)) {
+          pstUpdate.setString(1, auctionId);
+          pstUpdate.executeUpdate();
+        }
+
+        // 4. Mọi thứ trơn tru -> Chốt giao dịch lưu xuống ổ cứng
+        conn.commit();
+        logger.info("ADMIN FORCE CANCEL: Hủy thành công phiên {}", auctionId);
+        return true;
+
+      } catch (SQLException e) {
+        // Có bất kỳ lỗi gì xảy ra -> Hủy bỏ toàn bộ giao dịch, không hoàn tiền, không đổi trạng thái
+        rollbackSilently(conn);
+        logger.error("Lỗi Transaction khi Admin hủy phiên đấu giá {}", auctionId, e);
+        return false;
+      } finally {
+        // Phục hồi lại kết nối về trạng thái bình thường
+        restoreAutoCommit(conn);
+      }
+    } catch (SQLException e) {
+      logger.error("Lỗi mở kết nối DB khi hủy phiên", e);
+      return false;
+    }
+  }
   // Tìm kiếm thông tin chi tiết một phiên đấu giá bằng id:
   @Override
   public Auction findById(String id) {

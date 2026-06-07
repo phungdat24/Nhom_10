@@ -25,7 +25,9 @@ import com.nhomX.example.repository.UserRepositoryImpl;
 
 public class AuctionServer {
     private static final Logger logger = LoggerFactory.getLogger(AuctionServer.class);
+    // Cổng mạng Server sẽ lắng nghe
     private static final int PORT = 8080;
+    // khởi động b quản lý luồng ảo của java
     private final ExecutorService serverExecutor = Executors.newVirtualThreadPerTaskExecutor();
 
     // Danh sách toàn bộ Client đang kết nối (dùng cho các thông báo hệ thống nếu cần)
@@ -51,41 +53,51 @@ public class AuctionServer {
         // Đăng ký Shutdown Hook. Khi tắt app đoạn code này sẽ chạy để đóng sạch luồng.
         registerShutdownHook();
 
-        // BUG FIX: Scheduler được tạo nhưng start() không bao giờ được gọi trong code gốc
-        // → phiên đấu giá hết hạn không bao giờ tự đóng
+        // Gọi cheduler -> phiên đấu giá hết hạn không bao giờ tự đóng
+        // Khởi tạo bộ đếm thời gian đấu giá va truyền tham chiếu server vào
         AuctionScheduler scheduler = new AuctionScheduler(this);
         scheduler.start();
-
+        //Mở cổng mạng và lắng nghe, đóng tự động khi bị lỗi
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             logger.info("SERVER: Đang đợi kết nối tại cổng {}...", PORT);
             while (true) {
+                // Lệnh chặn (Blocking). Đứng im tại đây đợi cho đến khi có một Client kết nối vào. Mở ống Socket.
                 Socket socket = serverSocket.accept();
                 logger.info("SERVER: Có kết nối mới từ {}", socket.getInetAddress());
+                //Tạo clienthandler mới cho mỗi một client kết nối vào
                 ClientHandler handler = new ClientHandler(socket, this, itemRepository,
                         userRepository, bidRepository, auctionRepository, autoBidRepository);
+                // Thêm ClientHandler này vào danh sách quản lý chung của Server.
                 clients.add(handler);
+                //Ném nhân vào Thread Pool để nó bắt đầu làm việc song song
                 serverExecutor.execute(handler);
                 // [THÊM MỚI] Báo cho tất cả client biết có người mới vào
                 broadcastOnlineCount();
             }
+            // bắt lỗi khi không mở đuược cổng mạng(8080 bi chiếm dụng)
         } catch (IOException e) {
             logger.error("SERVER ERROR: {}", e.getMessage(), e);
         } finally {
-            // Đề phòng trường hợp vòng lặp văng lỗi, chặn luôn luồng ở đây
+            // Đề phòng trường hợp vòng lặp văng lỗi, chặn luôn luồng ở đây, kiểm tra xem ThreadPool tắt chưa
             if (!serverExecutor.isShutdown()) {
+                // Tắt từ từ không nhận luồng mới
                 serverExecutor.shutdown();
             }
         }
     }
 
-    /** Đăng ký hook dọn dẹp khi JVM tắt (Ctrl+C hoặc kill). */
+    /** Đăng ký hook dọn dẹp khi JVM tắt (Ctrl+C hoặc kill).
+     * Hàm xử lý sự kiện khi máy chủ bị tắt ngang.
+     */
     private void registerShutdownHook() {
+        // Đăng ký một luồng chạy khẩn cấp ngay trước khi nó tắt.
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            // Kiểm tra xem có còn mở không
             logger.info("SERVER: Đang dọn dẹp trước khi tắt...");
             if (!serverExecutor.isShutdown()) {
                 serverExecutor.shutdown();
             }
-        }, "shutdown-hook"));
+        }, "shutdown-hook")); // Đặt tên cho luồng này
     }
 
     // Client gọi hàm này khi bấm vào xem chi tiết một món hàng
@@ -114,9 +126,7 @@ public class AuctionServer {
     }
 
     /**
-     * Broadcast message tới tất cả Client đang xem một phiên cụ thể. Đây là trung tâm của Realtime
-     * Update.
-     *
+     * Broadcast message tới tất cả Client đang xem một phiên cụ thể. Đây là trung tâm của Realtime-Update.
      * [FIX] Đổi tên từ broadcastToItem → broadcastToAuction cho đúng ngữ nghĩa.
      */
     public void broadcastToAuction(String auctionId, Message msg) {

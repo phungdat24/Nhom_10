@@ -22,10 +22,13 @@ import com.nhomX.example.utils.ImageLoader;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 
 public class AdminItemDetailController extends BaseController implements ServerEventListener {
   private static final Logger logger = LoggerFactory.getLogger(AdminItemDetailController.class);
@@ -39,6 +42,8 @@ public class AdminItemDetailController extends BaseController implements ServerE
   private Button btnClose;
   @FXML
   private ImageView imgMain;
+  @FXML
+  private HBox hboxThumbnails;
   @FXML
   private Label lblTitle;
   @FXML
@@ -108,12 +113,73 @@ public class AdminItemDetailController extends BaseController implements ServerE
       setLabelText(lblSubmitDate, LocalDateTime.now().format(DATE_FORMATTER));
     }
 
+    if (hboxThumbnails != null) {
+      hboxThumbnails.getChildren().clear(); // Dọn dẹp ảnh của phiên trước đó
+    }
+
     // Tải ảnh bất đồng bộ
     List<ItemImage> images = item.getImages();
-    if (imgMain != null && images != null && !images.isEmpty()) {
-      ImageLoader.loadAsync(images.get(0).getImagePath(), imgMain);
-    } else if (imgMain != null) {
-      ImageLoader.loadAsync(null, imgMain);
+    if (images != null && !images.isEmpty()) {
+      // 1. Tải ảnh đầu tiên làm ảnh chính
+      if (imgMain != null) ImageLoader.loadAsync(images.get(0).getImagePath(), imgMain);
+
+      // 2. Tạo dải ảnh thu nhỏ (Thumbnails)
+      if (hboxThumbnails != null) {
+        for (int i = 0; i < images.size(); i++) {
+          String imgPath = images.get(i).getImagePath();
+
+          // Tạo khung chứa (StackPane) để dùng CSS bo góc và viền
+          StackPane thumbWrapper = new StackPane();
+          thumbWrapper.setPrefSize(88, 88);
+          thumbWrapper.setMinSize(88, 88);
+
+          // Mặc định ảnh đầu tiên được viền sáng (active)
+          if (i == 0) {
+            thumbWrapper.getStyleClass().add("admin-item-detail-thumb-frame-active");
+          } else {
+            thumbWrapper.getStyleClass().add("admin-item-detail-thumb-frame");
+          }
+          thumbWrapper.setStyle("-fx-cursor: hand;"); // Hiện bàn tay khi rê chuột
+
+          // Tạo ImageView cho ảnh nhỏ
+          ImageView thumbView = new ImageView();
+          thumbView.setFitHeight(88);
+          thumbView.setFitWidth(88);
+          thumbView.setPreserveRatio(true);
+          thumbView.setSmooth(true);
+
+          // Nhờ ImageLoader lấy ảnh về
+          ImageLoader.loadAsync(imgPath, thumbView);
+          thumbWrapper.getChildren().add(thumbView);
+
+          // 3. Sự kiện bấm vào ảnh nhỏ thì load lên ảnh chính
+          final int clickedIndex = i;
+          thumbWrapper.setOnMouseClicked(e -> {
+            if (imgMain != null) ImageLoader.loadAsync(imgPath, imgMain);
+            updateThumbnailSelection(clickedIndex); // Đổi màu viền
+          });
+
+          hboxThumbnails.getChildren().add(thumbWrapper);
+        }
+      }
+    } else {
+      // Nếu Seller quên up ảnh, ép hiển thị Placeholder
+      if (imgMain != null) ImageLoader.loadAsync(null, imgMain);
+    }
+  }
+  // Hàm phụ trợ: Xóa viền cũ và Nhuộm viền sáng cho ảnh nhỏ đang được chọn
+  private void updateThumbnailSelection(int selectedIndex) {
+    if (hboxThumbnails == null || hboxThumbnails.getChildren().isEmpty()) return;
+
+    for (int i = 0; i < hboxThumbnails.getChildren().size(); i++) {
+      Node node = hboxThumbnails.getChildren().get(i);
+      node.getStyleClass().removeAll("admin-item-detail-thumb-frame-active", "admin-item-detail-thumb-frame");
+
+      if (i == selectedIndex) {
+        node.getStyleClass().add("admin-item-detail-thumb-frame-active");
+      } else {
+        node.getStyleClass().add("admin-item-detail-thumb-frame");
+      }
     }
   }
 

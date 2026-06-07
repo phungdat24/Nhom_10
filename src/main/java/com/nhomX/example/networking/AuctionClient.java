@@ -28,15 +28,16 @@ import javafx.application.Platform;
 
 public class AuctionClient {
     private static final Logger logger = LoggerFactory.getLogger(AuctionClient.class);
-
+    // Khai báo biến chuỗi để lưu tên tài khoản của người dùng đang kết nối ở Client hiện tại.
     private String username;
     // Đưa socket lên làm thuộc tính class để chống Leak
     private Socket socket;
     // Thêm volatile để chống Race Condition khi đọc/ghi đa luồng:
     private volatile ObjectOutputStream out;
     private volatile ObjectInputStream in;
-
+    // Khai báo một biến interface đơn lẻ để lưu trữ đối tượng lắng nghe sự kiện từ Server
     private volatile ServerEventListener listener;
+    // Khởi tạo một danh sách các đối tượng lắng nghe sự kiện bằng cấu trúc dữ liệu CopyOnWriteArrayList
     private final List<ServerEventListener> listeners = new CopyOnWriteArrayList<>();
 
     // THÊM MỚI: Cache ảnh tại Client — tránh request trùng lặp
@@ -44,7 +45,7 @@ public class AuctionClient {
     private final ConcurrentHashMap<String, byte[]> imageCache = new ConcurrentHashMap<>();
 
 
-    // Cung cấp hàm để các Controller sử dụng:
+    // Định nghĩa hàm thiết lập listener đơn lẻ đại diện, cho phép một Controller giao diện đăng ký làm người xử lý sự kiện độc quyền.
     public void setServerEventListener(ServerEventListener listener) {
         this.listener = listener;
     }
@@ -438,7 +439,7 @@ public class AuctionClient {
                 break;
 
             case "MY_AUCTIONS_RESULT":
-                List<com.nhomX.example.model.MyAuctionDTO> myAuctionsList =
+                List<MyAuctionDTO> myAuctionsList =
                         (List<MyAuctionDTO>) msg.getData();
 
                 if (listener != null) {
@@ -539,6 +540,33 @@ public class AuctionClient {
                 boolean isActive = (Boolean) statusPayload.get("isActive");
                 listeners.forEach(currentListener -> currentListener
                         .onUserStatusChanged(statusUserId, isActive));
+                break;
+            case "LIVE_AUCTIONS_RESULT":
+                @SuppressWarnings("unchecked")
+                List<Auction> liveAuctions = (List<Auction>) msg.getData();
+                // Đưa toàn bộ việc gọi Observer lên Luồng Giao Diện (UI Thread)
+                runOnUiThread(() -> {
+                    if (listeners != null && !listeners.isEmpty()) {
+                        listeners.forEach(currentListener -> currentListener.onLiveAuctionsReceived(liveAuctions));
+                    }
+                    if (listener != null && !listeners.contains(listener)) {
+                        listener.onLiveAuctionsReceived(liveAuctions);
+                    }
+                });
+                break;
+
+            case "SERVER_TICK":
+                // Bóc tách dữ liệu từ gói tin
+                String serverTime = (String) msg.getData();
+                // Đưa toàn bộ việc gọi Observer lên Luồng Giao Diện (UI Thread)
+                runOnUiThread(() -> {
+                    if (listeners != null && !listeners.isEmpty()) {
+                        listeners.forEach(currentListener -> currentListener.onServerTick(serverTime));
+                    }
+                    if (listener != null && !listeners.contains(listener)) {
+                        listener.onServerTick(serverTime);
+                    }
+                });
                 break;
 
             default:

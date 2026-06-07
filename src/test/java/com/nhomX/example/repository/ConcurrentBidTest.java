@@ -29,7 +29,7 @@ class ConcurrentBidTest extends DatabaseBackedTest {
     RegularUser seller = regularUser("seller-3", "seller3@example.com", 0, Role.SELLER);
     RegularUser lowBidder = regularUser("bidder-low", "low@example.com", 1_000, Role.BIDDER);
     RegularUser highBidder = regularUser("bidder-high", "high@example.com", 1_000, Role.BIDDER);
-    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0);
+    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0,true);
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(lowBidder));
     assertTrue(userRepository.register(highBidder));
@@ -96,7 +96,7 @@ class ConcurrentBidTest extends DatabaseBackedTest {
     RegularUser seller = regularUser("seller-4", "seller4@example.com", 0, Role.SELLER);
     RegularUser firstBidder = regularUser("bidder-a", "a@example.com", 1_000, Role.BIDDER);
     RegularUser secondBidder = regularUser("bidder-b", "b@example.com", 1_000, Role.BIDDER);
-    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0);
+    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0,true);
 
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(firstBidder));

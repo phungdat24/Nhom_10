@@ -31,11 +31,11 @@ public class DatabaseTest {
                         String insertUsers =
                                         "INSERT INTO users (id, username, password, fullname, balance, role) VALUES "
                                                         + "('U001', '25021715@vnu.vn','" + pass
-                                                        + "'  , 'Nguyen Van Ban', 5000000000000000, 'USER'), "
+                                                        + "'  , 'Nguyen Van Ban', 5000000000000000, 'SELLER, BIDDER'), "
                                                         + "('U002', 'phung@gmail.com', '" + pass
-                                                        + "', 'Tran Thi Mua', 500000000, 'USER'),"
+                                                        + "', 'Tran Thi Mua', 500000000, 'SELLER, BIDDER'),"
                                                         + "('U003', '123@gmail.com', '" + pass
-                                                        + "', 'FuckYou', 500000000, 'USER'),"
+                                                        + "', 'FuckYou', 500000000, 'SELLER, BIDDER'),"
                                                         + "('A001', 'admin@gmail.com', '" + pass
                                                         + "', 'Admin Tester', 0, 'ADMIN')";
                         stmt.executeUpdate(insertUsers);
