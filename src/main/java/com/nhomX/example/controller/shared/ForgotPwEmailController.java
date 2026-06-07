@@ -15,9 +15,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 public class ForgotPwEmailController implements ServerEventListener {
-    @FXML private TextField emailField;
-    @FXML private Label lblError;
-    @FXML private Button btnSendOtp;
+    @FXML
+    private TextField emailField;
+    @FXML
+    private Label lblError;
+    @FXML
+    private Button btnSendOtp;
 
     private AuctionClient auctionClient;
 

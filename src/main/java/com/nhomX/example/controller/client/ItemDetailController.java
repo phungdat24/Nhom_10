@@ -87,14 +87,16 @@ public class ItemDetailController extends BaseController implements ServerEventL
 
     // Slideshow
     private Timeline slideshowTimeline;
+    // Biến lưu trữ chỉ số (vị trí) của bức ảnh hiện tại đang được chiếu trong mảng ảnh.
     private int slideshowIndex = 0;
     private List<ItemImage> slideshowImages; // Lưu lại list ảnh để Timeline dùng
 
-
+    // Biến lưu trữ mã ID của phiên đấu giá đang được hiển thị trên màn hình
     private String currentAuctionId;
-
+    // Biến lưu trữ cổng kết nối mạng (Socket Client) để Controller có thể trò chuyện với Server
     private AuctionClient auctionClient;
-
+    // Hàm vòng đời (Lifecycle). Nó tự động chạy đúng MỘT LẦN duy nhất ngay sau khi giao diện FXML được nạp lên bộ nhớ
+    // Dùng để thiết lập các luật lệ cơ bản cho UI.
     @FXML
     public void initialize() {
         if (txtBidAmount != null) {
@@ -255,6 +257,10 @@ public class ItemDetailController extends BaseController implements ServerEventL
             auctionClient.watchAuction(this.currentAuctionId);
             // GỬI YÊU CẦU LẤY DỮ LIỆU CŨ
             auctionClient.getBidHistory(this.currentAuctionId);
+            // [BỔ SUNG VÀO ĐÂY]: Hỏi Server xem mình có đang bật Auto-bid không
+            if (SessionManager.getInstance().isLoggedIn()) {
+                auctionClient.getMyAutoBidStatus(this.currentAuctionId);
+            }
         }
     }
 
@@ -797,5 +803,28 @@ public class ItemDetailController extends BaseController implements ServerEventL
             AlertUtils.showWarning("Auto-bid kết thúc",
                     reason + "\nVui lòng thiết lập lại nếu muốn tiếp tục đấu giá.");
         }
+    }
+    @Override
+    public void onMyAutoBidReceived(boolean isActive, long maxPrice, long stepPrice) {
+        // LUÔN bọc trong runLater khi thao tác với Giao diện (UI Thread)
+        Platform.runLater(() -> {
+            if (isActive) {
+                // Khôi phục số liệu
+                if (txtMaxAutoBid != null) txtMaxAutoBid.setText(CurrencyFormatter.formatNumber(maxPrice));
+                if (txtAutoBidStep != null) txtAutoBidStep.setText(CurrencyFormatter.formatNumber(stepPrice));
+
+                // Khôi phục công tắc (Tự động kích hoạt đổi màu nút nhờ Listener ở Initialize)
+                if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(true);
+
+                // Khôi phục nhãn trạng thái và khóa ô nhập
+                updateAutoBidUI(true, "Auto-bid đang bật: Tối đa " + CurrencyFormatter.formatVND(maxPrice) + " | Bước " + CurrencyFormatter.formatVND(stepPrice));
+            } else {
+                // Tắt công tắc, dọn sạch ô nhập
+                if (chkAutoBidToggle != null) chkAutoBidToggle.setSelected(false);
+                if (txtMaxAutoBid != null) txtMaxAutoBid.clear();
+                if (txtAutoBidStep != null) txtAutoBidStep.clear();
+                updateAutoBidUI(false, "Auto-bid đã tắt.");
+            }
+        });
     }
 }

@@ -167,6 +167,9 @@ public class ClientHandler implements Runnable {
                 case "SETUP_AUTO_BID":
                     handleSetupAutoBid(msg);
                     break;
+                case "GET_MY_AUTO_BID":
+                    handleGetMyAutoBid(msg);
+                    break;
                 // Người bán tạo phiên và xem hàng của mình.
                 case "CREATE_AUCTION_REQUEST":
                     handleCreateAuctionRequest(msg);
@@ -356,6 +359,16 @@ public class ClientHandler implements Runnable {
                 sendToClient(Message.loginFail("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Admin."));
                 return; // Dừng tiến trình đăng nhập ngay lập tức
             }
+            // 2. [THÊM MỚI] KIỂM TRA ĐĂNG NHẬP TRÙNG LẶP
+            // ==========================================
+            if (server.isUserLoggedIn(loggedInUser.getId())) {
+                logger.warn("SERVER: Chặn đăng nhập trùng lặp cho tài khoản: {}", username);
+                // Báo lỗi y hệt như lúc sai mật khẩu
+                sendToClient(Message.loginFail("Tài khoản này đang được đăng nhập ở một thiết bị khác!"));
+                return; // Đá văng ra, kết thúc hàm ngay lập tức
+            }
+            // 3. Mọi thứ an toàn -> Lưu session và cho phép vào
+            server.addSession(loggedInUser.getId(), this);
 
             //Set currentUser sau khi login thành công để logging có ý nghĩa
             this.currentUser = loggedInUser;
@@ -1022,6 +1035,22 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+    private void handleGetMyAutoBid(Message msg) {
+        if (currentUser == null) return;
+
+        String auctionId = (String) msg.getData();
+        // Lấy cấu hình từ Database
+        AutoBidConfig config = autoBidRepository.findByUserAndAuction(currentUser.getId(), auctionId);
+
+        if (config != null) {
+            // Đóng gói mảng Object chứa 3 thông tin: [Trạng thái bật/tắt, MaxPrice, StepPrice]
+            Object[] payload = {true, config.getMaxLimit(), config.getIncrement()};
+            sendToClient(new Message("MY_AUTO_BID_RESULT", payload));
+        } else {
+            // Không có cấu hình (chưa bật bao giờ hoặc đã tắt)
+            sendToClient(new Message("MY_AUTO_BID_RESULT", new Object[]{false, 0L, 0L}));
+        }
+    }
     // =================================================================================================================
     // -----------------------------------NHOM THEO DÕI PHIÊN-----------------------------------------------------------
     // =================================================================================================================
@@ -1244,11 +1273,16 @@ public class ClientHandler implements Runnable {
 
     private void cleanup() {
         server.removeClient(this);
+        // --- THÊM DÒNG NÀY ---
+        if (currentUser != null) {
+            server.removeSession(currentUser.getId());
+        }
         try {
-            if (socket != null && !socket.isClosed())
+            if (socket != null && !socket.isClosed()) {
                 socket.close();
+            }
         } catch (IOException e) {
-            logger.error("SERVER: Lỗi đóng socket", e);
+            logger.error("Lỗi đóng socket", e);
         }
     }
 

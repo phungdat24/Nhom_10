@@ -84,4 +84,6 @@ public interface ServerEventListener {
     default void onLiveAuctionsReceived(List<Auction> liveAuctions){}
     default void onServerTick(String currentServerTimeStr){}
     default void onWithdrawResult(boolean isSuccess, long newBalance, String message) {}
+    // Định nghĩa default để các class khác không bị lỗi bắt buộc override
+    default void onMyAutoBidReceived(boolean isActive, long maxPrice, long stepPrice) {}
 }

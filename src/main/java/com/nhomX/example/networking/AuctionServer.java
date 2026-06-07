@@ -32,6 +32,9 @@ public class AuctionServer {
 
     // Danh sách toàn bộ Client đang kết nối (dùng cho các thông báo hệ thống nếu cần)
     private final List<ClientHandler> clients = new CopyOnWriteArrayList<>();
+    // THÊM VÀO PHẦN KHAI BÁO BIẾN
+    // Key: userId, Value: ClientHandler đang nắm giữ session của user đó
+    private final ConcurrentHashMap<String, ClientHandler> activeSessions = new ConcurrentHashMap<>();
 
     // THÊM MỚI: Map quản lý người xem theo từng itemId
     // Key: itemId, Value: Tập hợp (Set) các ClientHandler đang xem món đó
@@ -179,6 +182,23 @@ public class AuctionServer {
         }
         // Không tìm thấy = user đang offline — bỏ qua, không báo lỗi
         logger.info("SERVER: User {} không online, bỏ qua sendToUser.", userId);
+    }
+    // ===== Kiểm tra xem tai khoản đã đợc đăng nhập nơi khác chưa
+    // 1. Hàm kiểm tra xem User có đang online không
+    public boolean isUserLoggedIn(String userId) {
+        return activeSessions.containsKey(userId);
+    }
+
+    // 2. Hàm thêm session mới (chỉ gọi khi đã kiểm tra an toàn)
+    public void addSession(String userId, ClientHandler handler) {
+        activeSessions.put(userId, handler);
+    }
+
+    // 3. Hàm xóa session khi người dùng tự thoát
+    public void removeSession(String userId) {
+        if (userId != null) {
+            activeSessions.remove(userId);
+        }
     }
 
     // ĐÃ SỬA: Dọn dẹp triệt để khi Client ngắt kết nối (tắt app)

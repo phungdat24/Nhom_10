@@ -38,8 +38,11 @@ public class AuctionClient {
     // Khai báo một biến interface đơn lẻ để lưu trữ đối tượng lắng nghe sự kiện từ Server
     private volatile ServerEventListener listener;
     // Khởi tạo một danh sách các đối tượng lắng nghe sự kiện bằng cấu trúc dữ liệu CopyOnWriteArrayList
+    //CopyOnWriteArrayList là cấu trúc dữ liệu thread-safe, tạo một bản sao mới mỗi khi có người đăng ký thêm,
+    // giúp duyệt danh sách an toàn mà không bị lỗi ConcurrentModificationException
     private final List<ServerEventListener> listeners = new CopyOnWriteArrayList<>();
-
+    // Khởi tạo bộ nhớ đệm (cache) lưu trữ ảnh đã tải bằng cấu trúc dữ liệu Thread-safe
+    // với key là tên file và value là mảng byte của ảnh.
     // THÊM MỚI: Cache ảnh tại Client — tránh request trùng lặp
     // Key: fileName, Value: byte[]
     private final ConcurrentHashMap<String, byte[]> imageCache = new ConcurrentHashMap<>();
@@ -47,6 +50,7 @@ public class AuctionClient {
 
     // Định nghĩa hàm thiết lập listener đơn lẻ đại diện, cho phép một Controller giao diện đăng ký làm người xử lý sự kiện độc quyền.
     public void setServerEventListener(ServerEventListener listener) {
+        //Gán giao diện (Controller) truyền vào cho biến listener của hệ thống.
         this.listener = listener;
     }
 
@@ -59,13 +63,15 @@ public class AuctionClient {
     public void removeListener(ServerEventListener listener) {
         listeners.remove(listener);
     }
-
+    // Hàm khởi tao yêu cầu cung cấp tên nguời dung
     public AuctionClient(String username) {
         this.username = username;
     }
-
+    // Kích hoat bắt tay với máy chủ qua địa chỉ IP và cổng mạng.
     public void connect(String host, int port) {
         try {
+            // Yêu cầu hệ điều hành cấp phát một Socket TCP và kết nối thẳng đến địa chỉ Server.
+            // Quá trình này sẽ chặn (block) cho đến khi kết nối thành công.
             this.socket = new Socket(host, port);
             // Khởi tạo luồng (Out trước, In sau chống Deadlock)
             out = new ObjectOutputStream(socket.getOutputStream());
@@ -221,7 +227,9 @@ public class AuctionClient {
     public void getBidHistory(String auctionId) {
         sendToServer(new Message("GET_BID_HISTORY", this.username, auctionId, 0, null));
     }
-
+    public void getMyAutoBidStatus(String auctionId) {
+        sendToServer(new Message("GET_MY_AUTO_BID", auctionId));
+    }
     /**
      * [FIX] Tách xử lý từng loại message ra hàm riêng thay vì một khối if-else khổng lồ. Dễ đọc và
      * dễ thêm loại message mới.
@@ -360,6 +368,15 @@ public class AuctionClient {
                 runOnUiThread(() -> notifyListeners(currentListener ->
                         currentListener.onAuctionsReceived(auctions)
                 ));
+                break;
+            case "MY_AUTO_BID_RESULT":
+                Object[] autoBidData = (Object[]) msg.getData();
+                if (listener != null && autoBidData != null) {
+                    boolean isActive = (Boolean) autoBidData[0];
+                    long maxPrice = (Long) autoBidData[1];
+                    long stepPrice = (Long) autoBidData[2];
+                    listener.onMyAutoBidReceived(isActive, maxPrice, stepPrice);
+                }
                 break;
             case "PENDING_AUCTIONS_RESULT":
                 @SuppressWarnings("unchecked")
@@ -528,6 +545,17 @@ public class AuctionClient {
                                     "Đã lưu cấu hình Auto-bid thành công!"
                             )
                     );
+                });
+                break;
+            case "FORCE_LOGOUT":
+                String reason = (String) msg.getData();
+                runOnUiThread(() -> {
+                    // Tắt kết nối
+                    disconnect();
+                    // Hiện popup báo cho user biết
+                    AlertUtils.showError("Cảnh báo bảo mật", reason);
+                    // Chuyển màn hình về trang Đăng nhập
+                    // ... (code chuyển màn hình của em) ...
                 });
                 break;
 
