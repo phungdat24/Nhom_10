@@ -12,7 +12,7 @@ public interface ItemRepository {
     void update(Items item);
 
     /** Xóa sản phẩm theo ID. */
-    void delete(String itemId);
+    boolean deleteItemAndAuction(String itemId);
 
     /** Tìm sản phẩm theo ID. */
     Items findById(String id);

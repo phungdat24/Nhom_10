@@ -177,6 +177,10 @@ public class ClientHandler implements Runnable {
                 case "GET_SELLER_AUCTIONS":
                     handleGetSellerAuctions(msg);
                     break;
+                    //Người bán xóa phiên:
+                case "DELETE_PRODUCT":
+                    handleDeleteProduct(msg);
+                    break;
                 // Duyệt/hủy phiên đấu giá.
                 case "APPROVE_AUCTION":
                     handleApproveAuction(msg);
@@ -239,16 +243,20 @@ public class ClientHandler implements Runnable {
             this.sendToClient(new Message("REGISTER_FAIL", "Email này đã được sử dụng"));
             return;
         }
+        // Sinh ra một otp ngẫu nhiên
         int randomPin = (int) (Math.random() * 900000) + 100000;
+        // Chuyển số thành dạng chuỗi
         this.tempOtpCode = String.valueOf(randomPin);
         this.tempRegisterData = data;
+        // Lấy thời điểm tạo mã OTP để tự hủy sau 5p
         this.otpCreationTime = LocalDateTime.now();
+        // Tạo một biến với tham chiếu interface và đối tượng là gửi gmail
         EmailService emailService = new GmailServiceImpl();
         // 3. Gọi hàm gửi mail và ĐỢI KẾT QUẢ (thenAccept)
         emailService.sendOtp(email, this.tempOtpCode).thenAccept(isSuccess -> {
+            // Nếu thanh công
             if (isSuccess) {
-                // Gửi mail CÓ THẬT và THÀNH CÔNG -> Ra lệnh cho Client mở màn hình 6 ô
-                // OTP
+                // Gửi mail CÓ THẬT và THÀNH CÔNG gui cho Client mở màn hình 6 ô
                 this.sendToClient(new Message("SHOW_OTP_DIALOG", "Đã gửi mã OTP."));
             } else {
                 // Gửi mail THẤT BẠI (Email ảo, sai định dạng, Google chặn...)
@@ -262,6 +270,7 @@ public class ClientHandler implements Runnable {
             }
         });
     }
+    // Xác thực email
     private void handleVerifyRegisterOtp(Message msg) {
         String[] otpPayload = (String[]) msg.getData();
         // otpPayload[0] là email, ta có thể bỏ qua nếu đăng ký đang dùng tempRegisterData
@@ -271,22 +280,25 @@ public class ClientHandler implements Runnable {
                 || Duration.between(this.otpCreationTime, LocalDateTime.now()).toMinutes() > 5) {
 
             this.sendToClient(new Message("REGISTER_FAIL",
-                    "Mã xác thực OTP đã hết hạn (Quá 5 phút). Vui lòng gửi lại mã mới!"));
+                    "Mã xác thực OTP đã hết hạn (Quá 5 phút). Vui lòng yêu cầu gửi lại mã mới!"));
             // Xóa toàn bộ dữ liệu tạm cũ để bảo mật
             this.tempOtpCode = null;
             this.tempRegisterData = null;
             this.otpCreationTime = null;
             return;
         }
+        // Nếu thành công
         if (this.tempOtpCode != null && this.tempOtpCode.equals(clientOtp)) {
             String regEmail = (String) tempRegisterData[0];
             String regPass = (String) tempRegisterData[1];
             String regName = (String) tempRegisterData[2];
+            // Tạo nguoi mới
             RegularUser newUser =
                     new RegularUser(UUID.randomUUID().toString(), regEmail, regPass, regName, 0L, true);
+            // Thêm quyền bán và mua:
             newUser.addRole(Role.BIDDER);
             newUser.addRole(Role.SELLER);
-
+            // Nếu db đăng ký thành công
             boolean success = userRepository.register(newUser);
             if (success) {
                 this.sendToClient(new Message("REGISTER_SUCCESS", "Đăng ký tài khoản thành công"));
@@ -301,9 +313,11 @@ public class ClientHandler implements Runnable {
             this.sendToClient(new Message("REGISTER_FAIL", "Mã xác thực OTP không chính xác"));
         }
     }
-
+    // Gửi lại OTP
     private void handleResendOtp(Message msg) {
+        // lấy dữ liệu
         String[] resendPayload = (String[]) msg.getData();
+        // Lấy email
         String targetEmail = resendPayload[0];
         String flow = resendPayload[1]; // "FORGOT_PASSWORD" hoặc "REGISTER"
         // 1. Tạo mã OTP mới (Dùng chung cho cả 2 luồng)
@@ -319,6 +333,7 @@ public class ClientHandler implements Runnable {
             this.otpCreationTime = LocalDateTime.now();
         }
         logger.info("SERVER: Đang gửi lại mã OTP tới email {}", targetEmail);
+
         EmailService resendService = new GmailServiceImpl();
         resendService.sendOtp(targetEmail, newOtpCode).thenAccept(isSuccess -> {
             if (isSuccess) {
@@ -344,22 +359,23 @@ public class ClientHandler implements Runnable {
     // =================================================================================================================
     // -----------------------------------NHÓM ĐĂNG NHẬP VÀ QUÊN MẬT KHẨU-----------------------------------------------
     // =================================================================================================================
+    // Đăng nhập
     private void handleLogin(Message msg) {
         String[] data = (String[]) msg.getData();
         String username = data[0];
         String password = data[1];
-
+        // Goọi db trả về user
         User loggedInUser = userRepository.login(username, password);
 
         if (loggedInUser != null) {
-            // Kiểm tra xem Model có đang bị khóa không
+            // Kiểm tra xem có đang bị khóa không
             // ==========================================
             if (!loggedInUser.isActive()) {
                 System.out.println("SERVER: Khóa đăng nhập với tài khoản bị ban - " + username);
                 sendToClient(Message.loginFail("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Admin."));
                 return; // Dừng tiến trình đăng nhập ngay lập tức
             }
-            // 2. [THÊM MỚI] KIỂM TRA ĐĂNG NHẬP TRÙNG LẶP
+            // 2. KIỂM TRA ĐĂNG NHẬP TRÙNG LẶP
             // ==========================================
             if (server.isUserLoggedIn(loggedInUser.getId())) {
                 logger.warn("SERVER: Chặn đăng nhập trùng lặp cho tài khoản: {}", username);
@@ -367,6 +383,7 @@ public class ClientHandler implements Runnable {
                 sendToClient(Message.loginFail("Tài khoản này đang được đăng nhập ở một thiết bị khác!"));
                 return; // Đá văng ra, kết thúc hàm ngay lập tức
             }
+            // Nếu chưa đăng nhập thêm vào danh sách
             // 3. Mọi thứ an toàn -> Lưu session và cho phép vào
             server.addSession(loggedInUser.getId(), this);
 
@@ -378,10 +395,13 @@ public class ClientHandler implements Runnable {
             sendToClient(Message.loginFail("Sai tên đăng nhập hoặc mật khẩu!"));
         }
     }
+    // Quên mật khẩu
     private void handleForgotPasswordRequest(Message msg) {
         try {
+
             String[] data = (String[]) msg.getData();
             String email = data[0];
+            // xuống db kiểm tra
             boolean isEmailExist = userRepository.findByUsername(email) != null;
 
             if (isEmailExist) {
@@ -576,11 +596,7 @@ public class ClientHandler implements Runnable {
                 long currentBalance = latestUser != null ? latestUser.getBalance() : 0L;
 
                 sendToClient(new Message("WITHDRAW_RESULT",
-                        new Object[]{
-                                false,
-                                currentBalance,
-                                "Số dư không đủ hoặc tài khoản không tồn tại."
-                        }));
+                        new Object[]{ false, currentBalance, "Số dư không đủ hoặc tài khoản không tồn tại."}));
                 return;
             }
 
@@ -588,37 +604,22 @@ public class ClientHandler implements Runnable {
 
             if (updatedUser == null) {
                 sendToClient(new Message("WITHDRAW_RESULT",
-                        new Object[]{
-                                false,
-                                0L,
-                                "Đã trừ tiền nhưng không đọc lại được thông tin người dùng."
-                        }));
+                        new Object[]{false, 0L, "Đã trừ tiền nhưng không đọc lại được thông tin người dùng."
+                }));
                 return;
             }
-
             this.currentUser = updatedUser;
 
-            String successMessage = "Bạn đã tạo lệnh rút "
-                    + amount
-                    + " VNĐ về ngân hàng "
-                    + bankName
-                    + ".";
+            String successMessage = "Bạn đã tạo lệnh rút " + amount + " VNĐ về ngân hàng " + bankName + ".";
 
-            sendToClient(new Message("WITHDRAW_RESULT",
-                    new Object[]{
-                            true,
-                            updatedUser.getBalance(),
-                            successMessage
-                    }));
+            sendToClient(new Message("WITHDRAW_RESULT", new Object[]{true, updatedUser.getBalance(), successMessage}));
 
-            logger.info("SERVER: Rút tiền thành công. userId={}, amount={}, bank={}, account={}",
-                    userId, amount, bankName, accountNumber);
+            logger.info("SERVER: Rút tiền thành công. userId={}, amount={}, bank={}, account={}", userId, amount, bankName, accountNumber);
 
         } catch (Exception e) {
             logger.error("SERVER LỖI: Xử lý giao dịch rút tiền thất bại: {}", e.getMessage(), e);
 
-            sendToClient(new Message("WITHDRAW_RESULT",
-                    new Object[]{false, 0L, "Lỗi server khi xử lý rút tiền."}));
+            sendToClient(new Message("WITHDRAW_RESULT", new Object[]{false, 0L, "Lỗi server khi xử lý rút tiền."}));
         }
     }
 
@@ -755,7 +756,52 @@ public class ClientHandler implements Runnable {
         List<Auction> auctions = auctionRepository.findAllActiveAuctions();
         sendToClient(Message.returnAllAuctions(auctions));
     }
+    private void handleDeleteProduct(Message msg) {
+        if (currentUser == null) {
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{false, "Bạn chưa đăng nhập!"}));
+            return;
+        }
 
+        String itemId = (String) msg.getData();
+        if (itemId == null || itemId.isEmpty()) {
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{false, "Lỗi dữ liệu: ID sản phẩm trống!"}));
+            return;
+        }
+
+        // 1. Kiểm tra quyền sở hữu & trạng thái hợp lệ để xóa
+        Auction auctionToDelete = auctionRepository.getAuctionByItemId(itemId); // Cần có hàm này trong Repository
+
+        if (auctionToDelete == null) {
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{false, "Sản phẩm không tồn tại!"}));
+            return;
+        }
+
+        // [QUAN TRỌNG] Nghiệp vụ: Chỉ được xóa khi phiên Đang chờ duyệt (PENDING) hoặc Sắp diễn ra (UP_COMING)
+        AuctionStatus status = auctionToDelete.getStatus();
+        if (status == AuctionStatus.OPEN || status == AuctionStatus.RUNNING || status == AuctionStatus.FINISHED || status == AuctionStatus.PAID) {
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{false, "Không thể xóa sản phẩm đã lên sàn hoặc đã bán!"}));
+            return;
+        }
+
+        // Kiểm tra xem User này có đúng là người bán món hàng này không
+        if (!currentUser.getId().equals(auctionToDelete.getItem().getSeller().getId())) {
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{false, "Bạn không có quyền xóa sản phẩm của người khác!"}));
+            return;
+        }
+
+        // 2. Gọi tầng Repository để xóa cứng (Hard Delete) khỏi CSDL
+        boolean isDeleted = itemRepository.deleteItemAndAuction(itemId); // Cần có hàm này trong Repository
+
+        if (isDeleted) {
+            logger.info("SERVER: User {} đã xóa thành công sản phẩm {}", currentUser.getId(), itemId);
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{true, "Đã xóa sản phẩm thành công!"}));
+
+            // [TÙY CHỌN] Nếu muốn các Admin đang mở trang Quản lý thấy món này bay màu ngay lập tức
+            // server.broadcastToAdmins(new Message("PRODUCT_REMOVED_ALERT", itemId));
+        } else {
+            sendToClient(new Message("DELETE_PRODUCT_RESULT", new Object[]{false, "Lỗi máy chủ: Không thể xóa dữ liệu!"}));
+        }
+    }
 
     private void handleGetLiveAuctions() {
         // Gọi DB lấy các phiên có status = PENDING hoặc OPEN
@@ -874,7 +920,7 @@ public class ClientHandler implements Runnable {
         }
     }
     private void handleGetBidHistory(Message msg) {
-        // BUG FIX: Dùng getAuctionId() thay vì getData() để nhất quán
+        // Dùng getAuctionId() thay vì getData() để nhất quán
         // (AuctionClient.getBidHistory đã gửi auctionId vào field auctionId của Message)
         String auctionId = msg.getAuctionId();
         List<BidTransaction> history = bidRepository.getBidsByAuctionId(auctionId);
@@ -897,8 +943,9 @@ public class ClientHandler implements Runnable {
             sendToClient(Message.autoBidSuccess());
             return;
         }
-
+        // Tạo đối tượng autobid
         AutoBidConfig config = new AutoBidConfig();
+        // Sinh id cho autobid
         config.setId(UUID.randomUUID().toString());
         config.setMaxLimit(maxPrice);
         config.setIncrement(stepPrice);

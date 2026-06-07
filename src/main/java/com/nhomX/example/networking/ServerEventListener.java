@@ -60,18 +60,6 @@ public interface ServerEventListener {
     default void onDepositResult(boolean isSuccess, long newBalance) {}
     default void onAuctionApproved(Auction updatedAuction) {}
     /**
-     * Server thông báo có phiên đấu giá mới vừa lên sàn (OPEN/RUNNING).
-     * Client dùng để tự động thêm thẻ mới vào LiveAuction mà không cần F5.
-     * @param newAuction Object phiên đấu giá vừa bắt đầu.
-     */
-    default void onAuctionStarted(Auction newAuction) {}
-    /**
-     * Server thông báo một phiên đã bị xóa khỏi sàn (CANCELED/FINISHED).
-     * @param auctionId ID phiên cần gỡ khỏi danh sách.
-     */
-    default void onAuctionRemoved(String auctionId) {}
-
-    /**
      * Server thông báo Auto-bid đã bị hệ thống tự động tắt (do vượt quá Max Limit).
      * @param auctionId ID của phiên đấu giá
      * @param reason Lý do bị tắt
@@ -86,4 +74,10 @@ public interface ServerEventListener {
     default void onWithdrawResult(boolean isSuccess, long newBalance, String message) {}
     // Định nghĩa default để các class khác không bị lỗi bắt buộc override
     default void onMyAutoBidReceived(boolean isActive, long maxPrice, long stepPrice) {}
+    /**
+     * Lắng nghe kết quả khi yêu cầu xóa sản phẩm từ Server gửi về.
+     * @param isSuccess true nếu xóa thành công, false nếu thất bại.
+     * @param message Lời nhắn chi tiết từ Server.
+     */
+    default void onDeleteProductResult(boolean isSuccess, String message) {}
 }

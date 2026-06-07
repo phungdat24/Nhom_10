@@ -475,6 +475,26 @@ public class AuctionRepositoryImpl implements AuctionRepository {
     }
     return list;
   }
+  // Tìm kiếm thông tin phiên đấu giá bằng item_id:
+  @Override
+  public Auction getAuctionByItemId(String itemId) {
+    String sql = "SELECT * FROM auctions WHERE item_id = ?";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, itemId);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        if (rs.next()) {
+          // Tái sử dụng hàm mapRowToAuction có sẵn của em
+          return mapRowToAuction(rs);
+        }
+      }
+    } catch (SQLException e) {
+      logger.error("Lỗi khi tìm Auction theo item_id", e);
+    }
+    return null;
+  }
   // =====================================================================
   // NHÓM CÁC CÂU LỆNH TÍNH NĂNG ĐĂ THÙ VÀ THỐNG KÊ:
   // =========================================================================

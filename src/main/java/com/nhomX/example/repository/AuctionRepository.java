@@ -55,5 +55,6 @@ public interface AuctionRepository {
 
     List<Auction> findLiveAuctions();
     boolean cancelAuction(String auctionId);
+    Auction getAuctionByItemId(String itemId);
 }
 

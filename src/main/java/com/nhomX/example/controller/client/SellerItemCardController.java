@@ -49,8 +49,6 @@ public class SellerItemCardController {
     @FXML
     private HBox actionBox;
     @FXML
-    private Button btnEdit;
-    @FXML
     private Button btnDelete;
     @FXML
     private Label lblTimeCaption1;
@@ -231,13 +229,10 @@ public class SellerItemCardController {
      * Khóa hoặc mở khóa khu vực nút bấm
      */
     private void enableActions(boolean isEnabled) {
-        btnEdit.setDisable(!isEnabled);
         btnDelete.setDisable(!isEnabled);
 
         if (!isEnabled) {
             // Đổi màu xám để báo hiệu cho người dùng biết nút đã bị liệt
-            btnEdit.setStyle(
-                    "-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
             btnDelete.setStyle(
                     "-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
         }
@@ -261,13 +256,7 @@ public class SellerItemCardController {
 
     // ==========================================
     // TÁC VỤ 4: BẮT SỰ KIỆN NÚT BẤM
-    // ==========================================
-    @FXML
-    private void handleEditAction(ActionEvent event) {
-        logger.info("Sửa sản phẩm: {}", currentAuction.getId());
-        // Gọi SceneSwitcher chuyển sang form cập nhật sản phẩm
-    }
-
+    // =========================================
     @FXML
     private void handleDeleteAction(ActionEvent event) {
         // Yêu cầu xác nhận trước khi xóa (UX chống bấm nhầm)
@@ -285,5 +274,6 @@ public class SellerItemCardController {
             }
         }
     }
+
 
 }

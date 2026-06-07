@@ -65,8 +65,7 @@
     <!-- ── 5. Nút hành động ── -->
 
     <HBox fx:id="actionBox" spacing="8">
-        <Button fx:id="btnEdit" maxWidth="Infinity" style="-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Sửa" HBox.hgrow="ALWAYS" />
-        <Button fx:id="btnDelete" maxWidth="Infinity" style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Xóa" HBox.hgrow="ALWAYS" />
+        <Button fx:id="btnDelete" maxWidth="Infinity" onAction="#handleDeleteAction" style="-fx-background-color: #c62828; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Xóa" HBox.hgrow="ALWAYS" />
     </HBox>
 
 </VBox>

@@ -640,6 +640,25 @@ public class AuctionClient {
                     }
                 });
                 break;
+            case "DELETE_PRODUCT_RESULT":
+                Object[] deleteData = (Object[]) msg.getData();
+                boolean isDeleteSuccess = (Boolean) deleteData[0];
+                String deleteMsg = (String) deleteData[1];
+
+                // Đẩy tín hiệu lên luồng giao diện (UI Thread)
+                runOnUiThread(() -> {
+                    // 1. Phát thanh cho danh sách các Controller dùng chung (nếu có)
+                    if (listeners != null && !listeners.isEmpty()) {
+                        listeners.forEach(currentListener ->
+                                currentListener.onDeleteProductResult(isDeleteSuccess, deleteMsg)
+                        );
+                    }
+                    // 2. Phát thanh cho Controller độc quyền (nếu có)
+                    if (listener != null && !listeners.contains(listener)) {
+                        listener.onDeleteProductResult(isDeleteSuccess, deleteMsg);
+                    }
+                });
+                break;
 
             default:
                 logger.warn("CLIENT: Loại message không xác định: {}", type);

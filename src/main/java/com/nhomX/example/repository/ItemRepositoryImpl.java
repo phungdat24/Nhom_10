@@ -231,32 +231,55 @@ public class ItemRepositoryImpl implements ItemRepository {
   }
 
   @Override
-  public void delete(String itemId) {
-    // [FIX] Xóa ảnh trước, rồi mới xóa item (tránh lỗi foreign key constraint)
-    String sqlDeleteImages = "DELETE FROM item_images WHERE item_id = ?";
-    String sqlDeleteItem = "DELETE FROM items WHERE id = ?";
-    // ĐƯA CONNECTION VÀO TRY ĐỂ CHỐNG LEAK
+  public boolean deleteItemAndAuction(String itemId) {
+    // [Database Transaction] Phải xóa từ bảng con (ảnh, lịch sử, auto_bid) lên bảng cha (auction, item)
     try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
-      conn.setAutoCommit(false);
+      conn.setAutoCommit(false); // Bắt đầu Transaction
       try {
-        try (PreparedStatement pstmt1 = conn.prepareStatement(sqlDeleteImages)) {
-          pstmt1.setString(1, itemId);
-          pstmt1.executeUpdate();
+        // Lấy auction_id tương ứng với item_id
+        String auctionId = null;
+        try (PreparedStatement getAucStmt = conn.prepareStatement("SELECT id FROM auctions WHERE item_id = ?")) {
+          getAucStmt.setString(1, itemId);
+          ResultSet rs = getAucStmt.executeQuery();
+          if (rs.next()) {
+            auctionId = rs.getString("id");
+          }
         }
-        try (PreparedStatement pstmt2 = conn.prepareStatement(sqlDeleteItem)) {
-          pstmt2.setString(1, itemId);
-          pstmt2.executeUpdate();
+
+        if (auctionId != null) {
+          // 1. Xóa Auto-bids của phiên này
+          executeUpdate(conn, "DELETE FROM auto_bids WHERE auction_id = ?", auctionId);
+          // 2. Xóa Bids (lịch sử đặt giá)
+          executeUpdate(conn, "DELETE FROM bids WHERE auction_id = ?", auctionId);
+          // 3. Xóa Phiên đấu giá
+          executeUpdate(conn, "DELETE FROM auctions WHERE id = ?", auctionId);
         }
-        conn.commit();
-        logger.info("Đã xóa sản phẩm: {}", itemId);
+
+        // 4. Xóa Ảnh sản phẩm
+        executeUpdate(conn, "DELETE FROM item_images WHERE item_id = ?", itemId);
+        // 5. Xóa Sản phẩm gốc
+        int rows = executeUpdate(conn, "DELETE FROM items WHERE id = ?", itemId);
+
+        conn.commit(); // Hoàn tất Transaction
+        return rows > 0;
       } catch (SQLException e) {
-        logger.error("Lỗi xóa sản phẩm. Đang rollback", e);
-        rollbackSilently(conn);
+        conn.rollback(); // Có lỗi thì lùi lại toàn bộ
+        logger.error("Lỗi xóa sản phẩm - đã rollback", e);
+        return false;
       } finally {
-        restoreAutoCommit(conn);
+        conn.setAutoCommit(true);
       }
     } catch (SQLException e) {
       logger.error("Lỗi kết nối DB khi xóa sản phẩm", e);
+      return false;
+    }
+  }
+
+  // Hàm tiện ích chạy câu lệnh Delete
+  private int executeUpdate(Connection conn, String sql, String param) throws SQLException {
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      pstmt.setString(1, param);
+      return pstmt.executeUpdate();
     }
   }
 

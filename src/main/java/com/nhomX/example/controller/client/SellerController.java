@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import com.nhomX.example.utils.AlertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.nhomX.example.manager.SessionManager;
@@ -304,5 +306,16 @@ public class SellerController extends BaseController implements Initializable, S
             }
         });
     }
+    @Override
+    public void onDeleteProductResult(boolean isSuccess, String message) {
+        // Vì AuctionClient đã bọc runOnUiThread, ta có thể gọi AlertUtils an toàn
+        if (isSuccess) {
+            AlertUtils.showSuccess("Xóa sản phẩm thành công", message);
+            // Vẽ lại danh sách sau khi cập nhật
+            refreshSellerAuctionsFromServer();
 
+        } else {
+            AlertUtils.showError("Lỗi xóa sản phẩm", message);
+        }
+    }
 }

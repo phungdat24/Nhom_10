@@ -13,6 +13,4 @@ public interface BidRepository {
     BidTransaction getHighestBid(String auctionId); // Tìm lượt trả giá cao nhất hiện tại
 
     boolean executeBidTransaction(String userId, String auctionId, long bidAmount, String bidId);
-
-    boolean saveAutoBidConfig(String userId, String auctionId, long maxLimit, long increment);
 }
