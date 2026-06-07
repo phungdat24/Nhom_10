@@ -45,7 +45,7 @@ class AuctionFlowTest extends DatabaseBackedTest {
     // Arrange: Đăng ký đầy đủ người bán, người mua và cả ADMIN duyệt phiên
     RegularUser seller = regularUser("seller-1", "seller@example.com", 0, Role.SELLER);
     RegularUser bidder = regularUser("bidder-1", "bidder@example.com", 1_000, Role.BIDDER);
-    Admin admin = new Admin("admin-1", "admin@example.com", SecurityUtils.hashPassword("password"), "Admin Tester", 0);
+    Admin admin = new Admin("admin-1", "admin@example.com", SecurityUtils.hashPassword("password"), "Admin Tester", 0,true);
 
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(bidder));
@@ -115,7 +115,7 @@ class AuctionFlowTest extends DatabaseBackedTest {
 
     // Arrange: một phiên đã hết giờ và một phiên vẫn còn thời gian.
     RegularUser seller = regularUser("seller-2", "seller2@example.com", 0, Role.SELLER);
-    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0);
+    Admin admin = new Admin("admin-1", "admin@example.com", "password", "Admin", 0, true);
     assertTrue(userRepository.register(seller));
     assertTrue(userRepository.register(admin));
 
@@ -153,7 +153,7 @@ class AuctionFlowTest extends DatabaseBackedTest {
     AuctionRepository auctionRepository = new AuctionRepositoryImpl();
 
     Admin admin = new Admin(
-        "admin-approval", "admin@example.com", SecurityUtils.hashPassword("password"), "Admin", 0);
+        "admin-approval", "admin@example.com", SecurityUtils.hashPassword("password"), "Admin", 0, true);
     RegularUser seller = regularUser("seller-approval", "seller-approval@example.com", 0,
         Role.SELLER);
     assertTrue(userRepository.register(admin));

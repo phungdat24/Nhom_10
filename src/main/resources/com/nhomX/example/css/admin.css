@@ -1483,3 +1483,26 @@
     -fx-border-color: #C9A84C;
     -fx-text-fill: #F0EAD6;
 }
+//TÙY CHỈNH DROPDOWN MENU CHO COMBOBOX (DARK THEME)
+
+/* 1. Đổi màu nền của toàn bộ khung thả xuống thành màu tối */
+.combo-box-popup .list-view {
+    -fx-background-color: #1E1E1E;
+    -fx-border-color: #333333; /* Viền xám đen cho viền dropdown */
+    -fx-border-width: 1px;
+}
+
+/* 2. Tùy chỉnh từng ô chứa chữ bên trong dropdown */
+.combo-box-popup .list-cell {
+    -fx-background-color: #1E1E1E; /* Nền tối */
+    -fx-text-fill: #FFFFFF;        /* Chữ màu trắng để hiển thị rõ ràng */
+    -fx-padding: 8 12 8 12;        /* Tạo độ béo (khoảng cách) cho ô dễ bấm */
+}
+
+/* 3. Hiệu ứng khi người dùng di chuột vào (Hover) hoặc đang chọn */
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:selected {
+    -fx-background-color: #333333; /* Đổi màu nền sáng lên một chút khi hover */
+    -fx-text-fill: #F4C430;        /* Đổi màu chữ sang tông Vàng/Cam (phù hợp với theme PeakBid của em) */
+    -fx-cursor: hand;
+}

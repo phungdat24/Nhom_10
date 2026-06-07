@@ -9,15 +9,17 @@ public abstract class User extends Entity{
     private String fullName;
     // Số dư tài khoản:
     private long balance;
+    private boolean isActive = true;
     // Hàm khởi tạo rỗng:
     public User(){
     }
-    public User(String id, String userName, String passwordHash, String fullName, long balance){
+    public User(String id, String userName, String passwordHash, String fullName, long balance, boolean isActive){
         super(id);
         this.userName = userName;
         this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.setBalance(balance);
+        this.isActive= isActive;
     }
     // CÁC HÀM NGHIỆP VỤ (BUSINESS LOGIC)
     // ==========================================
@@ -60,7 +62,21 @@ public abstract class User extends Entity{
     public void setUserName(String userName) {
         this.userName = userName;
     }
+    public boolean isActive() {
+        return this.isActive;
+    }
 
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+
+    public void lockAccount() {
+        this.isActive = false;
+    }
+
+    public void unlockAccount() {
+        this.isActive = true;
+    }
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }

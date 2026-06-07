@@ -21,7 +21,6 @@
         <VBox prefWidth="560" spacing="24" styleClass="admin-item-detail-left-pane">
 
             <StackPane styleClass="admin-item-detail-image-frame">
-                <Label styleClass="admin-item-detail-auth-badge" text="Xác thực thật" StackPane.alignment="TOP_LEFT" />
 
                 <ImageView fx:id="imgMain" fitHeight="410" fitWidth="500" preserveRatio="true" smooth="true" styleClass="admin-item-detail-main-image-view">
                     <image>
@@ -30,7 +29,7 @@
                 </ImageView>
             </StackPane>
 
-            <HBox spacing="18">
+            <HBox fx:id="hboxThumbnails" spacing="18">
                 <StackPane styleClass="admin-item-detail-thumb-frame-active">
                     <ImageView fitHeight="88" fitWidth="88" preserveRatio="true" smooth="true">
                         <image>
@@ -98,7 +97,7 @@
                 </VBox>
 
                 <VBox prefWidth="255" spacing="8" styleClass="admin-item-detail-info-card">
-                    <Label styleClass="admin-item-detail-muted" text="THỜI GIAN MONG MUỐN" />
+                    <Label styleClass="admin-item-detail-muted" text="THỜI GIAN MỞ BÁN" />
                     <Label fx:id="lblDesiredTime" styleClass="admin-item-detail-time" text="20:00 • 15/10" />
                 </VBox>
             </HBox>

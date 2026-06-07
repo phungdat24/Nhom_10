@@ -56,4 +56,6 @@ public interface UserRepository {
      * @return true nếu đang active
      */
     boolean isUserActive(String userId);
+    // Bao gồm updateBalance, updatePassword, setUserActiveStatus và isUserActive
+    void update(User user);
 }

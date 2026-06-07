@@ -15,14 +15,14 @@ class AuctionRuleTest {
   @Test
   void cannotBidAfterEndTime() {
     // Arrange: phiên vẫn OPEN nhưng thời gian kết thúc đã qua.
-    RegularUser seller = new RegularUser("seller", "seller@example.com", "hash", "Seller", 0);
+    RegularUser seller = new RegularUser("seller", "seller@example.com", "hash", "Seller", 0,true);
     GeneralItem item = new GeneralItem("item", "Clock", "Vintage clock", seller);
     LocalDateTime start = LocalDateTime.now().minusMinutes(10); // Cho thời gian bắt đầu là 10 phút trước
     LocalDateTime end = LocalDateTime.now().minusSeconds(1);
     Auction auction = new Auction("auction", item, start, end, 100L);
     auction.setStatus(AuctionStatus.OPEN);
 
-    RegularUser bidder = new RegularUser("bidder", "bidder@example.com", "hash", "Bidder", 500);
+    RegularUser bidder = new RegularUser("bidder", "bidder@example.com", "hash", "Bidder", 500, true);
     bidder.addRole(Role.BIDDER);
 
     // Assert: logic domain phải chặn bid dù status chưa kịp đổi sang FINISHED.

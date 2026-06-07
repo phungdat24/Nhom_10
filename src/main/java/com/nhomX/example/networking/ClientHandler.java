@@ -192,6 +192,12 @@ public class ClientHandler implements Runnable {
                 case "DELETE_USER":
                     handleDeleteUser(msg);
                     break;
+                case "GET_LIVE_AUCTIONS":
+                    handleGetLiveAuctions();
+                    break;
+                case "FORCE_CANCEL_AUCTION":
+                    handleForceCancelAuction(msg);
+                    break;
                 default:
                     sendToClient(Message.error("Lệnh không xác định: " + msg.getType()));
             }
@@ -200,18 +206,21 @@ public class ClientHandler implements Runnable {
             sendToClient(Message.error("Dữ liệu gửi lên không hợp lệ!"));
         }
     }
-
+    // Lấy tất cả các phiên do user đăng bán
     private void handleGetSellerAuctions(Message msg) {
+        // Lấy dữ liệu bến trong gói tin ép thành string và gán biến sellerId
         String sellerId = (String) msg.getData();
         logger.info("SERVER: Đang truy vấn danh sách bán hàng cho user");
         try {
             List<Auction> sellerList = auctionRepository.findBySellerId(sellerId);
+            // Tạo một gói tin Message mới chứa nhãn và mang theo danh sách sellerList, sau đó đẩy qua ống mạng (Socket) về cho Client.
             sendToClient(new Message("SELLER_AUCTIONS_RESULT", sellerList));
-        } catch (Exception e) {
+        } catch (Exception e){
+            // Nếu có lỗi, tạo một gói tin báo lỗi "ERROR" và gửi về cho Client để giao diện không bị treo.
             sendToClient(new Message("ERROR", "Không thể lấy danh sách bán hàng"));
         }
     }
-
+    // Nhận yêu cầu nạp tiền, kiểm tra tính hợp lệ của số tiền và người nạp, sau đó gọi xuống Database để cộng tiền, rồi trả kết quả về
     private void handleDepositRequest(Message msg) {
         try {
             // Giải nén payload: [userId, amount, content, bankName]
@@ -219,20 +228,21 @@ public class ClientHandler implements Runnable {
             String userId = (String) payload[0];
             long amount = (Long) payload[1];
 
-            // [REFACTOR] Guard: Kiểm tra amount hợp lệ
+            // Nếu số tiền nạp nhỏ hơn hoặc bằng 0 thì xử lý báo lỗi
             if (amount <= 0) {
                 logger.warn("SERVER SECURITY: Phát hiện amount không hợp lệ: {}", amount);
                 sendToClient(new Message("DEPOSIT_RESULT", new Object[] {false, 0L}));
                 return;
             }
 
-            // [REFACTOR] Guard: Đảm bảo userId khớp với session hiện tại — chống giả mạo
+            // Kiểm tra xem User này đã đăng nhập chưa, VÀ ID gửi lên có đúng là ID của người đang mượn luồng (Thread)
+            // này không (Chống hacker truyền ID của người khác vào để hack tiền)
             if (currentUser == null || !currentUser.getId().equals(userId)) {
                 logger.warn("SERVER SECURITY: userId không khớp session, từ chối nạp tiền.");
                 sendToClient(new Message("DEPOSIT_RESULT", new Object[] {false, 0L}));
                 return;
             }
-
+            // Gọi hàm Repository
             userRepository.updateBalance(userId, amount);
             User updatedUser = userRepository.findById(userId);
 
@@ -255,6 +265,11 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleCreateAuctionRequest(Message msg) {
+        if (!isSellerClient()) {
+            sendToClient(new Message("CREATE_AUCTION_RESULT", new String[] {
+                    "false", "Lỗi phân quyền: Bạn không có đặc quyền đăng bán sản phẩm!"}));
+            return;
+        }
         try {
             Object[] payload = (Object[]) msg.getData();
             Items item = (Items) payload[0];
@@ -413,24 +428,26 @@ public class ClientHandler implements Runnable {
         }
 
         try {
-            // 1. Đọc trạng thái hiện tại từ DB
-            boolean currentActive = userRepository.isUserActive(targetUserId);
-            boolean newActive = !currentActive; // Toggle
-
-            // 2. Ghi trạng thái mới xuống DB
-            boolean isSuccess = userRepository.setUserActiveStatus(targetUserId, newActive);
-
-            if (isSuccess) {
-                // 3. Broadcast realtime tới TẤT CẢ Admin đang online
-                // để mọi màn hình UserManagement đều cập nhật đồng thời
-                server.broadcastToAdmins(createUserStatusChangedMessage(targetUserId, newActive));
-
-                logger.info("SERVER: Admin {} {} tài khoản user: {}", currentUser.getUserName(),
-                        newActive ? "đã MỞ KHÓA" : "đã KHÓA", targetUserId);
-            } else {
-                sendToClient(
-                        new Message("ERROR", "Cập nhật trạng thái thất bại, vui lòng thử lại."));
+            // Bước 1: Kéo Model từ DB lên bộ nhớ RAM
+            User targetUser = userRepository.findById(targetUserId);
+            if (targetUser == null) {
+                sendToClient(new Message("ERROR", "Không tìm thấy người dùng này trong hệ thống."));
+                return;
             }
+            // Bước 2: Ra lệnh cho Model tự đảo trạng thái (Xử lý 100% trên RAM)
+            if (targetUser.isActive()) {
+                targetUser.lockAccount(); // Model tự biết phải làm gì
+            } else {
+                targetUser.unlockAccount();
+            }
+            // Bước 3: Đẩy nguyên Model đã cập nhật cất lại vào DB
+            userRepository.update(targetUser);
+            // Broadcast realtime tới TẤT CẢ Admin đang online
+            server.broadcastToAdmins(createUserStatusChangedMessage(targetUserId, targetUser.isActive()));
+
+            System.out.println("SERVER: Admin " + currentUser.getUserName()
+                    + (targetUser.isActive() ? " đã MỞ KHÓA" : " đã KHÓA")
+                    + " tài khoản user: " + targetUserId);
 
         } catch (Exception e) {
             logger.error("handleToggleUserStatus lỗi: {}", e.getMessage(), e);
@@ -560,7 +577,7 @@ public class ClientHandler implements Runnable {
             String regPass = (String) tempRegisterData[1];
             String regName = (String) tempRegisterData[2];
             RegularUser newUser =
-                    new RegularUser(UUID.randomUUID().toString(), regEmail, regPass, regName, 0L);
+                    new RegularUser(UUID.randomUUID().toString(), regEmail, regPass, regName, 0L, true);
             newUser.addRole(Role.BIDDER);
             newUser.addRole(Role.SELLER);
 
@@ -679,6 +696,10 @@ public class ClientHandler implements Runnable {
     public boolean isAdminClient() {
         return currentUser != null && currentUser.getRoleName() != null
                 && currentUser.getRoleName().contains(Role.ADMIN.name());
+    }
+    public boolean isSellerClient() {
+        return currentUser != null && currentUser.getRoleName() != null
+                && currentUser.getRoleName().contains(Role.SELLER.name());
     }
 
     public static class OtpData {
@@ -814,6 +835,20 @@ public class ClientHandler implements Runnable {
                 throw new AuthenticationException(
                         "Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn trên máy chủ!");
             }
+            // ==========================================
+            User bidder = userRepository.findById(userId);
+
+            // 1. Kiểm tra tài khoản đã bị xóa khỏi DB
+            if (bidder == null) {
+                sendToClient(Message.bidFail("Tài khoản không tồn tại hoặc đã bị xóa khỏi hệ thống!"));
+                return; // Dừng tiến trình ngay lập tức
+            }
+
+            // 2. Kiểm tra tài khoản đang bị khóa
+            if (!bidder.isActive()) {
+                sendToClient(Message.bidFail("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Admin."));
+                return; // Dừng tiến trình ngay lập tức
+            }
             // [THÊM MỚI]: Lấy ID người dẫn đầu CŨ trước khi thực hiện giao dịch
             Auction currentAuction = auctionRepository.findById(auctionId);
             String oldWinnerId = (currentAuction != null && currentAuction.getWinner() != null)
@@ -947,10 +982,20 @@ public class ClientHandler implements Runnable {
         String password = data[1];
 
         User loggedInUser = userRepository.login(username, password);
+
         if (loggedInUser != null) {
-            // BUG FIX: Set currentUser sau khi login thành công để logging có ý nghĩa
+            // Kiểm tra xem Model có đang bị khóa không
+            // ==========================================
+            if (!loggedInUser.isActive()) {
+                System.out.println("SERVER: Khóa đăng nhập với tài khoản bị ban - " + username);
+                sendToClient(Message.loginFail("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Admin."));
+                return; // Dừng tiến trình đăng nhập ngay lập tức
+            }
+
+            //Set currentUser sau khi login thành công để logging có ý nghĩa
             this.currentUser = loggedInUser;
             sendToClient(Message.loginSuccess(loggedInUser));
+
         } else {
             sendToClient(Message.loginFail("Sai tên đăng nhập hoặc mật khẩu!"));
         }
@@ -967,6 +1012,28 @@ public class ClientHandler implements Runnable {
         String auctionId = msg.getAuctionId();
         List<BidTransaction> history = bidRepository.getBidsByAuctionId(auctionId);
         sendToClient(Message.returnBidHistory(history));
+    }
+    private void handleGetLiveAuctions() {
+        // Gọi DB lấy các phiên có status = PENDING hoặc OPEN
+        List<Auction> liveList = auctionRepository.findLiveAuctions();
+        sendToClient(new Message("LIVE_AUCTIONS_RESULT", liveList));
+    }
+    private void handleForceCancelAuction(Message msg) {
+        if (!isAdminClient()) return; // Bảo mật: chặn user thường
+        String auctionId = (String) msg.getData();
+
+        // 1. Gọi Database đổi trạng thái
+        boolean success = auctionRepository.cancelAuction(auctionId);
+
+        if (success) {
+            // 2. Logic hoàn tiền: Trả lại tiền cho người đang giữ Top 1 (nếu có)
+            // ... (Sử dụng Model hoặc Repository tùy kiến trúc hiện tại của em)
+
+            // 3. Thông báo cho toàn bộ mạng lưới là phiên này đã bị hủy
+            server.broadcastToAll(new Message("AUCTION_CANCELLED", auctionId));
+            // Gửi lại danh sách mới cho Admin cập nhật màn hình
+            handleGetLiveAuctions();
+        }
     }
 
     private void handleSetupAutoBid(Message msg) {

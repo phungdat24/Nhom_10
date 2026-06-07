@@ -79,7 +79,7 @@ public class UserManagementController implements Initializable, ServerEventListe
     }
 
     private void setupComboBoxes() {
-        statusComboBox.getItems().addAll("Tất cả", "Đang hoạt động", "Bị khóa");
+        statusComboBox.getItems().addAll("Tất cả", "Bình thường", "Bị khóa");
         statusComboBox.getSelectionModel().selectFirst();
         statusComboBox.setOnAction(event -> applyFilterAndRender());
 
@@ -94,7 +94,8 @@ public class UserManagementController implements Initializable, ServerEventListe
             allUsers.clear();
             if (users != null) {
                 allUsers.addAll(users);
-                users.forEach(user -> activeByUserId.putIfAbsent(user.getId(), true));
+                // ✅ [ĐÃ SỬA]: Lấy đúng trạng thái thật từ thuộc tính của User
+                users.forEach(user -> activeByUserId.put(user.getId(), user.isActive()));
             }
             activeByUserId.keySet().removeIf(userId -> allUsers.stream()
                     .noneMatch(user -> Objects.equals(user.getId(), userId)));
@@ -218,7 +219,7 @@ public class UserManagementController implements Initializable, ServerEventListe
         balanceLabel.getStyleClass().add("user-management-money-cell");
 
         boolean active = isUserActive(user);
-        Label statusBadge = new Label(active ? "• ĐANG HOẠT ĐỘNG" : "• BỊ KHÓA");
+        Label statusBadge = new Label(active ? "• BÌNH THƯỜNG" : "• BỊ KHÓA");
         statusBadge.getStyleClass()
                 .add(active ? "user-management-status-active" : "user-management-status-locked");
 
@@ -296,16 +297,6 @@ public class UserManagementController implements Initializable, ServerEventListe
         }
     }
 
-    @FXML
-    private void handleAddUser() {
-        // TODO: Open the create-user dialog.
-    }
-
-    @FXML
-    private void handleExport() {
-        // TODO: Export the filtered users.
-    }
-
     private void handleToggleStatus(User user) {
         if (auctionClient != null) {
             auctionClient.sendToServer(new Message("TOGGLE_USER_STATUS", user.getId()));
@@ -324,7 +315,7 @@ public class UserManagementController implements Initializable, ServerEventListe
     }
 
     private boolean isUserActive(User user) {
-        return activeByUserId.getOrDefault(user.getId(), true);
+        return activeByUserId.getOrDefault(user.getId(), user.isActive());
     }
 
     private String buildInitials(String fullName) {

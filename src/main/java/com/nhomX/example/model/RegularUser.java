@@ -22,8 +22,8 @@ public class RegularUser extends User {
 
     // 2. Hàm tạo có tham số (Dùng khi lấy từ Database lên)
     public RegularUser(String id, String userName, String passwordHash, String fullName,
-            long balance) {
-        super(id, userName, passwordHash, fullName, balance);
+            long balance, boolean is_active) {
+        super(id, userName, passwordHash, fullName, balance, is_active);
         this.roles = new HashSet<>();
     }
     // PHẦN 1: QUẢN LÝ QUYỀN HẠN (AUTHORIZATION)
@@ -74,6 +74,9 @@ public class RegularUser extends User {
      * Hàm đặt giá (Chỉ thực hiện được nếu có quyền BIDDER)
      */
     public BidTransaction placeBid(Auction auction, long amount) {
+        if (!this.isActive()) {
+            throw new IllegalStateException("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Admin.");
+        }
         // Kiểm tra quyền (Bảo mật 2 lớp)
         if (!this.hasRole(Role.BIDDER)) {
             throw new IllegalStateException(
@@ -106,6 +109,9 @@ public class RegularUser extends User {
      * @return Đối tượng cấu hình AutoBidConfig đã được tạo
      */
     public AutoBidConfig setupAutoBid(Auction auction, long maxLimit, long increment) {
+        if (!this.isActive()) {
+            throw new IllegalStateException("Tài khoản của bạn đã bị khóa! Vui lòng liên hệ Admin.");
+        }
         // 1. Kiểm tra quyền của người dùng (Giống hệt lúc placeBid)
         if (!this.hasRole(Role.BIDDER)) {
             throw new IllegalStateException(
@@ -138,6 +144,9 @@ public class RegularUser extends User {
      * Hàm đăng bán sản phẩm (Chỉ thực hiện được nếu có quyền SELLER)
      */
     public void addProduct(Items item) {
+        if (!this.isActive()) {
+            throw new IllegalStateException("Tài khoản của bạn đã bị khóa! Không thể đăng bán.");
+        }
         if (!this.hasRole(Role.SELLER)) {
             throw new IllegalStateException(
                     "Tài khoản của bạn chưa được cấp quyền đăng bán sản phẩm!");

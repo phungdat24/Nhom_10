@@ -28,19 +28,20 @@ public class UserRepositoryImpl implements UserRepository {
      * ngược lỗi SQLException về cho Java.
      */
     String sql =
-        "INSERT INTO users (id, username, password, fullname, balance, role) VALUES (?,? , ?, ?, ?, ?)";
+        "INSERT INTO users (id, username, password, fullname, balance, role,is_active) VALUES (?,? , ?, ?, ?, ?, ?)";
 
     // 1. GOM CONNECTION VÀO TRY ĐỂ TRÁNH LEAK
     try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
-      ensureUserActiveColumn(conn);
       try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
         pstmt.setString(1, user.getId());
         pstmt.setString(2, user.getUserName());
         pstmt.setString(3, user.getPasswordHash());
         pstmt.setString(4, user.getFullName());
         pstmt.setLong(5, user.getBalance());
+
         // Lưu Role xuống DB:
         pstmt.setString(6, user.getRoleName());
+        pstmt.setInt(7, user.isActive() ? 1 : 0);
 
         int rowsAffected = pstmt.executeUpdate();
         if (rowsAffected > 0) {
@@ -61,13 +62,12 @@ public class UserRepositoryImpl implements UserRepository {
 
   @Override
   public User login(String username, String passwordHash) {
-    String sql = "SELECT * FROM users WHERE username = ? AND password = ? AND is_active = 1";
+    String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
     // 1. MỞ KẾT NỐI VÀ TỰ ĐỘNG ĐÓNG
     try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
 
       // Gọi hàm phụ trợ thoải mái. Nếu hàm này quăng lỗi SQLException,
       // nó sẽ bay thẳng xuống catch ở cuối, và conn VẪN ĐƯỢC ĐÓNG AN TOÀN!
-      ensureUserActiveColumn(conn);
 
       try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
         pstmt.setString(1, username);
@@ -83,6 +83,24 @@ public class UserRepositoryImpl implements UserRepository {
       logger.error("Lỗi đăng nhập", e);
     }
     return null;
+  }
+  @Override
+  public void update(User user) {
+    String sql = "UPDATE users SET password = ?, fullname = ?, balance = ?, role = ?, is_active = ? WHERE id = ?";
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+      pstmt.setString(1, user.getPasswordHash());
+      pstmt.setString(2, user.getFullName());
+      pstmt.setLong(3, user.getBalance());
+      pstmt.setString(4, user.getRoleName());
+      pstmt.setInt(5, user.isActive() ? 1 : 0);
+      pstmt.setString(6, user.getId());
+
+      pstmt.executeUpdate();
+    } catch (SQLException e) {
+      System.err.println("❌ Lỗi cập nhật thông tin user: " + e.getMessage());
+    }
   }
 
   @Override
@@ -147,18 +165,10 @@ public class UserRepositoryImpl implements UserRepository {
     List<User> users = new ArrayList<>();
     String sql = "SELECT * FROM users";
     // Mở Connection 1 lần duy nhất, bao trùm toàn bộ
-    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
-      // 1. Kiểm tra cột (Dùng try-catch thường bên trong)
-      try {
-        ensureUserActiveColumn(conn);
-      } catch (SQLException e) {
-        logger.error("Lỗi kiểm tra cột is_active", e);
-        return users; // Lỗi thì dừng luôn, trả về list rỗng
-      }
-
+    try(Connection conn = DatabaseConnection.getInstance().getConnection()){
       // 2. Chạy Query lấy dữ liệu (Sử dụng chung biến conn đang mở)
       try (PreparedStatement pstmt = conn.prepareStatement(sql);
-          ResultSet rs = pstmt.executeQuery()) {
+           ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) {
           users.add(mapRowToUser(rs));
         }
@@ -196,16 +206,18 @@ public class UserRepositoryImpl implements UserRepository {
   // Đọc User từ ResultSet:
   private User mapRowToUser(ResultSet rs) throws SQLException {
     String roleString = rs.getString("role");
+    // Đọc trạng thái từ DB (1 = true, 0 = false)
+    boolean isActiveDb = rs.getInt("is_active") == 1;
 
     // 1. Phân nhánh Admin
     if (roleString != null && roleString.contains("ADMIN")) {
       return new Admin(rs.getString("id"), rs.getString("username"), rs.getString("password"),
-          rs.getString("fullname"), rs.getLong("balance"));
+          rs.getString("fullname"), rs.getLong("balance"), isActiveDb);
     }
 
     // 2. Phân nhánh Người dùng thường
     RegularUser user = new RegularUser(rs.getString("id"), rs.getString("username"),
-        rs.getString("password"), rs.getString("fullname"), rs.getLong("balance"));
+        rs.getString("password"), rs.getString("fullname"), rs.getLong("balance"), isActiveDb);
 
     // 3. Cấp lại quyền
     if (roleString != null) {
@@ -237,45 +249,13 @@ public class UserRepositoryImpl implements UserRepository {
     return count;
   }
 
-  /**
-   * ALTER TABLE cần chạy 1 lần trên DB để thêm cột is_active:
-   *
-   * <p>
-   * ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;
-   *
-   * <p>
-   * SQLite dùng INTEGER (0/1), MySQL dùng TINYINT(1) hoặc BOOLEAN. Giá trị mặc định 1 = tất cả user
-   * cũ đều được coi là "đang hoạt động".
-   */
-  private void ensureUserActiveColumn(Connection conn) throws SQLException {
-    try (PreparedStatement pstmt = conn.prepareStatement("PRAGMA table_info(users)");
-        ResultSet rs = pstmt.executeQuery()) {
-      while (rs.next()) {
-        if ("is_active".equalsIgnoreCase(rs.getString("name"))) {
-          return;
-        }
-      }
-    }
-
-    try (PreparedStatement pstmt = conn
-        .prepareStatement("ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1")) {
-      pstmt.executeUpdate();
-    }
-  }
-
 
   @Override
   public boolean setUserActiveStatus(String userId, boolean isActive) {
     // UPDATE đúng 1 cột — không đụng mật khẩu, balance hay bất cứ thứ gì khác
     String sql = "UPDATE users SET is_active = ? WHERE id = ?";
 
-    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
-      try {
-        ensureUserActiveColumn(conn);
-      } catch (SQLException e) {
-        logger.error("Lỗi kiểm tra cột is_active", e);
-        return false; // Lỗi thì dừng luôn, trả về list rỗng
-      }
+    try(Connection conn = DatabaseConnection.getInstance().getConnection()) {
       try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
         pstmt.setInt(1, isActive ? 1 : 0); // SQLite: 1=active, 0=locked
         pstmt.setString(2, userId);
@@ -366,13 +346,7 @@ public class UserRepositoryImpl implements UserRepository {
   public boolean isUserActive(String userId) {
     String sql = "SELECT is_active FROM users WHERE id = ?";
 
-    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
-      try {
-        ensureUserActiveColumn(conn);
-      } catch (SQLException e) {
-        logger.error("Lỗi kiểm tra cột is_active", e);
-        return true;
-      }
+    try(Connection conn = DatabaseConnection.getInstance().getConnection()) {
       try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
         pstmt.setString(1, userId);
         try (ResultSet rs = pstmt.executeQuery()) {

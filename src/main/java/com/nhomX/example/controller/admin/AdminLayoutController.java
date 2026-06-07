@@ -101,9 +101,9 @@ public class AdminLayoutController implements Initializable {
 
     @FXML
     void handleNavAuctions(ActionEvent event) {
-        // topbarTitle.setText("Quản lý Phiên đấu giá");
-        // setActiveButton(btnAuctions);
-        // loadView("/com/nhomX/example/fxml/admin/AdminAuctionManagement.fxml");
+         topbarTitle.setText("Quản lý Phiên đấu giá");
+         setActiveButton(btnAuctions);
+         loadView("/com/nhomX/example/fxml/admin/AuctionSession.fxml");
     }
 
     @FXML

@@ -24,7 +24,7 @@ public class DatabaseConnection {
   // 2. Constructor private để ngăn bên ngoài dùng từ khóa 'new'
   private DatabaseConnection() {
     // Chỉ khởi tạo cấu trúc bảng một lần
-    createTables();
+      createTables();
   }
 
   // 3. Phương thức public static để cung cấp instance duy nhất
@@ -57,11 +57,12 @@ public class DatabaseConnection {
   // 4. Hàm khởi tạo cấu trúc các bảng theo sơ đồ ERD mới nhất
   private void createTables() {
     // Lấy 1 kết nối tạm thời chỉ để tạo bảng
-    try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-      // Bảng Users: Quản lý người dùng và số dư
-      String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" + "id TEXT PRIMARY KEY, "
-          + "username TEXT UNIQUE NOT NULL, " + "password TEXT NOT NULL, " + "fullname TEXT, "
-          + "balance INTEGER DEFAULT 0, " + "role TEXT DEFAULT 'USER');";
+    try (Connection conn = getConnection();
+         Statement stmt = conn.createStatement()) {
+    // Bảng Users: Quản lý người dùng và số dư
+    String createUsersTable = "CREATE TABLE IF NOT EXISTS users (" + "id TEXT PRIMARY KEY, "
+        + "username TEXT UNIQUE NOT NULL, " + "password TEXT NOT NULL, " + "fullname TEXT, "
+        + "balance INTEGER DEFAULT 0, " + "role TEXT DEFAULT 'USER'," + "is_active INTEGER NOT NULL DEFAULT 1);";
 
       // Bảng Items: Thông tin cơ bản của món đồ (Đã bỏ các cột giá và thời gian)
       String createItemsTable = "CREATE TABLE IF NOT EXISTS items (" + "id TEXT PRIMARY KEY, "
