@@ -51,7 +51,9 @@ public class AuctionClient {
     }
 
     public void addListener(ServerEventListener listener) {
-        listeners.add(listener);
+        if (listener != null && !listeners.contains(listener)) {
+            listeners.add(listener);
+        }
     }
 
     public void removeListener(ServerEventListener listener) {
@@ -219,15 +221,20 @@ public class AuctionClient {
         switch (type) {
 
             case "UPDATE_PRICE":
-                // Cập nhật Nguồn Sự Thật trên RAM ngay lập tức
-                AuctionManager.getInstance().updateAuctionPrice(msg.getAuctionId(), msg.getAmount(),
-                        null, msg.getUsername());
-                runOnUiThread(() -> {
-                    if (listener != null) {
-                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(),
-                                msg.getUsername());
-                    }
-                });
+                AuctionManager.getInstance().updateAuctionPrice(
+                        msg.getAuctionId(),
+                        msg.getAmount(),
+                        null,
+                        msg.getUsername()
+                );
+
+                runOnUiThread(() -> notifyListeners(currentListener ->
+                        currentListener.onHighestBidUpdated(
+                                msg.getAuctionId(),
+                                msg.getAmount(),
+                                msg.getUsername()
+                        )
+                ));
                 break;
 
             case "AUCTION_CLOSED":
@@ -260,19 +267,15 @@ public class AuctionClient {
                 break;
 
             case "BID_SUCCESS":
-                runOnUiThread(() -> {
-                    if (listener != null) {
-                        listener.onBidResult(true, (String) msg.getData());
-                    }
-                });
+                runOnUiThread(() -> notifyListeners(currentListener ->
+                        currentListener.onBidResult(true, (String) msg.getData())
+                ));
                 break;
 
             case "BID_FAIL":
-                runOnUiThread(() -> {
-                    if (listener != null) {
-                        listener.onBidResult(false, (String) msg.getData());
-                    }
-                });
+                runOnUiThread(() -> notifyListeners(currentListener ->
+                        currentListener.onBidResult(false, (String) msg.getData())
+                ));
                 break;
 
             case "LOGIN_SUCCESS":
@@ -325,13 +328,12 @@ public class AuctionClient {
             case "RETURN_ALL_AUCTIONS":
                 @SuppressWarnings("unchecked")
                 List<Auction> auctions = (List<Auction>) msg.getData();
-                // [REFACTOR]: Nạp toàn bộ kho dữ liệu vào Manager
+
                 AuctionManager.getInstance().setAllAuctions(auctions);
-                runOnUiThread(() -> {
-                    if (listener != null) {
-                        listener.onAuctionsReceived(auctions);
-                    }
-                });
+
+                runOnUiThread(() -> notifyListeners(currentListener ->
+                        currentListener.onAuctionsReceived(auctions)
+                ));
                 break;
             case "PENDING_AUCTIONS_RESULT":
                 @SuppressWarnings("unchecked")
@@ -489,18 +491,34 @@ public class AuctionClient {
                 break;
             case "AUTO_BID_SUCCESS":
                 runOnUiThread(() -> {
-                    // Gọi hàm AlertUtils để báo tin vui cho người dùng
-                    AlertUtils.showSuccess("Thành công",
-                            "Đã lưu cấu hình Đấu giá tự động (Auto-bid) thành công!");
+                    AlertUtils.showSuccess(
+                            "Thành công",
+                            "Đã lưu cấu hình Đấu giá tự động (Auto-bid) thành công!"
+                    );
+
+                    notifyListeners(currentListener ->
+                            currentListener.onAutoBidSetupResult(
+                                    true,
+                                    "Đã lưu cấu hình Auto-bid thành công!"
+                            )
+                    );
                 });
                 break;
 
             case "AUTO_BID_FAIL":
                 runOnUiThread(() -> {
-                    String failReason =
-                            msg.getData() != null ? (String) msg.getData() : "Lỗi không xác định!";
-                    // Báo lỗi cho người dùng biết
-                    AlertUtils.showError("Cảnh báo", "Thiết lập Auto-bid thất bại: " + failReason);
+                    String failReason = msg.getData() != null
+                            ? (String) msg.getData()
+                            : "Lỗi không xác định!";
+
+                    AlertUtils.showError(
+                            "Cảnh báo",
+                            "Thiết lập Auto-bid thất bại: " + failReason
+                    );
+
+                    notifyListeners(currentListener ->
+                            currentListener.onAutoBidSetupResult(false, failReason)
+                    );
                 });
                 break;
             // TÌM ĐẾN VÀ THÊM VÀO TRONG VÒNG SWITCH CỦA AuctionClient.java
@@ -598,5 +616,15 @@ public class AuctionClient {
 
     public boolean isConnected() {
         return socket != null && socket.isConnected() && !socket.isClosed();
+    }
+
+    private void notifyListeners(Consumer<ServerEventListener> action) {
+        for (ServerEventListener currentListener : listeners) {
+            action.accept(currentListener);
+        }
+
+        if (listener != null && !listeners.contains(listener)) {
+            action.accept(listener);
+        }
     }
 }

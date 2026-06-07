@@ -6,6 +6,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,9 +88,38 @@ public class ItemCardController extends BaseController {
 
     @FXML
     void handleBidAction(ActionEvent event) {
-        // Khi người dùng bấm "Đấu giá" ở ĐÚNG ô sản phẩm này
-        logger.info("Đang mở cửa sổ đấu giá cho: {}", currentAuction.getId());
-        // Lấy ID sản phẩm: currentItem.getId() để gửi qua Socket cho Member 2
+        try {
+            if (currentAuction == null) {
+                System.err.println("Lỗi: Chưa có dữ liệu phiên đấu giá.");
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/nhomX/example/fxml/client/AuctionPopup.fxml")
+            );
+            Parent root = loader.load();
+
+            AuctionPopupController popupController = loader.getController();
+            popupController.setAuctionData(currentAuction);
+            popupController.setOnBidSuccess((newPrice, newEndTime) -> {
+                updateRealtimePrice(newPrice, newEndTime);
+            });
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Đặt giá đấu");
+            popupStage.setScene(new Scene(root));
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+
+            Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            popupStage.initOwner(currentStage);
+
+            popupStage.setResizable(false);
+            popupStage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Không thể mở AuctionPopup: " + e.getMessage());
+        }
     }
 
     @FXML

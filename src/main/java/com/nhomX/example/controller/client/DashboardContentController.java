@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +148,59 @@ public class DashboardContentController extends BaseController implements Server
 
     @FXML
     void handleFeaturedBid(ActionEvent event) {
-        navigateToDetail();
+        openFeaturedAuctionPopup(event);
+    }
+    private void openFeaturedAuctionPopup(ActionEvent event) {
+        if (featuredAuctionId == null) {
+            logger.warn("Không thể mở AuctionPopup vì chưa có featuredAuctionId.");
+            return;
+        }
+
+        Auction freshAuction = AuctionManager.getInstance().getAuctionById(featuredAuctionId);
+
+        if (freshAuction == null) {
+            logger.warn("Không tìm thấy phiên đấu giá nổi bật trong AuctionManager: {}", featuredAuctionId);
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/nhomX/example/fxml/client/AuctionPopup.fxml")
+            );
+
+            Parent root = loader.load();
+
+            AuctionPopupController popupController = loader.getController();
+            popupController.setAuctionData(freshAuction);
+
+            popupController.setOnBidSuccess((newPrice, newEndTime) -> {
+                Platform.runLater(() -> {
+                    freshAuction.setHighestBid(newPrice);
+
+                    if (newEndTime != null) {
+                        freshAuction.setEndTime(newEndTime);
+                    }
+
+                    lblFeaturedPrice.setText(
+                            "Giá hiện tại: " + CurrencyFormatter.formatVND(newPrice)
+                    );
+                });
+            });
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Đặt giá đấu");
+            popupStage.setScene(new Scene(root));
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+
+            Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            popupStage.initOwner(currentStage);
+
+            popupStage.setResizable(false);
+            popupStage.showAndWait();
+
+        } catch (IOException e) {
+            logger.error("Không thể mở AuctionPopup từ Dashboard", e);
+        }
     }
 
     @FXML

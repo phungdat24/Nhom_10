@@ -25,28 +25,76 @@ public class AutoBidRepositoryImpl implements AutoBidRepository {
 
   @Override
   public boolean save(AutoBidConfig config) {
-    String sql = "INSERT OR REPLACE INTO auto_bids "
-        + "(id, user_id, auction_id, max_price, step_price, is_active, created_at) "
-        + "VALUES (COALESCE((SELECT id FROM auto_bids "
-        + "WHERE user_id=? AND auction_id=?), ?), ?, ?, ?, ?, 1, ?)";
+    if (config == null
+            || config.getBidder() == null
+            || config.getBidder().getId() == null
+            || config.getAuction() == null
+            || config.getAuction().getId() == null) {
 
-    try (Connection conn = DatabaseConnection.getInstance().getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+      System.err.println("AUTO-BID: Config không hợp lệ, thiếu user hoặc auction.");
+      return false;
+    }
 
-      pstmt.setString(1, config.getBidder().getId());
-      pstmt.setString(2, config.getAuction().getId());
-      pstmt.setString(3, UUID.randomUUID().toString()); // id mới nếu chưa tồn tại
-      pstmt.setString(4, config.getBidder().getId());
-      pstmt.setString(5, config.getAuction().getId());
-      pstmt.setLong(6, config.getMaxLimit());
-      pstmt.setLong(7, config.getIncrement());
-      pstmt.setString(8, LocalDateTime.now().format(DB_FORMATTER));
+    String userId = config.getBidder().getId();
+    String auctionId = config.getAuction().getId();
 
-      pstmt.executeUpdate();
-      logger.info("AUTO-BID: Đã lưu config cho user={}", config.getBidder().getId());
-      return true;
+    String updateSql =
+            "UPDATE auto_bids "
+                    + "SET max_price = ?, step_price = ?, is_active = 1, created_at = ? "
+                    + "WHERE user_id = ? AND auction_id = ?";
+
+    String insertSql =
+            "INSERT INTO auto_bids "
+                    + "(id, user_id, auction_id, max_price, step_price, is_active, created_at) "
+                    + "VALUES (?, ?, ?, ?, ?, 1, ?)";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection()) {
+
+      String now = LocalDateTime.now().format(DB_FORMATTER);
+
+      try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+        updateStmt.setLong(1, config.getMaxLimit());
+        updateStmt.setLong(2, config.getIncrement());
+        updateStmt.setString(3, now);
+        updateStmt.setString(4, userId);
+        updateStmt.setString(5, auctionId);
+
+        int updatedRows = updateStmt.executeUpdate();
+
+        if (updatedRows > 0) {
+          System.out.println("AUTO-BID: Đã cập nhật config cũ. user="
+                  + userId + ", auction=" + auctionId);
+          return true;
+        }
+      }
+
+      try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+        insertStmt.setString(1, UUID.randomUUID().toString());
+        insertStmt.setString(2, userId);
+        insertStmt.setString(3, auctionId);
+        insertStmt.setLong(4, config.getMaxLimit());
+        insertStmt.setLong(5, config.getIncrement());
+        insertStmt.setString(6, now);
+
+        int insertedRows = insertStmt.executeUpdate();
+
+        if (insertedRows > 0) {
+          System.out.println("AUTO-BID: Đã thêm config mới. user="
+                  + userId + ", auction=" + auctionId);
+          return true;
+        }
+      }
+
+      System.err.println("AUTO-BID: Không insert/update được dòng nào.");
+      return false;
+
     } catch (SQLException e) {
-      logger.error("Lỗi khi lưu AutoBid", e);
+      System.err.println("❌ Lỗi khi lưu AutoBid:");
+      System.err.println("userId = " + userId);
+      System.err.println("auctionId = " + auctionId);
+      System.err.println("maxLimit = " + config.getMaxLimit());
+      System.err.println("increment = " + config.getIncrement());
+      e.printStackTrace();
       return false;
     }
   }
