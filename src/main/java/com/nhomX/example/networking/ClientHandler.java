@@ -8,8 +8,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,7 @@ import com.nhomX.example.repository.UserRepository;
 import com.nhomX.example.service.AuctionService;
 import com.nhomX.example.service.EmailService;
 import com.nhomX.example.service.GmailServiceImpl;
+import com.nhomX.example.utils.DatabaseConnection;
 import com.nhomX.example.utils.ValidatorUtils;
 
 public class ClientHandler implements Runnable {
@@ -68,6 +73,8 @@ public class ClientHandler implements Runnable {
     // =========================================================================
     private static final String IMAGE_DIR =
             System.getProperty("user.dir") + File.separator + "auction_images" + File.separator;
+    private static final DateTimeFormatter DB_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public static final ConcurrentHashMap<String, OtpData> otpStorage = new ConcurrentHashMap<>();
 
@@ -140,6 +147,9 @@ public class ClientHandler implements Runnable {
                     break; // BUG FIX: thiếu handler này
                 case "CREATE_AUCTION_REQUEST":
                     handleCreateAuctionRequest(msg);
+                    break;
+                case "UPDATE_PRODUCT":
+                    handleUpdateProduct(msg);
                     break;
                 case "GET_DASHBOARD_DATA":
                     handleGetDashboardData();
@@ -318,9 +328,241 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Validate tên file chống Path Traversal. Chỉ cho phép: chữ cái, số, gạch dưới, gạch ngang, dấu
-     * chấm. Từ chối: "../", "/", "\", ký tự đặc biệt.
+     * Xử lý yêu cầu cập nhật sản phẩm khi seller mở popup sửa.
      */
+    private void handleUpdateProduct(Message msg) {
+        if (!isSellerClient()) {
+            sendToClient(new Message("CREATE_AUCTION_RESULT", new String[] {
+                    "false", "Ban khong co quyen cap nhat san pham nay."}));
+            return;
+        }
+
+        try {
+            Object[] payload = (Object[]) msg.getData();
+            Items item = (Items) payload[0];
+            Auction auction = (Auction) payload[1];
+            @SuppressWarnings("unchecked")
+            Map<String, byte[]> imageDataMap = (Map<String, byte[]>) payload[2];
+
+            if (item == null || auction == null || item.getId() == null || auction.getId() == null) {
+                sendToClient(new Message("CREATE_AUCTION_RESULT", new String[] {
+                        "false", "Du lieu cap nhat san pham khong hop le."}));
+                return;
+            }
+
+            Auction existingAuction = auctionRepository.findById(auction.getId());
+            if (existingAuction == null || existingAuction.getItem() == null
+                    || !item.getId().equals(existingAuction.getItem().getId())) {
+                sendToClient(new Message("CREATE_AUCTION_RESULT", new String[] {
+                        "false", "Khong tim thay san pham can cap nhat."}));
+                return;
+            }
+
+            String sellerId = existingAuction.getItem().getSeller() != null
+                    ? existingAuction.getItem().getSeller().getId()
+                    : null;
+            if (currentUser == null || sellerId == null || !currentUser.getId().equals(sellerId)) {
+                sendToClient(new Message("CREATE_AUCTION_RESULT", new String[] {
+                        "false", "Ban chi duoc cap nhat san pham cua chinh minh."}));
+                return;
+            }
+
+            if (!isEditableAuctionStatus(existingAuction.getStatus())) {
+                sendToClient(new Message("CREATE_AUCTION_RESULT", new String[] {
+                        "false", "San pham da len san hoac da co dau gia, khong the sua."}));
+                return;
+            }
+
+            /*
+             * Không chỉ dựa vào status.
+             * Kiểm tra trực tiếp thời gian để tránh trường hợp DB chưa kịp
+             * chuyển UP_COMING thành OPEN.
+             */
+            if (existingAuction.getStartTime() != null
+                    && !LocalDateTime.now()
+                    .isBefore(existingAuction.getStartTime())) {
+
+                sendToClient(new Message(
+                        "CREATE_AUCTION_RESULT",
+                        new String[] {
+                                "false",
+                                "Phiên đấu giá đã đến giờ bắt đầu, "
+                                        + "không thể chỉnh sửa sản phẩm."
+                        }));
+                return;
+            }
+
+            // Thời gian mới cũng phải nằm trong tương lai.
+            if (auction.getStartTime() == null
+                    || !auction.getStartTime()
+                    .isAfter(LocalDateTime.now())) {
+
+                sendToClient(new Message(
+                        "CREATE_AUCTION_RESULT",
+                        new String[] {
+                                "false",
+                                "Thời gian bắt đầu mới phải nằm trong tương lai."
+                        }));
+                return;
+            }
+
+            if (auction.getEndTime() == null
+                    || !auction.getEndTime()
+                    .isAfter(auction.getStartTime())) {
+
+                sendToClient(new Message(
+                        "CREATE_AUCTION_RESULT",
+                        new String[] {
+                                "false",
+                                "Thời gian kết thúc phải sau thời gian bắt đầu."
+                        }));
+                return;
+            }
+
+            if ((item.getImages() == null || item.getImages().isEmpty())
+                    && existingAuction.getItem().getImages() != null) {
+                item.setImages(existingAuction.getItem().getImages());
+            }
+
+            saveUploadedImagesForItem(item, imageDataMap);
+
+            auction.setStatus(AuctionStatus.PENDING);
+            auction.setApprovedBy(null);
+
+            boolean auctionUpdated =
+                    updateAuctionForEdit(auction);
+            
+            if (auctionUpdated) {
+                itemRepository.update(item);
+            }
+
+            boolean success = auctionUpdated;
+
+            if (!success) {
+                sendToClient(new Message(
+                        "CREATE_AUCTION_RESULT",
+                        new String[] {
+                                "false",
+                                "Cập nhật sản phẩm thất bại."
+                        }));
+                return;
+            }
+
+            // =========================================================
+            // 6. LẤY LẠI DỮ LIỆU MỚI NHẤT TỪ DATABASE
+            // =========================================================
+            Auction updatedAuction =
+                    auctionRepository.findById(auction.getId());
+
+            /*
+             * Báo cho admin rằng có sản phẩm cần duyệt lại.
+             * Admin đang mở màn hình có thể nhận sản phẩm ngay lập tức.
+             */
+            if (updatedAuction != null) {
+                server.broadcastToAdmins(
+                        new Message(
+                                "NEW_PENDING_AUCTION_ALERT",
+                                updatedAuction));
+            }
+
+            sendToClient(new Message(
+                    "CREATE_AUCTION_RESULT",
+                    new String[] {
+                            "true",
+                            "Cập nhật thành công. "
+                                    + "Sản phẩm đã được gửi lại cho admin duyệt."
+                    }));
+
+        } catch (Exception e) {
+            logger.error(
+                    "SERVER LỖI: Cập nhật sản phẩm thất bại",
+                    e);
+
+            sendToClient(new Message(
+                    "CREATE_AUCTION_RESULT",
+                    new String[] {
+                            "false",
+                            "Lỗi server khi cập nhật sản phẩm."
+                    }));
+        }
+    }
+
+    private void saveUploadedImagesForItem(Items item, Map<String, byte[]> imageDataMap)
+            throws IOException {
+        if (imageDataMap == null || imageDataMap.isEmpty()) {
+            return;
+        }
+
+        File dir = new File(IMAGE_DIR);
+        if (!dir.exists())
+            dir.mkdirs();
+
+        for (Map.Entry<String, byte[]> entry : imageDataMap.entrySet()) {
+            String fileName = entry.getKey();
+            if (!isValidImageFileName(fileName)) {
+                logger.warn("SERVER SECURITY: Tu choi file anh khong hop le khi cap nhat: {}",
+                        fileName);
+                continue;
+            }
+
+            File imageFile = new File(IMAGE_DIR + fileName);
+            try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+                fos.write(entry.getValue());
+            }
+            item.addImage(new ItemImage(UUID.randomUUID().toString(), fileName, item.getId()));
+        }
+    }
+
+    private boolean updateAuctionForEdit(Auction auction) {
+        String sql =
+                "UPDATE auctions "
+                        + "SET starting_price = ?, "
+                        + "highest_bid = ?, "
+                        + "start_time = ?, "
+                        + "end_time = ?, "
+                        + "status = 'PENDING', "
+                        + "approved_by = NULL "
+                        + "WHERE id = ? "
+                        + "AND status IN ('PENDING', 'UP_COMING')";
+
+        try (Connection conn =
+                     DatabaseConnection.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, auction.getStartingPrice());
+
+            // Chưa bắt đầu đấu giá nên highestBid trở về giá khởi điểm mới.
+            pstmt.setLong(2, auction.getStartingPrice());
+
+            pstmt.setString(
+                    3,
+                    auction.getStartTime() != null
+                            ? auction.getStartTime().format(DB_FORMATTER)
+                            : null);
+
+            pstmt.setString(
+                    4,
+                    auction.getEndTime() != null
+                            ? auction.getEndTime().format(DB_FORMATTER)
+                            : null);
+
+            pstmt.setString(5, auction.getId());
+
+            return pstmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            logger.error(
+                    "Lỗi cập nhật phiên đấu giá {} và chuyển về trạng thái PENDING",
+                    auction.getId(),
+                    e);
+            return false;
+        }
+    }
+
+    private boolean isEditableAuctionStatus(AuctionStatus status) {
+        return status == AuctionStatus.PENDING || status == AuctionStatus.UP_COMING;
+    }
+
     private boolean isValidImageFileName(String fileName) {
         if (fileName == null || fileName.isBlank())
             return false;
@@ -1016,7 +1258,9 @@ public class ClientHandler implements Runnable {
     private void handleGetLiveAuctions() {
         // Gọi DB lấy các phiên có status = PENDING hoặc OPEN
         List<Auction> liveList = auctionRepository.findLiveAuctions();
+        int totalBids = bidRepository.getTotalBidsCount();
         sendToClient(new Message("LIVE_AUCTIONS_RESULT", liveList));
+        sendToClient(new Message("TOTAL_BIDS_RESULT", totalBids));
     }
     private void handleForceCancelAuction(Message msg) {
         if (!isAdminClient()) return; // Bảo mật: chặn user thường

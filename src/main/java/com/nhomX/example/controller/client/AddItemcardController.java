@@ -21,12 +21,15 @@ import com.nhomX.example.factory.ItemFactory;
 import com.nhomX.example.manager.SessionManager;
 import com.nhomX.example.model.Auction;
 import com.nhomX.example.model.AuctionStatus;
+import com.nhomX.example.model.ItemImage;
 import com.nhomX.example.model.Items;
 import com.nhomX.example.model.RegularUser;
 import com.nhomX.example.networking.AuctionClient;
+import com.nhomX.example.networking.Message;
 import com.nhomX.example.networking.ServerEventListener;
 import com.nhomX.example.utils.AlertUtils;
 import com.nhomX.example.utils.CurrencyFormatter;
+import com.nhomX.example.utils.ImageLoader;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -95,9 +98,16 @@ public class AddItemcardController implements Initializable, ServerEventListener
 
     // Thêm một biến cờ (flag) để kiểm soát sự kiện gõ phím
     private boolean isFormattingPrice = false;
+    private boolean isEditMode = false;
+    private String editingItemId = null;
+    private String editingAuctionId = null;
+    private Auction editingAuction = null;
+    private Items pendingUpdatedItem = null;
+    private Auction pendingUpdatedAuction = null;
 
     // Danh sách lưu trữ đường dẫn các ảnh đã tải lên
     private final List<String> uploadedImagePaths = new ArrayList<>();
+    private final List<String> existingImagePaths = new ArrayList<>();
 
     // =========================================================================
     // 2. PHƯƠNG THỨC KHỞI TẠO (Chạy tự động khi load FXML)
@@ -116,9 +126,47 @@ public class AddItemcardController implements Initializable, ServerEventListener
     }
 
     /**
-     * Khởi tạo dữ liệu cho ComboBox Danh mục. Lý do: Cố định các lựa chọn để dữ liệu lưu vào
-     * Database được đồng nhất (tránh người dùng gõ sai chính tả).
+     * Nạp dữ liệu phiên hiện tại vào form sửa sản phẩm.
      */
+    public void initForEdit(Auction auction) {
+        if (auction == null || auction.getItem() == null) {
+            return;
+        }
+
+        this.isEditMode = true;
+        this.editingAuction = auction;
+        this.editingAuctionId = auction.getId();
+        this.editingItemId = auction.getItem().getId();
+
+        txtProductName.setText(auction.getItem().getTitle());
+        txtProductDescription.setText(auction.getItem().getDescription());
+        cbCategory.setValue(auction.getItem().getCategory());
+        txtStartPrice.setText(CurrencyFormatter.formatNumber(auction.getStartingPrice()));
+
+        if (auction.getStartTime() != null) {
+            dpStartDate.setValue(auction.getStartTime().toLocalDate());
+            spStartHour.getValueFactory().setValue(auction.getStartTime().getHour());
+            spStartMin.getValueFactory().setValue(auction.getStartTime().getMinute());
+        }
+        if (auction.getEndTime() != null) {
+            dpEndDate.setValue(auction.getEndTime().toLocalDate());
+            spEndHour.getValueFactory().setValue(auction.getEndTime().getHour());
+            spEndMin.getValueFactory().setValue(auction.getEndTime().getMinute());
+        }
+
+        imageFlowPane.getChildren().clear();
+        existingImagePaths.clear();
+        if (auction.getItem().getImages() != null) {
+            for (ItemImage image : auction.getItem().getImages()) {
+                if (image.getImagePath() != null && !image.getImagePath().trim().isEmpty()) {
+                    addExistingImageThumbnail(image.getImagePath().trim());
+                }
+            }
+        }
+
+        btnSubmit.setText("Cập nhật sản phẩm");
+    }
+
     private void setupCategoryComboBox() {
         ObservableList<String> categories =
                 FXCollections.observableArrayList("ELECTRONICS", "JEWELRY", "ART", "GENERALITEM");
@@ -204,7 +252,7 @@ public class AddItemcardController implements Initializable, ServerEventListener
      */
     @FXML
     private void handleAddImage(ActionEvent event) {
-        int remaining = MAX_IMAGES - uploadedImagePaths.size();
+        int remaining = MAX_IMAGES - currentImageCount();
         if (remaining <= 0) {
             AlertUtils.showWarning("Đã đủ ảnh",
                     "Bạn chỉ được tải lên tối đa " + MAX_IMAGES + " ảnh.");
@@ -247,9 +295,26 @@ public class AddItemcardController implements Initializable, ServerEventListener
         StackPane.setAlignment(btnRemove, javafx.geometry.Pos.TOP_RIGHT);
 
         // Khi bấm "✕", tìm đúng vị trí của wrapper trong FlowPane để xóa đồng bộ
-        btnRemove.setOnAction(e -> removeImage(wrapper));
+        btnRemove.setOnAction(e -> removeUploadedImage(wrapper, imageUri));
 
         imageFlowPane.getChildren().add(wrapper);
+    }
+
+    private void addExistingImageThumbnail(String fileName) {
+        existingImagePaths.add(fileName);
+
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(80);
+        imageView.setFitHeight(80);
+        imageView.setPreserveRatio(true);
+        imageView.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 4, 0, 0, 0);");
+        ImageLoader.loadAsync(fileName, imageView);
+
+        imageFlowPane.getChildren().add(new StackPane(imageView));
+    }
+
+    private int currentImageCount() {
+        return uploadedImagePaths.size() + existingImagePaths.size();
     }
 
     private Button buildRemoveButton() {
@@ -272,12 +337,9 @@ public class AddItemcardController implements Initializable, ServerEventListener
     /**
      * Xóa thumbnail và URI tương ứng ra khỏi danh sách.
      */
-    private void removeImage(StackPane wrapper) {
-        int index = imageFlowPane.getChildren().indexOf(wrapper);
-        if (index >= 0 && index < uploadedImagePaths.size()) {
-            uploadedImagePaths.remove(index);
-            imageFlowPane.getChildren().remove(wrapper);
-        }
+    private void removeUploadedImage(StackPane wrapper, String imageUri) {
+        uploadedImagePaths.remove(imageUri);
+        imageFlowPane.getChildren().remove(wrapper);
     }
 
     /**
@@ -291,8 +353,10 @@ public class AddItemcardController implements Initializable, ServerEventListener
         setSubmitLoading(true);
         try {
             Items newItem = buildItem();
-            Auction newAuction = buildAuction(newItem);
+            Auction newAuction = isEditMode ? buildAuctionForEdit(newItem) : buildAuction(newItem);
             Map<String, byte[]> imageDataMap = buildImageDataMap(newItem.getId());
+            pendingUpdatedItem = newItem;
+            pendingUpdatedAuction = newAuction;
 
             AuctionClient client = SessionManager.getInstance().getAuctionClient();
             if (client == null) {
@@ -301,7 +365,13 @@ public class AddItemcardController implements Initializable, ServerEventListener
                 return;
             }
 
-            client.requestCreateAuction(newItem, newAuction, imageDataMap);
+            if (isEditMode) {
+                Object[] payload = {newItem, newAuction, imageDataMap};
+                client.sendToServer(new Message("UPDATE_PRODUCT", client.getUsername(),
+                        newAuction.getId(), 0, payload));
+            } else {
+                client.requestCreateAuction(newItem, newAuction, imageDataMap);
+            }
 
         } catch (Exception e) {
             logger.error("ADD ITEM: Lỗi đóng gói dữ liệu", e);
@@ -311,13 +381,19 @@ public class AddItemcardController implements Initializable, ServerEventListener
     }
 
     private Items buildItem() {
-        String itemId = UUID.randomUUID().toString();
+        String itemId = isEditMode ? editingItemId : UUID.randomUUID().toString();
         String name = txtProductName.getText().trim();
         String category = cbCategory.getValue();
         String description = txtProductDescription.getText().trim();
         RegularUser seller = (RegularUser) SessionManager.getInstance().getCurrentUser();
 
-        return ItemFactory.createItem(category, itemId, name, description, seller);
+        Items item = ItemFactory.createItem(category, itemId, name, description, seller);
+        if (isEditMode) {
+            for (String imagePath : existingImagePaths) {
+                item.addImage(new ItemImage(UUID.randomUUID().toString(), imagePath, itemId));
+            }
+        }
+        return item;
     }
 
     private Auction buildAuction(Items item) {
@@ -334,14 +410,39 @@ public class AddItemcardController implements Initializable, ServerEventListener
     /**
      * Đọc từng file ảnh thành byte[], đặt tên file duy nhất có chứa UUID item.
      */
+    private Auction buildAuctionForEdit(Items item) {
+        long startPrice = parsedPrice();
+
+        LocalDateTime start =
+                buildLocalDateTime(dpStartDate, spStartHour, spStartMin);
+
+        LocalDateTime end =
+                buildLocalDateTime(dpEndDate, spEndHour, spEndMin);
+
+        Auction auction =
+                new Auction(editingAuctionId, item, start, end, startPrice);
+
+        /*
+         * Mọi nội dung được seller cập nhật đều phải được admin duyệt lại.
+         *
+         * Không giữ trạng thái UP_COMING cũ vì trạng thái đó chỉ có ý nghĩa
+         * đối với phiên bản sản phẩm đã được admin duyệt trước khi chỉnh sửa.
+         */
+        auction.setStatus(AuctionStatus.PENDING);
+        auction.setApprovedBy(null);
+
+        return auction;
+    }
+
     private Map<String, byte[]> buildImageDataMap(String itemId) throws Exception {
         Map<String, byte[]> imageDataMap = new LinkedHashMap<>();
         String shortId = itemId.substring(0, 8);
+        int startIndex = isEditMode ? existingImagePaths.size() : 0;
 
         for (int i = 0; i < uploadedImagePaths.size(); i++) {
             String uriPath = uploadedImagePaths.get(i);
             byte[] bytes = Files.readAllBytes(Paths.get(URI.create(uriPath)));
-            String fileName = "item_" + shortId + "_" + i + ".jpg";
+            String fileName = "item_" + shortId + "_" + (startIndex + i) + ".jpg";
             imageDataMap.put(fileName, bytes);
         }
         return imageDataMap;
@@ -396,7 +497,7 @@ public class AddItemcardController implements Initializable, ServerEventListener
         }
 
         // Kiểm tra có ít nhất 1 ảnh (Tùy chọn, tùy vào rule của em)
-        if (uploadedImagePaths.isEmpty()) {
+        if (currentImageCount() == 0) {
             AlertUtils.showError("Thiếu Ảnh", "Vui lòng tải lên ít nhất một ảnh sản phẩm.");
             return false;
         }
@@ -421,7 +522,11 @@ public class AddItemcardController implements Initializable, ServerEventListener
 
     private void setSubmitLoading(boolean isLoading) {
         btnSubmit.setDisable(isLoading);
-        btnSubmit.setText(isLoading ? "Đang tải lên..." : "Thêm sản phẩm");
+        if (isLoading) {
+            btnSubmit.setText(isEditMode ? "Đang cập nhật..." : "Đang tải lên...");
+        } else {
+            btnSubmit.setText(isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm");
+        }
     }
 
     /**
@@ -432,13 +537,43 @@ public class AddItemcardController implements Initializable, ServerEventListener
         stage.close();
     }
 
+    private void applyEditResultToCurrentAuction() {
+        if (!isEditMode
+                || editingAuction == null
+                || pendingUpdatedAuction == null
+                || pendingUpdatedItem == null) {
+            return;
+        }
+
+        editingAuction.setItem(pendingUpdatedItem);
+
+        editingAuction.setStartingPrice(
+                pendingUpdatedAuction.getStartingPrice());
+
+        editingAuction.setHighestBid(
+                pendingUpdatedAuction.getStartingPrice());
+
+        editingAuction.setStartTime(
+                pendingUpdatedAuction.getStartTime());
+
+        editingAuction.setEndTime(
+                pendingUpdatedAuction.getEndTime());
+
+        /*
+         * Sau khi chỉnh sửa phải hiển thị "CHỜ DUYỆT",
+         * không tiếp tục hiển thị "SẮP LÊN SÀN".
+         */
+        editingAuction.setStatus(AuctionStatus.PENDING);
+        editingAuction.setApprovedBy(null);
+    }
+
     @Override
     public void onCreateAuctionResult(boolean isSuccess, String message) {
         Platform.runLater(() -> {
-            btnSubmit.setDisable(false);
-            btnSubmit.setText("Thêm sản phẩm");
+            setSubmitLoading(false);
 
             if (isSuccess) {
+                applyEditResultToCurrentAuction();
                 AlertUtils.showSuccess("Thành công", message);
                 // Đóng cửa sổ (Tương đương gọi nút Cancel)
                 btnCancel.fire();

@@ -241,6 +241,14 @@ public class AuctionSessionController implements Initializable, ServerEventListe
 
     // Bắt tín hiệu Nhịp đập mỗi giây từ Server
     @Override
+    public void onTotalBidsReceived(int count) {
+        Platform.runLater(() -> {
+            this.totalBidsCounter = count;
+            totalBidsLabel.setText(vndFormat.format(count));
+        });
+    }
+
+    @Override
     public void onServerTick(String currentServerTimeStr) {
         Platform.runLater(() -> {
             LocalDateTime now = LocalDateTime.now(); // Hoặc parse thời gian Server gửi về
@@ -286,7 +294,7 @@ public class AuctionSessionController implements Initializable, ServerEventListe
     public void onHighestBidUpdated(String auctionId, long newAmount, String winnerName) {
         Platform.runLater(() -> {
             // Nhảy số lượt đặt giá
-            totalBidsCounter++;
+            this.totalBidsCounter++;
             totalBidsLabel.setText(vndFormat.format(totalBidsCounter));
 
             // Tìm phiên vừa được đặt giá trên RAM và cập nhật lại giá tiền + Tên người dẫn đầu

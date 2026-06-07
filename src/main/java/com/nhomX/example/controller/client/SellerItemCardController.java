@@ -19,10 +19,16 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class SellerItemCardController {
@@ -58,6 +64,12 @@ public class SellerItemCardController {
     private Label lblTimeValue1;
     // [THÊM MỚI] Biến Callback để bấm chuông gọi Controller Cha
     private Runnable onStatusChangeCallback;
+
+    @FXML
+    private void initialize() {
+        btnEdit.setOnAction(this::handleEditAction);
+        btnDelete.setOnAction(this::handleDeleteAction);
+    }
 
     public void setOnStatusChangeCallback(Runnable callback) {
         this.onStatusChangeCallback = callback;
@@ -264,8 +276,34 @@ public class SellerItemCardController {
     // ==========================================
     @FXML
     private void handleEditAction(ActionEvent event) {
-        logger.info("Sửa sản phẩm: {}", currentAuction.getId());
-        // Gọi SceneSwitcher chuyển sang form cập nhật sản phẩm
+        if (currentAuction == null) {
+            AlertUtils.showError("Loi", "Khong tim thay san pham can sua.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/nhomX/example/fxml/client/AddItemcard.fxml"));
+            Parent root = loader.load();
+
+            AddItemcardController controller = loader.getController();
+            controller.initForEdit(currentAuction);
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Sua san pham - " + currentAuction.getItem().getTitle());
+            popupStage.setScene(new Scene(root));
+            popupStage.setResizable(false);
+            popupStage.initModality(Modality.WINDOW_MODAL);
+            popupStage.initOwner(((Node) event.getSource()).getScene().getWindow());
+            popupStage.showAndWait();
+
+            if (onStatusChangeCallback != null) {
+                onStatusChangeCallback.run();
+            }
+        } catch (Exception e) {
+            logger.error("Loi khi mo popup sua san pham", e);
+            AlertUtils.showError("Loi", "Khong the mo popup sua san pham.");
+        }
     }
 
     @FXML

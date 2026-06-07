@@ -223,9 +223,13 @@ public class AuctionClient {
                 AuctionManager.getInstance().updateAuctionPrice(msg.getAuctionId(), msg.getAmount(),
                         null, msg.getUsername());
                 runOnUiThread(() -> {
+                    listeners.forEach(currentListener -> currentListener.onHighestBidUpdated(
+                            msg.getAuctionId(), msg.getAmount(), msg.getUsername()));
                     if (listener != null) {
-                        listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(),
-                                msg.getUsername());
+                        if (!listeners.contains(listener)) {
+                            listener.onHighestBidUpdated(msg.getAuctionId(), msg.getAmount(),
+                                    msg.getUsername());
+                        }
                     }
                 });
                 break;
@@ -565,6 +569,19 @@ public class AuctionClient {
                     }
                     if (listener != null && !listeners.contains(listener)) {
                         listener.onServerTick(serverTime);
+                    }
+                });
+                break;
+
+            case "TOTAL_BIDS_RESULT":
+                int totalBids = ((Number) msg.getData()).intValue();
+                runOnUiThread(() -> {
+                    if (listeners != null && !listeners.isEmpty()) {
+                        listeners.forEach(
+                                currentListener -> currentListener.onTotalBidsReceived(totalBids));
+                    }
+                    if (listener != null && !listeners.contains(listener)) {
+                        listener.onTotalBidsReceived(totalBids);
                     }
                 });
                 break;

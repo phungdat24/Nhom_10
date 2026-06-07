@@ -107,6 +107,23 @@ public class BidRepositoryImpl implements BidRepository {
   }
 
   @Override
+  public int getTotalBidsCount() {
+    String sql = "SELECT COUNT(*) FROM bids";
+
+    try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        ResultSet rs = pstmt.executeQuery()) {
+
+      if (rs.next()) {
+        return rs.getInt(1);
+      }
+    } catch (SQLException e) {
+      logger.error("Loi dem tong so bid", e);
+    }
+    return 0;
+  }
+
+  @Override
   public boolean executeBidTransaction(String userId, String auctionId, long bidAmount,
       String bidId) {
 
